@@ -1,0 +1,109 @@
+{
+ "code": "043650",
+ "name": "국순당",
+ "market": "KOSDAQ",
+ "as_of": "2026-07-24",
+ "source": "엑셀 수기 입력",
+ "unit": "억원",
+ "fundamentals": {
+  "per": 8.704,
+  "pbr": 0.238,
+  "roe": 0.02661,
+  "debt_ratio": 0.08041,
+  "market_cap_eok": 639.33,
+  "op_margin": 0.0020265
+ },
+ "price": {
+  "close": null,
+  "r1m": 0.053,
+  "r3m": -0.123
+ },
+ "quarters": [
+  {
+   "period": "2026.1Q",
+   "revenue": 174.62,
+   "op_income": 0.353874,
+   "net_income": 10.68,
+   "op_margin": 0.0020265
+  },
+  {
+   "period": "2025.4Q",
+   "revenue": 146.13,
+   "op_income": -11.9065,
+   "net_income": -8.03,
+   "op_margin": -0.0814788
+  },
+  {
+   "period": "2025.3Q",
+   "revenue": 187.59,
+   "op_income": 1.967892,
+   "net_income": 31.83,
+   "op_margin": 0.0104903
+  },
+  {
+   "period": "2025.2Q",
+   "revenue": 169.23,
+   "op_income": 0.606832,
+   "net_income": 23.48,
+   "op_margin": 0.0035859
+  },
+  {
+   "period": "2025.1Q",
+   "revenue": 172.04,
+   "op_income": 1.012898,
+   "net_income": 14.764767,
+   "op_margin": 0.0058875
+  }
+ ],
+ "news": [
+  {
+   "date": "2026-07-24",
+   "title": "전통주문화플랫폼 약현과 지역상생",
+   "source": "이투데이",
+   "impact": "중립",
+   "summary": "전통주 교육과 지역사회 협업은 브랜드 이미지에 긍정적이지만 단기 실적 영향은 제한적입니다.",
+   "url": "https://www.etoday.co.kr/news/view/2607132"
+  },
+  {
+   "date": "2026-07-09",
+   "title": "백세주 온더락 세트 1만개 한정 출시",
+   "source": "이투데이",
+   "impact": "긍정",
+   "summary": "계절형 상품과 새로운 음용법 확산은 백세주 브랜드 활성화에 긍정적입니다.",
+   "url": "https://www.etoday.co.kr/news/view/2601915"
+  },
+  {
+   "date": "2026-06-25",
+   "title": "공매도 과열종목 지정",
+   "source": "한국거래소",
+   "impact": "주의",
+   "summary": "기업가치와 별개로 단기 수급 변동성이 확대된 구간이므로 추격 매수에 주의가 필요합니다.",
+   "url": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260625000900&docno=&method=search&viewerhost="
+  },
+  {
+   "date": "2026-05-19",
+   "title": "자립준비청년 양조교육 지원",
+   "source": "매일경제",
+   "impact": "중립",
+   "summary": "양조교육과 직무 체험을 제공하는 ESG 활동으로 투자수익의 직접 요인보다는 보조 정보입니다.",
+   "url": "https://www.mk.co.kr/news/business/12052031"
+  },
+  {
+   "date": "2026-05-15",
+   "title": "2026년 1분기 소폭 영업흑자",
+   "source": "한국거래소",
+   "impact": "중립",
+   "summary": "매출 174.62억원, 영업이익 0.35억원으로 흑자 전환했지만 영업이익률은 0.2%로 낮습니다.",
+   "url": "https://kind.krx.co.kr/common/disclsviewer.do?acptno=20260515001871&docno=&method=search&viewerhost="
+  },
+  {
+   "date": "2026-03-09",
+   "title": "2025년 영업손실 축소·순이익 증가",
+   "source": "국순당 공시",
+   "impact": "주의",
+   "summary": "영업손실은 8.32억원으로 축소됐지만 순이익 증가는 투자자산 평가이익 등 영업외손익 영향이 큽니다.",
+   "url": "https://cartech.nate.com/content/2174177"
+  }
+ ],
+ "history": []
+}
