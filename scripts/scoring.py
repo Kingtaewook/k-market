@@ -14,15 +14,16 @@ def momentum(r1, r3):
 
 
 def verdict(score):
-    if score >= 75:
-        return "높은 관심"
-    if score >= 60:
-        return "관심"
+    """관심도는 코스피 대비 상대 점수이므로 '시장보다 강한지'로 표현합니다."""
+    if score >= 70:
+        return "시장 압도"
+    if score >= 58:
+        return "시장보다 강함"
     if score >= 45:
-        return "중립"
-    if score >= 30:
-        return "주의"
-    return "약세"
+        return "시장 수준"
+    if score >= 33:
+        return "시장보다 약함"
+    return "크게 약함"
 
 
 def _avg(xs):

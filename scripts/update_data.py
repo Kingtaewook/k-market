@@ -35,12 +35,15 @@ UA = {
 SESSION = requests.Session()
 SESSION.headers.update(UA)
 
-POSITIVE = ["수주", "흑자", "최대", "신고가", "급등", "상승", "계약", "호실적", "성장", "증가", "개선",
-            "승인", "선정", "협력", "강세", "상향", "돌파", "수혜"]
-CAUTION = ["적자", "하락", "급락", "소송", "과열", "유상증자", "감소", "리콜", "부진", "약세", "하향",
-           "손실", "우려", "제재", "횡령", "배임", "불성실", "투자주의", "경고", "매도"]
-
-
+# 제목 키워드 가중치 (클수록 강한 신호). 참고용 자동 분류입니다.
+POS = {"흑자전환": 3, "어닝 서프라이즈": 3, "어닝서프라이즈": 3, "사상 최대": 3, "역대 최대": 3, "최대 실적": 3, "상한가": 3,
+       "공급계약": 3, "수주": 2.5, "목표가 상향": 3, "목표주가 상향": 3, "신고가": 2, "급등": 2, "호실적": 2, "승인": 1.5,
+       "자사주 매입": 2, "자사주 소각": 2.5, "배당 확대": 2, "증익": 2, "실적 개선": 2, "턴어라운드": 2, "수혜": 1.5,
+       "강세": 1, "상승": 1, "증가": 0.7, "개선": 1, "기대": 0.7, "선정": 1, "돌파": 1, "순매수": 1}
+NEG = {"적자전환": 3, "어닝 쇼크": 3, "어닝쇼크": 3, "하한가": 3, "거래정지": 3, "상장폐지": 3, "감사의견": 3, "횡령": 3,
+       "배임": 3, "압수수색": 3, "목표가 하향": 3, "목표주가 하향": 3, "목표가 낮": 2.5, "유상증자": 2.5, "전환사채": 1.5,
+       "소송": 2, "리콜": 2, "급락": 2, "신저가": 2, "적자": 2, "손실": 1.5, "불성실": 2.5, "제재": 2, "과징금": 2,
+       "하락": 1, "약세": 1, "감소": 0.7, "부진": 1.2, "우려": 1, "둔화": 1, "순매도": 1, "매도": 0.7, "공매도": 1}
 # ---------------------------------------------------------------- 공통 유틸
 def load(path: Path, default):
     try:
@@ -98,13 +101,28 @@ def eok(v):
 
 
 def classify(title: str) -> str:
-    p = sum(k in title for k in POSITIVE)
-    n = sum(k in title for k in CAUTION)
-    if n > p:
+    t = title.replace("‘", "'").replace("’", "'")
+    p = sum(w for k, w in POS.items() if k in t)
+    n = sum(w for k, w in NEG.items() if k in t)
+    if n - p >= 1:
         return "주의"
-    if p > n:
+    if p - n >= 1:
         return "긍정"
     return "중립"
+
+
+def aliases(name: str):
+    """종목명 별칭: '한화에어로스페이스' → 한화에어로스페이스, 한화에어로 / 'SK하이닉스' → 하이닉스 / 삼성전자 → 삼전."""
+    a = {name, name.replace(" ", "")}
+    base = re.sub(r"(우|우B|\(.*\)|홀딩스|지주)$", "", name)
+    a.add(base)
+    for p in ("SK", "LG", "HD", "CJ", "GS", "LS", "KT", "DL", "HL"):
+        if base.startswith(p) and len(base) > len(p) + 1:
+            a.add(base[len(p):])
+    extra = {"삼성전자": ["삼전"], "SK하이닉스": ["하이닉스", "닉스"], "현대자동차": ["현대차"], "LG에너지솔루션": ["LG엔솔", "엔솔"],
+             "한국항공우주": ["KAI", "카이"], "한화에어로스페이스": ["한화에어로"], "에코프로비엠": ["에코프로"], "삼성바이오로직스": ["삼성바이오"]}
+    a.update(extra.get(name, []))
+    return [x for x in a if len(x) >= 2]
 
 
 def walk(obj):
@@ -197,9 +215,18 @@ def fundamentals_mobile(code):
             f["pbr"] = num(val)
         elif c == "marketValue":
             f["market_cap_eok"] = eok(val)
+        elif c == "cnsPer":
+            f["cns_per"] = num(val)
+        elif c == "cnsEps":
+            f["cns_eps"] = num(val)
         elif c == "dividendYieldRatio":
             f["dividend_yield"] = (num(val) or 0) / 100 if num(val) is not None else None
 
+    for d in walk(j):
+        if "priceTargetMean" in d or "recommMean" in d:
+            f["target"] = num(d.get("priceTargetMean"))
+            f["recomm"] = num(d.get("recommMean"))
+            break
     quarters = []
     j = get(f"https://m.stock.naver.com/api/stock/{code}/finance/quarter").json()
     info = next((d for d in walk(j) if "rowList" in d and "trTitleList" in d), None)
@@ -278,28 +305,88 @@ def clean(s):
     return html.unescape(re.sub(r"<[^>]+>", "", s or "")).strip()
 
 
-def news(code, n=6):
+def news(code, n=6, name=None):
+    """종목 뉴스. 제목·요약에 종목명(별칭)이 들어간 기사만 남기고, 같은 제목은 하나로."""
     items = []
     try:
-        j = get(f"https://m.stock.naver.com/api/news/stock/{code}?pageSize={n}&page=1").json()
+        j = get(f"https://m.stock.naver.com/api/news/stock/{code}?pageSize=20&page=1").json()
         for d in walk(j):
             if "title" in d and ("articleId" in d or "aid" in d):
                 oid, aid = d.get("officeId") or d.get("oid"), d.get("articleId") or d.get("aid")
                 raw = str(d.get("datetime") or d.get("dt") or "")
                 date = f"{raw[:4]}-{raw[4:6]}-{raw[6:8]}" if len(raw) >= 8 else None
-                title = clean(d["title"])
-                items.append({"date": date, "title": title, "source": d.get("officeName", ""),
-                              "summary": clean(d.get("body", ""))[:140],
-                              "url": f"https://n.news.naver.com/mnews/article/{oid}/{aid}",
+                title = clean(d.get("titleFull") or d["title"])
+                items.append({"date": date, "time": f"{raw[8:10]}:{raw[10:12]}" if len(raw) >= 12 else None,
+                              "title": title, "source": d.get("officeName", ""),
+                              "summary": clean(d.get("body", ""))[:160],
+                              "url": d.get("mobileNewsUrl") or f"https://n.news.naver.com/mnews/article/{oid}/{aid}",
                               "impact": classify(title), "auto": True})
     except Exception as e:
         print(f"  [뉴스] 실패 {code}: {e}")
+    if name:
+        al = aliases(name)
+        rel = [it for it in items if any(a in it["title"] for a in al)]
+        rel += [it for it in items if it not in rel and any(a in it["summary"][:80] for a in al)]
+        items = rel
     seen, out = set(), []
     for it in items:
-        if it["title"] not in seen:
-            seen.add(it["title"])
+        key = re.sub(r"[^가-힣A-Za-z0-9]", "", it["title"])[:18]
+        if key not in seen:
+            seen.add(key)
             out.append(it)
+    out.sort(key=lambda x: (x["date"] or "", x["time"] or ""), reverse=True)
     return out[:n]
+
+
+def flows(code, days=20):
+    """투자자별 순매수 (외국인·기관·개인, 주 단위 수량)."""
+    j = get(f"https://m.stock.naver.com/api/stock/{code}/trend?pageSize={days}").json()
+    out = []
+    for d in j if isinstance(j, list) else []:
+        b = str(d.get("bizdate", ""))
+        out.append([f"{b[:4]}-{b[4:6]}-{b[6:8]}", num(d.get("foreignerPureBuyQuant")), num(d.get("organPureBuyQuant")),
+                    num(d.get("individualPureBuyQuant")), num(d.get("closePrice")),
+                    (num(d.get("foreignerHoldRatio")) or 0) / 100 if d.get("foreignerHoldRatio") else None])
+    return sorted(out)
+
+
+def disclosures(code, n=6):
+    j = get(f"https://m.stock.naver.com/api/stock/{code}/disclosure?page=1&pageSize={n}").json()
+    return [{"date": str(d.get("datetime", ""))[:10], "title": clean(d.get("title", "")), "id": d.get("disclosureId")}
+            for d in (j if isinstance(j, list) else [])]
+
+
+def fetch_groups(kind):
+    """네이버 테마(theme)·업종(industry) 목록과 소속 종목. [{no, name, chg, rise, fall, total, codes}]"""
+    groups, page = [], 1
+    while page < 20:
+        j = get(f"https://m.stock.naver.com/api/stocks/{kind}?page={page}&pageSize=100").json()
+        g = j.get("groups") or []
+        groups += [{"no": x["no"], "name": x["name"], "chg": (num(x.get("changeRate")) or 0) / 100,
+                    "rise": x.get("riseCount"), "fall": x.get("fallCount"), "total": x.get("totalCount")} for x in g]
+        if len(groups) >= (j.get("totalCount") or 0) or not g:
+            break
+        page += 1
+    from concurrent.futures import ThreadPoolExecutor
+
+    def members(gr):
+        codes, p = [], 1
+        try:
+            while p < 10:
+                j = get(f"https://m.stock.naver.com/api/stocks/{kind}/{gr['no']}?page={p}&pageSize=100").json()
+                st = j.get("stocks") or []
+                codes += [str(x.get("itemCode") or x.get("reutersCode") or "")[:6] for x in st]
+                if not st or len(codes) >= (j.get("totalCount") or 0):
+                    break
+                p += 1
+        except Exception as e:
+            print(f"  [{kind}] {gr['name']} 소속 종목 실패: {e}")
+        gr["codes"] = [c for c in codes if c.isdigit()]
+        return gr
+
+    with ThreadPoolExecutor(6) as ex:
+        groups = list(ex.map(members, groups))
+    return groups
 
 
 # ---------------------------------------------------------------- 전 종목 목록·시세
@@ -492,6 +579,23 @@ def main():
     listing, snap = load_listing()
     lmap = {r[1]: r for r in listing}
 
+    # ---- 네이버 테마·업종 (오후 실행): 주도 테마 자동 발굴 + 종목 업종
+    if not morning:
+        try:
+            gt, gi = fetch_groups("theme"), fetch_groups("industry")
+            if gt and gi:
+                save(DATA / "groups.json", {"as_of": today, "themes": gt, "industries": gi}, compact=True)
+                ind = {}
+                for g in gi:
+                    for c in g["codes"]:
+                        ind.setdefault(c, g["name"])
+                for r in listing:
+                    r[3] = ind.get(r[1], r[3])
+                save(DATA / "stocks.json", listing, compact=True)
+                print(f"테마 {len(gt)}개, 업종 {len(gi)}개")
+        except Exception as e:
+            failures.append({"code": "*", "step": "테마·업종", "error": str(e)[:200]})
+
     kospi, kospi_chg = prev.get("kospi"), None
     try:
         krows = history("KOSPI")
@@ -568,7 +672,16 @@ def main():
                 merge_fund(comp, f, qs, src)
             except Exception as e:
                 failures.append({"code": code, "name": meta["name"], "step": "재무", "error": str(e)[:200]})
-        nw = news(code)
+        nw = news(code, name=meta["name"])
+        try:
+            comp["disclosures"] = disclosures(code)
+        except Exception as e:
+            print(f"  [공시] 실패 {code}: {e}")
+        if not morning:
+            try:
+                comp["flows"] = flows(code)
+            except Exception as e:
+                failures.append({"code": code, "name": meta["name"], "step": "수급", "error": str(e)[:200]})
         if nw:
             comp["news"] = nw
             if meta["theme"]:

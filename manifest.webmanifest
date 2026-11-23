@@ -1,0 +1,15 @@
+{
+  "name": "K-Market Intelligence",
+  "short_name": "K-Market",
+  "description": "국내 주식 테마·수급·기업분석과 내 투자 일지",
+  "start_url": "./#/",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f5f8",
+  "theme_color": "#5b4bdb",
+  "lang": "ko",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
