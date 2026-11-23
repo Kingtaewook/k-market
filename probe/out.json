@@ -1,109 +1,22 @@
 {
- "trend": {
+ "theme_505": {
   "status": 200,
-  "len": 1037,
-  "head": "[{\"itemCode\":\"005930\",\"bizdate\":\"20261123\",\"foreignerPureBuyQuant\":\"-45,179\",\"foreignerHoldRatio\":\"45.85%\",\"organPureBuyQuant\":\"+661,271\",\"individualPureBuyQuant\":\"-673,869\",\"closePrice\":\"180,600\",\"compareToPreviousClosePrice\":\"-2,500\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"},\"accumulatedTradingVolume\":\"19,550,322\"},{\"itemCode\":\"005930\",\"bizdate\":\"20261120\",\"foreignerPureBuyQuant\":\"-2,299,994\",\"foreignerHoldRatio\":\"45.85%\",\"organPureBuyQuant\":\"-1,915,397\",\"individualPureBuyQuant\":\"+4,051,865\",\"closePrice\":\"180,900\",\"compareToPreviousClosePrice\":\"-16,000\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"},\"accumulatedTradingVolume\":\"17,713,847\"},{\"itemCode\":\"005930\",\"bizdate\":\"20261119\",\"foreignerPureBuyQuant\":\"-561,332\",\"foreignerHoldRatio\":\"45.90%\",\"organPureBuyQuant\":\"-186,318\",\"individualPureBuyQuant\":\"+735,721\",\"closePrice\":\"197,400\",\"compareToPreviousClosePrice\":\"2,700\",\"compareToPreviousPrice\":{\"code\":\"2\",\"text\":\"상승\",\"name\":\"RISING\"},\"accumulatedTradingVolume\":\"12,836,690\"}]"
+  "len": 17520,
+  "head": "{\"stockListSortType\":\"THEME\",\"stocks\":[{\"stockType\":\"domestic\",\"stockEndType\":\"stock\",\"itemCode\":\"090710\",\"reutersCode\":\"090710\",\"stockName\":\"휴림로봇\",\"sosok\":\"1\",\"closePrice\":\"5,720\",\"compareToPreviousClosePrice\":\"1,320\",\"compareToPreviousPrice\":{\"code\":\"1\",\"text\":\"상한\",\"name\":\"UPPER_LIMIT\"},\"fluctuationsRatio\":\"30.00\",\"accumulatedTradingVolume\":\"10,323,666\",\"accumulatedTradingValue\":\"56,352\",\"localTradedAt\":\"2026-11-23T20:20:20+09:00\",\"marketValue\":\"6,861\",\"nav\":\"N/A\",\"threeMonthEarningRate\":\"N/A\",\"marketStatus\":\"CLOSE\",\"tradeStopType\":{\"code\":\"1\",\"text\":\"운영.Trading\",\"name\":\"TRADING\"},\"tradableStatus\":\"tradable\",\"tradableStatusCode\":\"ok\",\"tradableStatusUpdatedAt\":\"2026-11-23T08:02:12.311+09:00\",\"stockExchangeType\":{\"code\":\"KQ\",\"zoneId\":\"Asia/Seoul\",\"nationType\":\"KOR\",\"delayTime\":0,\"startTime\":\"0900\",\"endTime\":\"1530\",\"closePriceSendTime\":\"1630\",\"nameKor\":\"코스닥\",\"nameEng\":\"KOSDAQ\",\"stockType\":\"domestic\",\"nationCode\":\"KOR\",\"nationName\":\"대한민국\",\"name\":\"KOSDAQ\"},\"endUrl\":\"https://m.stock.naver.com/domestic/stock/090710\",\"newPcUrl\":\"https://stock.naver.com/domestic/stock/090710\",\"stockMiniImageChart\":\"https://financial-vn.pstatic.net/chart/mobile/mini/krx/090710_interest.png\",\"closePriceRaw\":\"5720\",\"compareToPreviousClosePriceRaw\":\"1320\",\"accumulatedTradingVolumeRaw\":\"10323666\",\"accumulatedTradingValueRaw\":\"56352000000\",\"marketValueRaw\":\"686086149320\"},{\"stockType\":\"domestic\",\"stockEndType\":\"stock\",\"itemCode\":\"439960\",\"reutersCode\":\"439960\",\"stockName\":\"코스모로보틱스\",\"sosok\":\"1\",\"closePrice\":\"4,640\",\"compareToPreviousClosePrice\":\"1,070\",\"compareToPreviousPrice\":{\"code\":\"1\",\"text\":\"상한\",\"name\":\"UPPER_LIMIT\"},\"fluctuationsRatio\":\"29.97\",\"accumulatedTradingVolume\":\"7,431,924\",\"accumulatedTradingValue\":\"32,231\",\"localTradedAt\":\"2026-11-23T20:20:17+09:00\",\"marketValue\":\"1,506\",\"nav\":\"N/A\",\"threeMonthEarningRate\":\"N/A\",\"marketStatus\":\"CLOSE\",\"tradeStopType\":{\"code\":\"1\",\"text\":\"운영.Trading\",\"name\":\"TRADING\"},\"tradableStatus\":\"tradable\",\"tradableStatusCode\":\"ok\",\"tradableStatusUpdatedAt\":\"2026-11-23T08:02:50.964+09:00\",\"stockExchangeType\":{\"code\":\"KQ\",\"zoneId\":\"Asia/Seoul\",\"nationType\":\"KOR\",\"delayTime\":0,\"startTime\":\"0900\",\"endTime\":\"1530\",\"closePriceSendTime\":\"1630\",\"nameKor\":\"코스닥\",\"nameEng\":\"KOSDAQ\",\"stockType\":\"domestic\",\"nationCode\":\"KOR\",\"nationName\":\"대한민국\",\"name\":\"KOSDAQ\"},\"endUrl\":\"https://m.stock.naver.com/domestic/stock/439960\",\"newPcUrl\":\"https://stock.naver.com/domestic/stock/439960\",\"stockMiniImageChart\":\"https://financial-vn.pstatic.net/chart/mobile/mini/krx/439960_i"
  },
- "integration": {
+ "industry_282": {
+  "status": 200,
+  "len": 4187,
+  "head": "{\"stockListSortType\":\"INDUSTRY\",\"stocks\":[{\"stockType\":\"domestic\",\"stockEndType\":\"stock\",\"itemCode\":\"464080\",\"reutersCode\":\"464080\",\"stockName\":\"에스오에스랩\",\"sosok\":\"1\",\"closePrice\":\"7,630\",\"compareToPreviousClosePrice\":\"490\",\"compareToPreviousPrice\":{\"code\":\"2\",\"text\":\"상승\",\"name\":\"RISING\"},\"fluctuationsRatio\":\"6.86\",\"accumulatedTradingVolume\":\"177,648\",\"accumulatedTradingValue\":\"1,321\",\"localTradedAt\":\"2026-11-23T20:20:19+09:00\",\"marketValue\":\"1,374\",\"nav\":\"N/A\",\"threeMonthEarningRate\":\"N/A\",\"marketStatus\":\"CLOSE\",\"tradeStopType\":{\"code\":\"1\",\"text\":\"운영.Trading\",\"name\":\"TRADING\"},\"tradableStatus\":\"tradable\",\"tradableStatusCode\":\"ok\",\"tradableStatusUpdatedAt\":\"2026-11-23T08:02:55.729+09:00\",\"stockExchangeType\":{\"code\":\"KQ\",\"zoneId\":\"Asia/Seoul\",\"nationType\":\"KOR\",\"delayTime\":0,\"startTime\":\"0900\",\"endTime\":\"1530\",\"closePriceSendTime\":\"1630\",\"nameKor\":\"코스닥\",\"nameEng\":\"KOSDAQ\",\"stockType\":\"domestic\",\"nationCode\":\"KOR\",\"nationName\":\"대한민국\",\"name\":\"KOSDAQ\"},\"endUrl\":\"https://m.stock.naver.com/domestic/stock/464080\",\"newPcUrl\":\"https://stock.naver.com/domestic/stock/464080\",\"stockMiniImageChart\":\"https://financial-vn.pstatic.net/chart/mobile/mini/krx/464080_interest.png\",\"closePriceRaw\":\"7630\",\"compareToPreviousClosePriceRaw\":\"490\",\"accumulatedTradingVolumeRaw\":\"177648\",\"accumulatedTradingValueRaw\":\"1321000000\",\"marketValueRaw\":\"137443531470\"},{\"stockType\":\"domestic\",\"stockEndType\":\"stock\",\"itemCode\":\"127980\",\"reutersCode\":\"127980\",\"stockName\":\"화인써키트\",\"sosok\":\"1\",\"closePrice\":\"2,245\",\"compareToPreviousClosePrice\":\"115\",\"compareToPreviousPrice\":{\"code\":\"2\",\"text\":\"상승\",\"name\":\"RISING\"},\"fluctuationsRatio\":\"5.40\",\"accumulatedTradingVolume\":\"17,994\",\"accumulatedTradingValue\":\"37\",\"localTradedAt\":\"2026-11-23T20:20:21+09:00\",\"marketValue\":\"266\",\"nav\":\"N/A\",\"threeMonthEarningRate\":\"N/A\",\"marketStatus\":\"CLOSE\",\"tradeStopType\":{\"code\":\"1\",\"text\":\"운영.Trading\",\"name\":\"TRADING\"},\"tradableStatus\":\"tradable\",\"tradableStatusCode\":\"ok\",\"tradableStatusUpdatedAt\":\"2026-11-23T08:02:18.51+09:00\",\"stockExchangeType\":{\"code\":\"KQ\",\"zoneId\":\"Asia/Seoul\",\"nationType\":\"KOR\",\"delayTime\":0,\"startTime\":\"0900\",\"endTime\":\"1530\",\"closePriceSendTime\":\"1630\",\"nameKor\":\"코스닥\",\"nameEng\":\"KOSDAQ\",\"stockType\":\"domestic\",\"nationCode\":\"KOR\",\"nationName\":\"대한민국\",\"name\":\"KOSDAQ\"},\"endUrl\":\"https://m.stock.naver.com/domestic/stock/127980\",\"newPcUrl\":\"https://stock.naver.com/domestic/stock/127980\",\"stockMiniImageChart\":\"https://financial-vn.pstatic.net/chart/mobile/mini/krx/127980_interest.png\",\"closePriceRaw\":\"2"
+ },
+ "integration_tail": {
   "status": 200,
   "len": 8743,
-  "head": "{\"stockEndType\":\"stock\",\"itemCode\":\"005930\",\"reutersCode\":\"005930\",\"stockName\":\"삼성전자\",\"totalInfos\":[{\"code\":\"lastClosePrice\",\"key\":\"전일\",\"value\":\"183,100\"},{\"code\":\"openPrice\",\"key\":\"시가\",\"value\":\"174,000\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"}},{\"code\":\"highPrice\",\"key\":\"고가\",\"value\":\"181,100\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"}},{\"code\":\"lowPrice\",\"key\":\"저가\",\"value\":\"171,500\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"}},{\"code\":\"accumulatedTradingVolume\",\"key\":\"거래량\",\"value\":\"32,816,532\"},{\"code\":\"accumulatedTradingValue\",\"key\":\"대금\",\"value\":\"5조 7,799억\"},{\"code\":\"marketValue\",\"key\":\"시총\",\"value\":\"1,055조 8,379억\"},{\"code\":\"foreignRate\",\"key\":\"외인소진율\",\"value\":\"45.85%\"},{\"code\":\"highPriceOf52Weeks\",\"key\":\"52주 최고\",\"value\":\"380,000\"},{\"code\":\"lowPriceOf52Weeks\",\"key\":\"52주 최저\",\"value\":\"95,700\"},{\"code\":\"per\",\"key\":\"PER\",\"value\":\"5.68배\",\"valueDesc\":\"2026.09.\"},{\"code\":\"eps\",\"key\":\"EPS\",\"value\":\"31,809원\",\"valueDesc\":\"2026.09.\"},{\"code\":\"cnsPer\",\"key\":\"추정PER\",\"value\":\"3.96배\"},{\"code\":\"cnsEps\",\"key\":\"추정EPS\",\"value\":\"45,565원\"},{\"code\":\"pbr\",\"key\":\"PBR\",\"value\":\"1.94배\",\"valueDesc\":\"2026.09.\"},{\"code\":\"bps\",\"key\":\"BPS\",\"value\":\"92,903원\",\"valueDesc\":\"2026.09.\"},{\"code\":\"dividendYieldRatio\",\"key\":\"배당수익률\",\"value\":\"0.92%\",\"valueDesc\":\"2025.12.\"},{\"code\":\"dividend\",\"key\":\"주당배당금\",\"value\":\"1,668원\",\"valueDesc\":\"2025.12.\"}],\"iconInfos\":null,\"description\":null,\"etfKeyIndicator\":null,\"dealTrendInfos\":[{\"itemCode\":\"005930\",\"bizdate\":\"20261123\",\"foreignerPureBuyQuant\":\"-45,179\",\"foreignerHoldRatio\":\"45.85%\",\"organPureBuyQuant\":\"+661,271\",\"individualPureBuyQuant\":\"-673,869\",\"closePrice\":\"180,600\",\"compareToPreviousClosePrice\":\"-2,500\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"},\"accumulatedTradingVolume\":\"19,550,322\"},{\"itemCode\":\"005930\",\"bizdate\":\"20261120\",\"foreignerPureBuyQuant\":\"-2,299,994\",\"foreignerHoldRatio\":\"45.85%\",\"organPureBuyQuant\":\"-1,915,397\",\"individualPureBuyQuant\":\"+4,051,865\",\"closePrice\":\"180,900\",\"compareToPreviousClosePrice\":\"-16,000\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"},\"accumulatedTradingVolume\":\"17,713,847\"},{\"itemCode\":\"005930\",\"bizdate\":\"20261119\",\"foreignerPureBuyQuant\":\"-561,332\",\"foreignerHoldRatio\":\"45.90%\",\"organPureBuyQuant\":\"-186,318\",\"individualPureBuyQuant\":\"+735,721\",\"closePrice\":\"197,400\",\"compareToPreviousClosePrice\":\"2,700\",\"compareToPreviousPrice\":{\"code\":\"2\",\"text\":\"상승\",\"name\":\"RISING\"},\"accumulatedTradingVolume\":\""
+  "head": "https://stock.naver.com/domestic/stock/039030\"}],\"consensusInfo\":{\"itemCode\":\"005930\",\"createDate\":\"2026-11-20\",\"recommMean\":\"4.00\",\"priceTargetMean\":\"465,714\"},\"shareholdersMeetingInfo\":null,\"irScheduleInfo\":null} ||| \":\"005930\",\"nm\":\"삼성전자\",\"bnm\":\"DS투자증권\",\"tit\":\"3Q26 Re: 추정치 추가 상향\",\"rcnt\":\"29515\",\"wdt\":\"20261030\"}],\"industryCode\":\"278\",\"industryCompareInfo\":[{\"stockType\":\"domestic\",\"stockEndType\":\"stock\",\"itemCode\":\"000660\",\"reutersCode\":\"000660\",\"stockName\":\"SK하이닉스\",\"sosok\":\"0\",\"closePrice\":\"1,101,000\",\"compareToPreviousClosePrice\":\"-12,000\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"},\"f"
  },
- "news": {
+ "trend20": {
   "status": 200,
-  "len": 1682,
-  "head": "[{\"total\":1,\"items\":[{\"id\":\"0210002834908\",\"officeId\":\"021\",\"articleId\":\"0002834908\",\"officeName\":\"문화일보\",\"datetime\":\"202611232139\",\"type\":1,\"title\":\"“삼전닉스 이미 손절 늦어…2029년까지 기다려”\",\"body\":\"최근 AI 거품론 등으로 증시가 급락한 가운데 특히 삼성전자 30만 원 이상, SK하이닉스 200만 원 이상에 물린 투자자들은 장기전에 대비해야 한다는 전문가 조언이 나왔다. 이승조 다인인베스트먼트 대표는 최근 유튜브 채널 ‘김작가TV’에 출연해... \",\"photoType\":1,\"imageOriginLink\":\"https://imgnews.pstatic.net/image/origin/021/2026/11/23/2834908.jpg?type=nf220_150\",\"mobileNewsUrl\":\"https://n.news.naver.com/mnews/article/021/0002834908\",\"titleFull\":\"“삼전닉스 이미 손절 늦어…2029년까지 기다려”\"}]},{\"total\":8,\"items\":[{\"id\":\"0310001077687\",\"officeId\":\"031\",\"articleId\":\"0001077687\",\"officeName\":\"아이뉴스24\",\"datetime\":\"202611232124\",\"type\":1,\"title\":\"&quot;반도체 호시절도 내년까지&quot;…삼전닉스 목표가 잇따라 낮춘 IB들\",\"body\":\"글로벌 투자은행(IB)들이 삼성전자와 SK하이닉스의 목표주가를 잇달아 낮췄다. 신규 반도체 공장 가동으로 2028년부터는 공급 확대에 따른 메모리 가격 하락이 나타날 것이라는 전망이다. 23일 금융투자업계에 따르면 골드만삭스는 전일... \",\"photoType\":1,\"imageOriginLink\":\"https://imgnews.pstatic.net/image/origin/031/2026/11/23/1077687.jpg?type=nf220_150\",\"mobileNewsUrl\":\"https://n.news.naver.com/mnews/article/031/0001077687\",\"titleFull\":\"&quot;반도체 호시절도 내년까지&quot;…삼전닉스 목표가 잇따라 낮춘 IB들\"}]},{\"total\":1,\"items\":[{\"id\":\"0320003484571\",\"officeId\":\"032\",\"articleId\":\"0003484571\",\"officeName\":\"경향신문\",\"datetime\":\"202611232123\",\"type\":1,\"title\":\"코스피 4700 턱걸이\",\"body\":\"정부 대책 언급에 ‘블랙 먼데이’ 폭락은 막은 듯 코스피 지수가 23일 미국발 인공지능(AI) 거품론과 금리 인상 가능성에 짓눌려 3% 넘게 하락, 4700대 초반까지 후퇴했다. 증권시장안정펀드(증안펀드) 가동 준비조치가 ‘블랙 먼데이’... \",\"photoType\":1,\"imageOriginLink\":\"https://imgnews.pstatic.net/image/origin/032/2026/11/23/3484571.jpg?type=nf220_150\",\"mobileNewsUrl\":\"https://n.news.naver.com/mnews/article/032/0003484571\",\"titleFull\":\"코스피 4700 턱걸이\"}]}]"
- },
- "disclosure": {
-  "status": 200,
-  "len": 414,
-  "head": "[{\"itemCode\":\"005930\",\"disclosureId\":190534855,\"title\":\"삼성전자(주) 기업설명회(IR) 개최(안내공시)\",\"datetime\":\"2026-11-13T15:36:59\",\"author\":\"KOSCOM\"},{\"itemCode\":\"005930\",\"disclosureId\":182029604,\"title\":\"삼성전자(주) 주식선물ㆍ주식옵션 2단계 가격제한폭 확대요건 도달(하락)\",\"datetime\":\"2026-11-06T06:50:25\",\"author\":\"KOSCOM\"},{\"itemCode\":\"005930\",\"disclosureId\":171920191,\"title\":\"삼성전자(주) 기타 경영사항(자율공시)\",\"datetime\":\"2026-10-29T06:52:29\",\"author\":\"KOSCOM\"}]"
- },
- "theme_m": {
-  "status": 200,
-  "len": 702,
-  "head": "{\"stockListSortType\":\"THEME\",\"groups\":[{\"no\":505,\"name\":\"로봇(산업용/협동로봇 등)\",\"totalCount\":77,\"changeRate\":\"1.99\",\"riseCount\":43,\"fallCount\":30,\"steadyCount\":4},{\"no\":326,\"name\":\"3D 프린터\",\"totalCount\":11,\"changeRate\":\"1.96\",\"riseCount\":5,\"fallCount\":6,\"steadyCount\":0},{\"no\":559,\"name\":\"고체산화물 연료전지(SOFC)\",\"totalCount\":15,\"changeRate\":\"1.66\",\"riseCount\":6,\"fallCount\":9,\"steadyCount\":0},{\"no\":608,\"name\":\"반도체 기판(FC-BGA/PCB/MLB 등)\",\"totalCount\":14,\"changeRate\":\"1.30\",\"riseCount\":10,\"fallCount\":4,\"steadyCount\":0},{\"no\":585,\"name\":\"김밥(냉동김밥 등)\",\"totalCount\":6,\"changeRate\":\"1.06\",\"riseCount\":2,\"fallCount\":4,\"steadyCount\":0}],\"totalCount\":265,\"page\":1,\"pageSize\":5,\"localOpenTimeDesc\":\"\",\"marketStatus\":\"CLOSE\"}"
- },
- "industry_m": {
-  "status": 200,
-  "len": 671,
-  "head": "{\"stockListSortType\":\"INDUSTRY\",\"groups\":[{\"no\":282,\"name\":\"전자장비와기기\",\"totalCount\":105,\"changeRate\":\"2.06\",\"riseCount\":27,\"fallCount\":71,\"steadyCount\":7},{\"no\":294,\"name\":\"통신장비\",\"totalCount\":55,\"changeRate\":\"1.44\",\"riseCount\":19,\"fallCount\":29,\"steadyCount\":7},{\"no\":308,\"name\":\"인터넷과카탈로그소매\",\"totalCount\":6,\"changeRate\":\"1.12\",\"riseCount\":4,\"fallCount\":2,\"steadyCount\":0},{\"no\":266,\"name\":\"화장품\",\"totalCount\":64,\"changeRate\":\"0.99\",\"riseCount\":15,\"fallCount\":47,\"steadyCount\":2},{\"no\":293,\"name\":\"컴퓨터와주변기기\",\"totalCount\":21,\"changeRate\":\"0.31\",\"riseCount\":8,\"fallCount\":10,\"steadyCount\":3}],\"totalCount\":79,\"page\":1,\"pageSize\":5,\"localOpenTimeDesc\":\"\",\"marketStatus\":\"CLOSE\"}"
- },
- "theme_detail_m": {
-  "status": 200,
-  "len": 287,
-  "head": "{\"stockListSortType\":\"THEME\",\"stocks\":[],\"groupInfo\":{\"no\":0,\"totalCount\":0,\"changeRate\":\"\",\"riseCount\":0,\"fallCount\":0,\"steadyCount\":0},\"themeDescription\":\"\",\"themeItemInfoMap\":{},\"totalCount\":0,\"page\":1,\"pageSize\":3,\"localOpenTimeDesc\":\"오전 9시에 주식시장이 시작될 예정입니다.\",\"marketStatus\":\"CLOSE\"}"
- },
- "frgn_html": {
-  "status": 200,
-  "len": 86742,
-  "head": ""
- },
- "theme_html": {
-  "status": 200,
-  "len": 94895,
-  "head": ""
- },
- "upjong_html": {
-  "status": 200,
-  "len": 94317,
-  "head": ""
- },
- "krx_desc": {
-  "cols": [
-   "Code",
-   "Name",
-   "Market",
-   "Sector",
-   "Industry",
-   "Products",
-   "ListingDate",
-   "SettleMonth",
-   "Representative",
-   "HomePage",
-   "Region"
-  ],
-  "rows": [
-   [
-    "060310",
-    "3S",
-    "KOSDAQ",
-    "벤처기업부",
-    "측정, 시험, 항해, 제어 및 기타 정밀기기 제조업; 광학기기 제외",
-    "반도체 웨이퍼 캐리어",
-    "2002-04-23",
-    "03월",
-    "정완영",
-    "http://www.3sref.com",
-    "서울특별시"
-   ],
-   [
-    "095570",
-    "AJ네트웍스",
-    "KOSPI",
-    NaN,
-    "산업용 기계 및 장비 임대업",
-    "렌탈(파렛트, OA장비, 건설장비)",
-    "2015-08-21",
-    "12월",
-    "문지회, 곽정호",
-    "http://www.ajnet.co.kr",
-    "서울특별시"
-   ],
-   [
-    "006840",
-    "AK홀딩스",
-    "KOSPI",
-    NaN,
-    "기타 금융업",
-    "지주사업",
-    "1999-08-11",
-    "12월",
-    "고준, 채형석, 채동석 (각자 대표이사)",
-    "http://www.aekyunggroup.co.kr",
-    "서울특별시"
-   ]
-  ],
-  "n": 2878
+  "len": 6891,
+  "head": "[{\"itemCode\":\"000660\",\"bizdate\":\"20261123\",\"foreignerPureBuyQuant\":\"-168,180\",\"foreignerHoldRatio\":\"49.35%\",\"organPureBuyQuant\":\"-27,323\",\"individualPureBuyQuant\":\"-156,696\",\"closePrice\":\"1,101,000\",\"compareToPreviousClosePrice\":\"-12,000\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"},\"accumulatedTradingVolume\":\"3,945,821\"},{\"itemCode\":\"000660\",\"bizdate\":\"20261120\",\"foreignerPureBuyQuant\":\"-167,982\",\"foreignerHoldRatio\":\"49.38%\",\"organPureBuyQuant\":\"-235,664\",\"individualPureBuyQuant\":\"+46,433\",\"closePrice\":\"1,100,000\",\"compareToPreviousClosePrice\":\"-83,000\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"},\"accumulatedTradingVolume\":\"3,310,840\"},{\"itemCode\":\"000660\",\"bizdate\":\"20261119\",\"foreignerPureBuyQuant\":\"-49,813\",\"foreignerHoldRatio\":\"49.41%\",\"organPureBuyQuant\":\"-125,618\",\"individualPureBuyQuant\":\"-173,110\",\"closePrice\":\"1,190,000\",\"compareToPreviousClosePrice\":\"46,000\",\"compareToPreviousPrice\":{\"code\":\"2\",\"text\":\"상승\",\"name\":\"RISING\"},\"accumulatedTradingVolume\":\"2,730,075\"},{\"itemCode\":\"000660\",\"bizdate\":\"20261118\",\"foreignerPureBuyQuant\":\"-42,531\",\"foreignerHoldRatio\":\"49.41%\",\"organPureBuyQuant\":\"+27,949\",\"individualPureBuyQuant\":\"-333,230\",\"closePrice\":\"1,164,000\",\"compareToPreviousClosePrice\":\"66,000\",\"compareToPreviousPrice\":{\"code\":\"2\",\"text\":\"상승\",\"name\":\"RISING\"},\"accumulatedTradingVolume\":\"3,547,671\"},{\"itemCode\":\"000660\",\"bizdate\":\"20261117\",\"foreignerPureBuyQuant\":\"-399,323\",\"foreignerHoldRatio\":\"49.39%\",\"organPureBuyQuant\":\"+130,072\",\"individualPureBuyQuant\":\"-75,456\",\"closePrice\":\"1,100,000\",\"compareToPreviousClosePrice\":\"-20,000\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"},\"accumulatedTradingVolume\":\"3,736,935\"},{\"itemCode\":\"000660\",\"bizdate\":\"20261116\",\"foreignerPureBuyQuant\":\"-159,701\",\"foreignerHoldRatio\":\"47.85%\",\"organPureBuyQuant\":\"-694,134\",\"individualPureBuyQuant\":\"+503,628\",\"closePrice\":\"1,118,000\",\"compareToPreviousClosePrice\":\"-98,000\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"},\"accumulatedTradingVolume\":\"4,189,272\"},{\"itemCode\":\"000660\",\"bizdate\":\"20261113\",\"foreignerPureBuyQuant\":\"-370,341\",\"foreignerHoldRatio\":\"47.87%\",\"organPureBuyQuant\":\"+24,207\",\"individualPureBuyQuant\":\"+6,871\",\"closePrice\":\"1,233,000\",\"compareToPreviousClosePrice\":\"-21,000\",\"compareToPreviousPrice\":{\"code\":\"5\",\"text\":\"하락\",\"name\":\"FALLING\"},\"accumulatedTradingVolume\":\"3,215,511\"},{\"itemCode\":\"000660\",\"bizdate\":\"20261112\",\"foreignerPureBuyQuant\":\"-685,802\",\"foreignerHol"
  }
 }
