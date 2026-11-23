@@ -1,0 +1,46 @@
+{
+ "quarters": [
+  {
+   "period": "2026.06",
+   "revenue": 72.0,
+   "op_income": 6.0,
+   "net_income": 4.0,
+   "op_margin": 0.08529999999999999,
+   "roe": null,
+   "debt_ratio": 1.57
+  },
+  {
+   "period": "2025.06",
+   "revenue": 54.0,
+   "op_income": 5.0,
+   "net_income": 5.0,
+   "op_margin": 0.0842,
+   "roe": null,
+   "debt_ratio": null
+  }
+ ],
+ "fundamentals": {
+  "market_cap_eok": 853.0,
+  "per": 22.47,
+  "pbr": 3.78,
+  "debt_ratio": 1.57,
+  "op_margin": 0.08529999999999999
+ },
+ "source": "네이버 증권",
+ "unit": "억원",
+ "history_w": [
+  [
+   "2026-11-20",
+   8920.0
+  ],
+  [
+   "2026-11-23",
+   8920.0
+  ]
+ ],
+ "code": "493260",
+ "name": "옵토닉스",
+ "market": "KOSDAQ",
+ "tracked": false,
+ "as_of": "2026-11-23"
+}

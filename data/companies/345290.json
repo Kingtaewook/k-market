@@ -1,0 +1,46 @@
+{
+ "quarters": [
+  {
+   "period": "2026.06",
+   "revenue": 220.0,
+   "op_income": 54.0,
+   "net_income": 61.0,
+   "op_margin": 0.2469,
+   "roe": null,
+   "debt_ratio": 1.3880000000000001
+  },
+  {
+   "period": "2025.06",
+   "revenue": 113.0,
+   "op_income": 13.0,
+   "net_income": 5.0,
+   "op_margin": 0.11869999999999999,
+   "roe": null,
+   "debt_ratio": null
+  }
+ ],
+ "fundamentals": {
+  "market_cap_eok": 965.0,
+  "per": 30.55,
+  "pbr": 2.25,
+  "debt_ratio": 1.3880000000000001,
+  "op_margin": 0.2469
+ },
+ "source": "네이버 증권",
+ "unit": "억원",
+ "history_w": [
+  [
+   "2026-11-20",
+   6700.0
+  ],
+  [
+   "2026-11-23",
+   6660.0
+  ]
+ ],
+ "code": "345290",
+ "name": "영광와이케이엠씨",
+ "market": "KOSDAQ",
+ "tracked": false,
+ "as_of": "2026-11-23"
+}

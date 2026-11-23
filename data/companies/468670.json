@@ -1,0 +1,92 @@
+{
+ "quarters": [
+  {
+   "period": "2026.06",
+   "revenue": 111.0,
+   "op_income": 14.0,
+   "net_income": 15.0,
+   "op_margin": 0.128,
+   "roe": null,
+   "debt_ratio": 0.6920000000000001
+  },
+  {
+   "period": "2026.03",
+   "revenue": 25.0,
+   "op_income": -6.0,
+   "net_income": -6.0,
+   "op_margin": -0.2298,
+   "roe": null,
+   "debt_ratio": 0.669
+  },
+  {
+   "period": "2025.06",
+   "revenue": 84.0,
+   "op_income": 10.0,
+   "net_income": 8.0,
+   "op_margin": 0.1243,
+   "roe": null,
+   "debt_ratio": null
+  },
+  {
+   "period": "2025.03",
+   "revenue": 28.0,
+   "op_income": -3.0,
+   "net_income": -6.0,
+   "op_margin": -0.1158,
+   "roe": null,
+   "debt_ratio": null
+  }
+ ],
+ "fundamentals": {
+  "market_cap_eok": 1185.0,
+  "per": 52.41,
+  "pbr": 2.31,
+  "debt_ratio": 0.6920000000000001,
+  "op_margin": 0.128
+ },
+ "source": "네이버 증권",
+ "unit": "억원",
+ "history_w": [
+  [
+   "2026-10-02",
+   34150.0
+  ],
+  [
+   "2026-10-08",
+   23000.0
+  ],
+  [
+   "2026-10-16",
+   15460.0
+  ],
+  [
+   "2026-10-23",
+   15580.0
+  ],
+  [
+   "2026-10-30",
+   15040.0
+  ],
+  [
+   "2026-11-06",
+   11400.0
+  ],
+  [
+   "2026-11-13",
+   10870.0
+  ],
+  [
+   "2026-11-20",
+   9540.0
+  ],
+  [
+   "2026-11-23",
+   10430.0
+  ]
+ ],
+ "code": "468670",
+ "name": "브릴스",
+ "market": "KOSDAQ",
+ "tracked": false,
+ "as_of": "2026-11-23"
+}

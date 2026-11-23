@@ -1,0 +1,49 @@
+{
+ "quarters": [
+  {
+   "period": "2026.06",
+   "revenue": null,
+   "op_income": -26.0,
+   "net_income": -749.0,
+   "op_margin": null,
+   "roe": null,
+   "debt_ratio": 0.0355
+  },
+  {
+   "period": "2025.06",
+   "revenue": 50.0,
+   "op_income": -2.0,
+   "net_income": -15.0,
+   "op_margin": -0.042699999999999995,
+   "roe": null,
+   "debt_ratio": null
+  }
+ ],
+ "fundamentals": {
+  "market_cap_eok": 1678.0,
+  "pbr": 1.44,
+  "debt_ratio": 0.0355,
+  "op_margin": -0.042699999999999995
+ },
+ "source": "네이버 증권",
+ "unit": "억원",
+ "history_w": [
+  [
+   "2026-11-13",
+   4380.0
+  ],
+  [
+   "2026-11-20",
+   3675.0
+  ],
+  [
+   "2026-11-23",
+   3660.0
+  ]
+ ],
+ "code": "493410",
+ "name": "넥스아이",
+ "market": "KOSDAQ",
+ "tracked": false,
+ "as_of": "2026-11-23"
+}

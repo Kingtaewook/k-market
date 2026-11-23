@@ -1,0 +1,91 @@
+{
+ "quarters": [
+  {
+   "period": "2026.06",
+   "revenue": 166.0,
+   "op_income": 12.0,
+   "net_income": 13.0,
+   "op_margin": 0.0721,
+   "roe": null,
+   "debt_ratio": 0.4163
+  },
+  {
+   "period": "2026.03",
+   "revenue": 122.0,
+   "op_income": 0.0,
+   "net_income": 2.0,
+   "op_margin": -0.0031,
+   "roe": null,
+   "debt_ratio": 0.5173
+  },
+  {
+   "period": "2025.06",
+   "revenue": 70.0,
+   "op_income": -17.0,
+   "net_income": -108.0,
+   "op_margin": -0.237,
+   "roe": null,
+   "debt_ratio": null
+  },
+  {
+   "period": "2025.03",
+   "revenue": 83.0,
+   "op_income": -3.0,
+   "net_income": -4.0,
+   "op_margin": -0.036699999999999997,
+   "roe": null,
+   "debt_ratio": null
+  }
+ ],
+ "fundamentals": {
+  "market_cap_eok": 897.0,
+  "pbr": 1.71,
+  "debt_ratio": 0.4163,
+  "op_margin": 0.0721
+ },
+ "source": "네이버 증권",
+ "unit": "억원",
+ "history_w": [
+  [
+   "2026-10-02",
+   14860.0
+  ],
+  [
+   "2026-10-08",
+   11120.0
+  ],
+  [
+   "2026-10-16",
+   7290.0
+  ],
+  [
+   "2026-10-23",
+   6900.0
+  ],
+  [
+   "2026-10-30",
+   7550.0
+  ],
+  [
+   "2026-11-06",
+   5030.0
+  ],
+  [
+   "2026-11-13",
+   5520.0
+  ],
+  [
+   "2026-11-20",
+   4505.0
+  ],
+  [
+   "2026-11-23",
+   4565.0
+  ]
+ ],
+ "code": "486510",
+ "name": "글로벌테크놀로지",
+ "market": "KOSDAQ",
+ "tracked": false,
+ "as_of": "2026-11-23"
+}

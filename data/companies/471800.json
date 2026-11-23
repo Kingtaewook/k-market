@@ -1,0 +1,45 @@
+{
+ "quarters": [
+  {
+   "period": "2026.06",
+   "revenue": 45.0,
+   "op_income": -3.0,
+   "net_income": -3.0,
+   "op_margin": -0.0728,
+   "roe": null,
+   "debt_ratio": 0.268
+  },
+  {
+   "period": "2025.06",
+   "revenue": 31.0,
+   "op_income": -3.0,
+   "net_income": -4.0,
+   "op_margin": -0.11,
+   "roe": null,
+   "debt_ratio": null
+  }
+ ],
+ "fundamentals": {
+  "market_cap_eok": 1347.0,
+  "pbr": 6.05,
+  "debt_ratio": 0.268,
+  "op_margin": -0.0728
+ },
+ "source": "네이버 증권",
+ "unit": "억원",
+ "history_w": [
+  [
+   "2026-11-20",
+   9970.0
+  ],
+  [
+   "2026-11-23",
+   11160.0
+  ]
+ ],
+ "code": "471800",
+ "name": "에이엘로봇",
+ "market": "KOSDAQ",
+ "tracked": false,
+ "as_of": "2026-11-23"
+}

@@ -1,0 +1,54 @@
+{
+ "quarters": [
+  {
+   "period": "2026.06",
+   "revenue": 255.0,
+   "op_income": 13.0,
+   "net_income": 5.0,
+   "op_margin": 0.052199999999999996,
+   "roe": null,
+   "debt_ratio": 2.4218
+  },
+  {
+   "period": "2025.06",
+   "revenue": 301.0,
+   "op_income": 16.0,
+   "net_income": 7.0,
+   "op_margin": 0.0545,
+   "roe": null,
+   "debt_ratio": null
+  }
+ ],
+ "fundamentals": {
+  "market_cap_eok": 516.0,
+  "per": 3.71,
+  "pbr": 1.11,
+  "debt_ratio": 2.4218,
+  "op_margin": 0.052199999999999996
+ },
+ "source": "네이버 증권",
+ "unit": "억원",
+ "history_w": [
+  [
+   "2026-11-06",
+   10150.0
+  ],
+  [
+   "2026-11-13",
+   9690.0
+  ],
+  [
+   "2026-11-20",
+   5830.0
+  ],
+  [
+   "2026-11-23",
+   5700.0
+  ]
+ ],
+ "code": "359410",
+ "name": "영광",
+ "market": "KOSDAQ",
+ "tracked": false,
+ "as_of": "2026-11-23"
+}
