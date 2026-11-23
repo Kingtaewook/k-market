@@ -16,17 +16,21 @@
       <a class="brand" href="#/"><span class="brand-mark">K</span><span class="name">K-Market Intelligence</span></a>
       <nav class="nav">
         <a href="#/" data-page="home">홈</a>
-        <a href="#/themes" data-page="themes">섹터·테마</a>
-        <a href="#/search" data-page="search">종목 검색</a>
+        <a href="#/market" data-page="market">시장</a>
+        <a href="#/themes" data-page="themes">테마</a>
         <a href="#/company" data-page="company">기업분석</a>
-        <a href="#/news" data-page="news">테마 뉴스</a>
+        <a href="#/news" data-page="news">뉴스</a>
+        <a href="#/my" data-page="my">내 투자</a>
       </nav>
       <div class="status" id="status"></div>
+      <div class="auth" id="auth"></div>
     </div>
   </header>
   <main id="app"><div class="empty">불러오는 중…</div></main>
   <footer>시세·재무·뉴스는 네이버 금융에서 자동 수집하며 지연·오류가 있을 수 있습니다. 투자 판단의 참고 자료이며 매매 권유가 아닙니다. 점수·분류는 규칙 기반 계산입니다.</footer>
   <!--INLINE_DATA-->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="assets/config.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>

@@ -302,18 +302,180 @@ def news(code, n=6):
     return out[:n]
 
 
-# ---------------------------------------------------------------- 종목 목록
-def refresh_listing():
+# ---------------------------------------------------------------- 전 종목 목록·시세
+def load_listing():
+    """KRX 전 종목 [이름, 코드, 시장, 업종]. 실패하면 기존 목록 유지."""
+    old = load(DATA / "stocks.json", [])
+    old_sector = {r[1]: (r[3] if len(r) > 3 else "") for r in old}
+    snap = {}
     try:
         import FinanceDataReader as fdr
         df = fdr.StockListing("KRX")
-        rows = [[str(r["Name"]), str(r["Code"]).zfill(6), str(r["Market"])] for _, r in df.iterrows()
-                if str(r["Code"]).isdigit()]
+        rows = []
+        for _, r in df.iterrows():
+            code = str(r["Code"]).zfill(6)
+            if not code.isdigit():
+                continue
+            rows.append([str(r["Name"]), code, str(r["Market"]), old_sector.get(code, "")])
+            snap[code] = {"close": num(r.get("Close")), "chg": (num(r.get("ChagesRatio")) or 0) / 100,
+                          "amount": num(r.get("Amount")), "marcap": (num(r.get("Marcap")) or 0) / 1e8}
+        try:
+            desc = fdr.StockListing("KRX-DESC")
+            sec = {str(r["Code"]).zfill(6): str(r.get("Sector") or "") for _, r in desc.iterrows()}
+            for row in rows:
+                row[3] = sec.get(row[1], row[3]) if sec.get(row[1], "nan") != "nan" else row[3]
+        except Exception as e:
+            print(f"[목록] 업종 정보 생략: {e}")
         if len(rows) > 2000:
-            save(DATA / "stocks.json", sorted(rows), compact=True)
-            print(f"종목 목록 갱신: {len(rows)}개")
+            rows.sort()
+            save(DATA / "stocks.json", rows, compact=True)
+            print(f"종목 목록: {len(rows)}개")
+            return rows, snap
     except Exception as e:
-        print(f"[목록] 갱신 생략 (기존 목록 유지): {e}")
+        print(f"[목록] 갱신 실패, 기존 목록 사용: {e}")
+    return [r if len(r) > 3 else r + [""] for r in old], snap
+
+
+def fetch_all_history(codes, workers=8):
+    """전 종목 일봉을 병렬로 받기. {code: rows}"""
+    from concurrent.futures import ThreadPoolExecutor
+    out, fails = {}, []
+
+    def job(c):
+        try:
+            return c, history(c, days=380)
+        except Exception as e:
+            return c, e
+
+    with ThreadPoolExecutor(workers) as ex:
+        for i, (c, res) in enumerate(ex.map(job, codes), 1):
+            if isinstance(res, Exception) or not res:
+                fails.append(c)
+            else:
+                out[c] = res
+            if i % 300 == 0:
+                print(f"  시세 {i}/{len(codes)}")
+    return out, fails
+
+
+def weekly(rows, weeks=60):
+    """일봉 → 주봉 종가 (그 주 마지막 거래일)."""
+    wk = {}
+    for r in rows:
+        d = dt.date.fromisoformat(r["date"])
+        wk[d.isocalendar()[:2]] = [r["date"], r["close"]]
+    return list(wk.values())[-weeks:]
+
+
+# ---------------------------------------------------------------- 사용자 포트폴리오 (Supabase)
+def supabase_conf():
+    import os
+    key = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
+    url = os.environ.get("SUPABASE_URL", "").strip()
+    if not url:
+        m = re.search(r'url:\s*"([^"]+)"', (ROOT / "assets" / "config.js").read_text(encoding="utf-8")) \
+            if (ROOT / "assets" / "config.js").exists() else None
+        url = m.group(1) if m else ""
+    return (url.rstrip("/"), key) if url and key and "YOUR" not in url else (None, None)
+
+
+def sb(method, path, body=None, params=None):
+    url, key = supabase_conf()
+    headers = {"apikey": key, "Content-Type": "application/json", "Prefer": "resolution=merge-duplicates,return=minimal"}
+    if key.startswith("eyJ"):  # 예전 형식(JWT) service_role 키
+        headers["Authorization"] = f"Bearer {key}"
+    r = requests.request(method, f"{url}/rest/v1/{path}", params=params, json=body, timeout=30, headers=headers)
+    r.raise_for_status()
+    return r.json() if r.text else None
+
+
+def user_codes():
+    """모든 사용자의 보유·관심 종목 코드 (뉴스·차트 수집 대상에 포함)."""
+    if not supabase_conf()[0]:
+        return set()
+    codes = set()
+    try:
+        for t in sb("GET", "trades", params={"select": "code"}):
+            codes.add(t["code"])
+        for t in sb("GET", "watchlist", params={"select": "code"}):
+            codes.add(t["code"])
+    except Exception as e:
+        print(f"[포트폴리오] 사용자 종목 조회 실패: {e}")
+    return codes
+
+
+def positions_from_trades(trades):
+    """이동평균법으로 보유 수량·평단·실현손익 계산."""
+    pos, realized, bought = {}, 0.0, 0.0
+    for t in sorted(trades, key=lambda x: (x["trade_date"], x.get("created_at") or "")):
+        p = pos.setdefault(t["code"], {"code": t["code"], "name": t["name"], "qty": 0.0, "avg": 0.0})
+        q, price, fee = float(t["qty"]), float(t["price"]), float(t.get("fee") or 0)
+        if t["side"] == "buy":
+            p["avg"] = (p["avg"] * p["qty"] + price * q + fee) / (p["qty"] + q)
+            p["qty"] += q
+            bought += price * q + fee
+        else:
+            q = min(q, p["qty"])
+            realized += (price - p["avg"]) * q - fee
+            p["qty"] -= q
+    return {c: p for c, p in pos.items() if p["qty"] > 1e-9}, realized, bought
+
+
+def write_journals(allrows, kospi_chg, today):
+    if not supabase_conf()[0]:
+        print("[일지] Supabase 키가 없어 건너뜀")
+        return
+    try:
+        trades = sb("GET", "trades", params={"select": "*", "trade_date": f"lte.{today}"})
+    except Exception as e:
+        print(f"[일지] 거래 조회 실패: {e}")
+        return
+    by_user = {}
+    for t in trades:
+        by_user.setdefault(t["user_id"], []).append(t)
+    rows = []
+    for uid, ts in by_user.items():
+        pos, realized, bought = positions_from_trades(ts)
+        plist, total, cost, day = [], 0.0, 0.0, 0.0
+        events = []
+        for c, p in pos.items():
+            a = allrows.get(c, {})
+            close = a.get("close") or p["avg"]
+            chg = a.get("chg") or 0
+            val = close * p["qty"]
+            dp = val - val / (1 + chg) if chg > -1 else 0
+            total += val
+            cost += p["avg"] * p["qty"]
+            day += dp
+            plist.append({"code": c, "name": p["name"], "qty": p["qty"], "avg": round(p["avg"], 2), "close": close,
+                          "value": round(val), "pnl": round(val - p["avg"] * p["qty"]),
+                          "pnl_pct": (close / p["avg"] - 1) if p["avg"] else None, "chg": chg})
+            if abs(chg) >= 0.05:
+                events.append({"type": "move", "code": c, "name": p["name"],
+                               "text": f"{p['name']} {'급등' if chg > 0 else '급락'} {chg * 100:+.1f}%"})
+            pos52 = a.get("pos52")
+            if pos52 is not None and pos52 >= 0.98:
+                events.append({"type": "high", "code": c, "name": p["name"], "text": f"{p['name']} 52주 신고가 근처"})
+            elif pos52 is not None and pos52 <= 0.02:
+                events.append({"type": "low", "code": c, "name": p["name"], "text": f"{p['name']} 52주 신저가 근처"})
+            comp = load(DATA / "companies" / f"{c}.json", {})
+            for n in [n for n in comp.get("news", []) if n.get("date") == today][:2]:
+                events.append({"type": "news", "code": c, "name": p["name"], "text": n["title"],
+                               "url": n.get("url"), "impact": n.get("impact")})
+        for t in [t for t in ts if t["trade_date"] == today]:
+            events.append({"type": "trade", "code": t["code"], "name": t["name"],
+                           "text": f"{t['name']} {'매수' if t['side'] == 'buy' else '매도'} {float(t['qty']):g}주 @ {float(t['price']):,.0f}"})
+        plist.sort(key=lambda x: -x["value"])
+        unreal = total - cost
+        rows.append({"user_id": uid, "date": today, "total_value": round(total), "cost_basis": round(cost),
+                     "invested": round(bought), "realized": round(realized), "day_pnl": round(day),
+                     "day_ret": day / (total - day) if total - day > 0 else None,
+                     "cum_ret": (unreal + realized) / bought if bought else None,
+                     "kospi_ret": kospi_chg, "positions": plist, "events": events,
+                     "updated_at": dt.datetime.now(KST).isoformat()})
+    if rows:
+        sb("POST", "journal?on_conflict=user_id,date", rows)
+    print(f"[일지] {len(rows)}명 기록")
 
 
 # ---------------------------------------------------------------- 메인
@@ -324,25 +486,66 @@ def main():
     prev = load(DATA / "market.json", {"stocks": {}})
     failures = []
     now = dt.datetime.now(KST)
+    morning = now.hour < 12  # 아침 실행: 뉴스만 갱신
+    today = now.date().isoformat()
 
-    refresh_listing()
-    listing = {c: (n, m) for n, c, m in load(DATA / "stocks.json", [])}
+    listing, snap = load_listing()
+    lmap = {r[1]: r for r in listing}
 
-    kospi = None
+    kospi, kospi_chg = prev.get("kospi"), None
     try:
-        ks = price_stats(history("KOSPI"))
+        krows = history("KOSPI")
+        ks = price_stats(krows)
         kospi = {k: ks[k] for k in ("close", "r1m", "r3m", "last_date")}
+        kospi_chg = krows[-1]["close"] / krows[-2]["close"] - 1
+        kospi["chg"] = kospi_chg
     except Exception as e:
         failures.append({"code": "KOSPI", "step": "시세", "error": str(e)[:200]})
-        kospi = prev.get("kospi")
 
+    # 상세 수집 대상: 테마 종목 + 추가 종목 + 사용자 보유·관심 종목
     watch = {}
     for t in config["themes"]:
         for s in t["stocks"]:
             watch[s["code"]] = {"name": s["name"], "theme": t["name"]}
-    for c in config.get("extra_companies", []):
-        watch.setdefault(c, {"name": listing.get(c, (c, ""))[0], "theme": None})
+    for c in list(config.get("extra_companies", [])) + sorted(user_codes()):
+        if c in lmap:
+            watch.setdefault(c, {"name": lmap[c][0], "theme": None})
 
+    # ---- 전 종목 시세 (오후 실행)
+    hist = {}
+    allp = load(DATA / "market_all.json", {}).get("rows", {})
+    if not morning:
+        codes = [r[1] for r in listing]
+        hist, hfails = fetch_all_history(codes)
+        print(f"전 종목 시세: 성공 {len(hist)}, 실패 {len(hfails)}")
+        if hfails:
+            failures.append({"code": "*", "step": "전종목 시세", "error": f"{len(hfails)}개 실패 (직전 값 유지)"})
+        newp = {}
+        for r in listing:
+            c = r[1]
+            st = price_stats(hist[c]) if c in hist else None
+            old = dict(zip(ALL_FIELDS, allp[c])) if c in allp else {}
+            sn = snap.get(c, {})
+            if st:
+                rows_ = hist[c]
+                chg = rows_[-1]["close"] / rows_[-2]["close"] - 1 if len(rows_) > 1 else None
+                ld = dt.date.fromisoformat(st["last_date"])
+                base = [x for x in rows_ if x["date"] <= (ld - dt.timedelta(days=7)).isoformat()]
+                r1w = st["close"] / base[-1]["close"] - 1 if base else None
+                rec = {"close": st["close"], "chg": chg, "r1w": r1w, "r1m": st["r1m"], "r3m": st["r3m"],
+                       "pos52": st["pos52"], "hi52": st["hi52"], "lo52": st["lo52"],
+                       "amount": sn.get("amount") or rows_[-1]["close"] * rows_[-1]["volume"],
+                       "marcap": sn.get("marcap") or old.get("marcap"), "last_date": st["last_date"]}
+            else:
+                rec = {**old, **{k: v for k, v in sn.items() if v}}
+            newp[c] = rec
+        allp = {c: [round(v, 5) if isinstance(v, float) and abs(v) < 10 else (round(v) if isinstance(v, float) else v)
+                    for v in (rec.get(f) for f in ALL_FIELDS)] for c, rec in newp.items()}
+        save(DATA / "market_all.json", {"as_of": max((v[-1] for v in allp.values() if v and v[-1]), default=today),
+                                        "fields": ALL_FIELDS, "rows": allp}, compact=True)
+    allrows = {c: dict(zip(ALL_FIELDS, v)) for c, v in allp.items()}
+
+    # ---- 상세 종목: 차트·재무·뉴스
     stocks, theme_auto = {}, {}
     for i, (code, meta) in enumerate(watch.items(), 1):
         print(f"[{i}/{len(watch)}] {meta['name']} ({code})")
@@ -350,44 +553,61 @@ def main():
         comp = load(cpath, {})
         rec = dict(prev["stocks"].get(code, {}))
         rec.update({"name": meta["name"], "theme": meta["theme"],
-                    "market": listing.get(code, ("", rec.get("market")))[1] or rec.get("market")})
-        try:
-            rows = history(code)
-            st = price_stats(rows)
-            rec.update(st)
-            comp["history"] = [[r["date"], r["close"]] for r in rows[-250:]]
-            comp["price"] = {k: st[k] for k in ("close", "r1m", "r3m", "pos52", "hi52", "lo52", "vol20", "last_date")}
-        except Exception as e:
-            failures.append({"code": code, "name": meta["name"], "step": "시세", "error": str(e)[:200]})
-        try:
-            f, qs, src = fundamentals(code)
-            if qs:
-                latest = qs[0]
-                f.setdefault("roe", latest.get("roe"))
-                f.setdefault("debt_ratio", latest.get("debt_ratio"))
-                f.setdefault("op_margin", latest.get("op_margin"))
-                # 최근 분기에 값이 없으면 직전 분기에서 보완
-                for k in ("roe", "debt_ratio", "op_margin"):
-                    if f.get(k) is None:
-                        f[k] = next((q.get(k) for q in qs if q.get(k) is not None), None)
-                comp["quarters"] = qs
-            comp["fundamentals"] = {**comp.get("fundamentals", {}), **{k: v for k, v in f.items() if v is not None}}
-            comp["source"] = src
-            comp["unit"] = "억원"
-        except Exception as e:
-            failures.append({"code": code, "name": meta["name"], "step": "재무", "error": str(e)[:200]})
+                    "market": lmap.get(code, ["", "", rec.get("market")])[2]})
+        if not morning:
+            try:
+                rows = hist.get(code) or history(code)
+                st = price_stats(rows)
+                rec.update(st)
+                comp["history"] = [[r["date"], r["close"]] for r in rows[-250:]]
+                comp["price"] = {k: st[k] for k in ("close", "r1m", "r3m", "pos52", "hi52", "lo52", "vol20", "last_date")}
+            except Exception as e:
+                failures.append({"code": code, "name": meta["name"], "step": "시세", "error": str(e)[:200]})
+            try:
+                f, qs, src = fundamentals(code)
+                merge_fund(comp, f, qs, src)
+            except Exception as e:
+                failures.append({"code": code, "name": meta["name"], "step": "재무", "error": str(e)[:200]})
         nw = news(code)
         if nw:
             comp["news"] = nw
             if meta["theme"]:
-                theme_auto.setdefault(meta["theme"], []).extend(
-                    [{**n, "stock": meta["name"]} for n in nw[:3]])
-        comp.update({"code": code, "name": meta["name"], "market": rec.get("market"),
-                     "as_of": rec.get("last_date") or now.date().isoformat()})
+                theme_auto.setdefault(meta["theme"], []).extend([{**n, "stock": meta["name"]} for n in nw[:3]])
+        comp.update({"code": code, "name": meta["name"], "market": rec.get("market"), "tracked": True,
+                     "as_of": rec.get("last_date") or today})
         save(cpath, comp)
         if meta["theme"]:
             stocks[code] = rec
-        time.sleep(0.3)
+        time.sleep(0.2)
+
+    # ---- 나머지 종목 재무: 평일마다 1/5씩 돌아가며 (1주일에 전 종목 한 바퀴)
+    if not morning and now.weekday() < 5:
+        bucket = [r for r in listing if int(r[1]) % 5 == now.weekday() and r[1] not in watch]
+        print(f"재무 순환 수집: {len(bucket)}개 (그룹 {now.weekday()})")
+        from concurrent.futures import ThreadPoolExecutor
+
+        def fjob(r):
+            try:
+                return r, fundamentals(r[1]), None
+            except Exception as e:
+                return r, None, e
+
+        nf = 0
+        with ThreadPoolExecutor(6) as ex:
+            for r, res, err in ex.map(fjob, bucket):
+                cpath = DATA / "companies" / f"{r[1]}.json"
+                comp = load(cpath, {})
+                if res:
+                    merge_fund(comp, *res)
+                else:
+                    nf += 1
+                if r[1] in hist:
+                    comp["history_w"] = weekly(hist[r[1]])
+                comp.update({"code": r[1], "name": r[0], "market": r[2], "tracked": False,
+                             "as_of": comp.get("as_of") if not res else today})
+                save(cpath, comp)
+        if nf:
+            failures.append({"code": "*", "step": "재무 순환", "error": f"{nf}개 실패"})
 
     for th, items in theme_auto.items():
         items.sort(key=lambda x: x.get("date") or "", reverse=True)
@@ -399,18 +619,45 @@ def main():
         theme_auto[th] = out[:6]
     tn = load(DATA / "theme_news.json", {"curated": []})
     tn["auto"] = theme_auto or tn.get("auto", {})
-    tn["auto_as_of"] = now.date().isoformat()
+    tn["auto_as_of"] = today
     save(DATA / "theme_news.json", tn)
 
-    dates = [s.get("last_date") for s in stocks.values() if s.get("last_date")]
-    market = {"as_of": max(dates) if dates else prev.get("as_of"),
-              "updated_at": now.isoformat(timespec="minutes"),
-              "source": "네이버 금융 자동 수집", "kospi": kospi, "stocks": stocks,
-              "themes": compute_themes(config, stocks, kospi), "failures": failures}
-    save(DATA / "market.json", market)
-    print(f"완료: 종목 {len(stocks)}개, 실패 {len(failures)}건")
+    if not morning:
+        dates = [s.get("last_date") for s in stocks.values() if s.get("last_date")]
+        breadth = {"up": sum(1 for v in allrows.values() if (v.get("chg") or 0) > 0),
+                   "down": sum(1 for v in allrows.values() if (v.get("chg") or 0) < 0),
+                   "high52": sum(1 for v in allrows.values() if (v.get("pos52") or 0) >= 0.995),
+                   "low52": sum(1 for v in allrows.values() if v.get("pos52") is not None and v["pos52"] <= 0.005),
+                   "total": len(allrows)}
+        market = {"as_of": max(dates) if dates else prev.get("as_of"),
+                  "updated_at": now.isoformat(timespec="minutes"),
+                  "source": "네이버 금융 자동 수집", "kospi": kospi, "breadth": breadth, "stocks": stocks,
+                  "themes": compute_themes(config, stocks, kospi), "failures": failures}
+        save(DATA / "market.json", market)
+        # 장이 열린 날에만 일지 작성
+        if market["as_of"] == today:
+            write_journals(allrows, kospi_chg, today)
+    else:
+        m = load(DATA / "market.json", {})
+        m["news_updated_at"] = now.isoformat(timespec="minutes")
+        save(DATA / "market.json", m)
+    print(f"완료: 실패 {len(failures)}건")
     for f in failures:
         print("  실패:", f)
+
+
+ALL_FIELDS = ["close", "chg", "r1w", "r1m", "r3m", "pos52", "hi52", "lo52", "amount", "marcap", "last_date"]
+
+
+def merge_fund(comp, f, qs, src):
+    if qs:
+        for k in ("roe", "debt_ratio", "op_margin"):
+            if f.get(k) is None:
+                f[k] = next((q.get(k) for q in qs if q.get(k) is not None), None)
+        comp["quarters"] = qs
+    comp["fundamentals"] = {**comp.get("fundamentals", {}), **{k: v for k, v in f.items() if v is not None}}
+    comp["source"] = src
+    comp["unit"] = "억원"
 
 
 if __name__ == "__main__":
