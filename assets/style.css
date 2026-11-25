@@ -587,3 +587,28 @@ body.locked .nav, body.locked .status, body.locked #tabbar { display: none !impo
   .auth a.btn.admin-btn { display: inline-flex; padding-left: 10px; padding-right: 10px; }
   .auth a.btn.admin-btn .lbl { display: none; }
 }
+
+/* 카카오 · 알람 · 긍정 뉴스 잠금 */
+.btn.kakao { width: 100%; justify-content: center; background: #FEE500; color: #191919; border-color: #FEE500; font-weight: 800; }
+.btn.kakao:hover { filter: brightness(.97); }
+.or { display: flex; align-items: center; gap: 10px; color: var(--ink-3); font-size: 12px; margin: 14px 0 6px; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; overflow: hidden; }
+.kakao-badge { background: #FEE500; color: #191919; border-color: transparent; }
+.pos-lock { color: var(--ink-3); font-size: 13px; font-weight: 600; }
+.news-item.locked, .ncard.locked { background: repeating-linear-gradient(-45deg, var(--surface), var(--surface) 8px, var(--surface-2) 8px, var(--surface-2) 16px); }
+.bell { position: relative; }
+.bell .dot { position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--up); color: #fff; font-size: 11px; display: grid; place-items: center; margin: 0 !important; }
+.alist { display: grid; gap: 10px; }
+.aitem { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: start; padding: 14px; }
+.aitem.new { border-color: var(--accent); }
+.aitem .aic { font-size: 22px; }
+.aitem .abody { display: grid; gap: 4px; min-width: 0; }
+.aitem .abody a { color: inherit; }
+.aitem .abody p { margin: 0; color: var(--ink-2); font-size: 13.5px; line-height: 1.5; }
+.aitem .abody .muted { font-size: 12px; }
+.ax { border: 0; background: var(--surface-2); color: var(--ink-3); width: 32px; height: 32px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+.ax:hover { color: var(--up); }
+.notice-box summary { cursor: pointer; list-style: none; display: flex; gap: 8px; align-items: center; }
+.notice-box textarea, .notice-box select { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); }
+.pos-toggle { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; padding-top: 4px; }

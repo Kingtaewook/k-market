@@ -515,6 +515,54 @@ def positions_from_trades(trades):
     return {c: p for c, p in pos.items() if p["qty"] > 1e-9}, realized, bought
 
 
+def send_alerts(allrows, today, morning):
+    """승인 회원의 관심종목 자동 알람: 급등락(±5%)·52주 신고가(오후), 오늘 긍정·악재 뉴스(아침·오후).
+    긍정 뉴스는 관리자가 '긍정 뉴스 보기'를 허용한 회원에게만. 같은 날 같은 제목은 다시 보내지 않음."""
+    if not supabase_conf()[0]:
+        print("[알람] Supabase 키가 없어 건너뜀")
+        return
+    try:
+        members = {p["id"]: p for p in sb("GET", "profiles", params={"select": "id,can_positive", "status": "eq.approved"})}
+        watch = sb("GET", "watchlist", params={"select": "user_id,code,name"})
+        sent = sb("GET", "notifications", params={"select": "user_id,title", "created_at": f"gte.{today}T00:00:00+09:00"})
+    except Exception as e:
+        print(f"[알람] 조회 실패: {e}")
+        return
+    done = {(n["user_id"], n["title"]) for n in sent}
+    rows, news_cache = [], {}
+    for w in watch:
+        uid, code, name = w["user_id"], w["code"], w["name"]
+        if uid not in members:
+            continue
+        a = allrows.get(code, {})
+        cand = []
+        if not morning:
+            chg = a.get("chg")
+            if chg is not None and abs(chg) >= 0.05:
+                cand.append(("move", f"{name} {'급등' if chg > 0 else '급락'} {chg * 100:+.1f}%", "관심종목이 크게 움직였어요.", f"#/company/{code}"))
+            if (a.get("pos52") or 0) >= 0.995:
+                cand.append(("high", f"{name} 52주 신고가", "1년 중 가장 높은 가격이에요.", f"#/company/{code}"))
+        if code not in news_cache:
+            news_cache[code] = [n for n in load(DATA / "companies" / f"{code}.json", {}).get("news", []) if n.get("date") == today]
+        for n in news_cache[code]:
+            if n.get("impact") == "주의":
+                cand.append(("news", f"[악재] {n['title']}", name, n.get("url")))
+            elif n.get("impact") == "긍정" and members[uid].get("can_positive"):
+                cand.append(("news", f"[긍정] {n['title']}", name, n.get("url")))
+        for kind, title, body, link in cand:
+            if (uid, title) not in done:
+                done.add((uid, title))
+                rows.append({"user_id": uid, "kind": kind, "title": title[:200], "body": body, "link": link})
+    if rows:
+        try:
+            for i in range(0, len(rows), 500):
+                sb("POST", "notifications", rows[i:i + 500])
+        except Exception as e:
+            print(f"[알람] 저장 실패: {e}")
+            return
+    print(f"[알람] {len(rows)}건 보냄")
+
+
 def write_journals(allrows, kospi_chg, today):
     if not supabase_conf()[0]:
         print("[일지] Supabase 키가 없어 건너뜀")
@@ -774,6 +822,7 @@ def main():
         m = load(DATA / "market.json", {})
         m["news_updated_at"] = now.isoformat(timespec="minutes")
         save(DATA / "market.json", m)
+    send_alerts(allrows, today, morning)
     print(f"완료: 실패 {len(failures)}건")
     for f in failures:
         print("  실패:", f)
