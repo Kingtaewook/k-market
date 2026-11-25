@@ -1047,9 +1047,11 @@
   const CAN_SEE = () => !APPROVAL() || (USER && (!PROFILE_OK || PROFILE?.status === "approved"));
   const LOCKED_PAGES = new Set(["themes", "sectors", "news", "my", "admin"]);
   // 긍정 뉴스는 관리자가 열어준 회원만 (회원별 권한)
-  const CAN_POS = () => !APPROVAL() || IS_ADMIN() || (CAN_SEE() && (!PROFILE_OK || PROFILE?.can_positive === true || PROFILE?.can_positive === undefined));
+  // 관리자 '회원 화면 미리보기': 켜면 관리자도 일반 회원(긍정 뉴스 권한 없음)처럼 보여요
+  const PREVIEW = () => { try { return IS_ADMIN() && localStorage.getItem("km_preview") === "1"; } catch { return false; } };
+  const CAN_POS = () => PREVIEW() ? false : !APPROVAL() || IS_ADMIN() || (CAN_SEE() && (!PROFILE_OK || PROFILE?.can_positive === true || PROFILE?.can_positive === undefined));
   const posLocked = (imp) => imp === "긍정" && !CAN_POS();
-  const posLockHTML = () => `<span class="pos-lock">🔒 긍정 뉴스는 관리자가 열어준 회원만 볼 수 있어요</span>`;
+  const posLockHTML = () => `<span class="pos-lock">🔒 긍정 뉴스 가림 · 관리자에게 문의하세요</span>`;
   // 카카오 가입 후 추가 정보가 비었는지
   const NEEDS_INFO = () => APPROVAL() && USER && PROFILE_OK && PROFILE && !PROFILE.is_admin && (!PROFILE.phone || !PROFILE.agreed_at);
   let NOTIF = [];
@@ -1121,11 +1123,16 @@
     if (!el) return;
     if (!SB) { el.innerHTML = ""; return; }
     el.innerHTML = USER
-      ? `<a class="btn sm admin-btn bell" href="#/alerts" title="알람">🔔${UNREAD() ? `<b class="dot num">${UNREAD()}</b>` : ""}</a>${IS_ADMIN() ? `<a class="btn sm admin-btn ${PENDING_N ? "primary" : ""}" href="#/admin" title="회원 관리">👥<span class="lbl"> 회원 관리</span>${PENDING_N ? ` <b class="num">${PENDING_N}</b>` : ""}</a>` : ""}<a class="btn sm" href="#/my">내 투자</a><button class="btn sm ghost" id="logout" title="${esc(USER.email)}">로그아웃</button>`
+      ? `<a class="btn sm admin-btn bell" href="#/alerts" title="알람">🔔${UNREAD() ? `<b class="dot num">${UNREAD()}</b>` : ""}</a>${IS_ADMIN() ? `<button class="btn sm admin-btn ${PREVIEW() ? "primary" : ""}" id="preview" title="회원 화면 미리보기">👁<span class="lbl"> ${PREVIEW() ? "회원 화면 보는 중" : "회원 화면"}</span></button>` : ""}${IS_ADMIN() ? `<a class="btn sm admin-btn ${PENDING_N ? "primary" : ""}" href="#/admin" title="회원 관리">👥<span class="lbl"> 회원 관리</span>${PENDING_N ? ` <b class="num">${PENDING_N}</b>` : ""}</a>` : ""}<a class="btn sm" href="#/my">내 투자</a><button class="btn sm ghost" id="logout" title="${esc(USER.email)}">로그아웃</button>`
       : `${APPROVAL() ? `<button class="btn sm" id="signup">회원가입</button>` : ""}<button class="btn sm primary" id="login">로그인</button>`;
     document.getElementById("signup")?.addEventListener("click", () => openAuth("signup"));
     document.getElementById("login")?.addEventListener("click", () => openAuth("login"));
     document.getElementById("logout")?.addEventListener("click", async () => { await SB.auth.signOut(); });
+    document.getElementById("preview")?.addEventListener("click", () => {
+      try { localStorage.setItem("km_preview", PREVIEW() ? "0" : "1"); } catch {}
+      alertBox(PREVIEW() ? "회원 화면으로 보는 중이에요 (긍정 뉴스 가림). 👁를 다시 누르면 관리자 화면으로 돌아와요." : "관리자 화면으로 돌아왔어요");
+      renderAuthButton(); rerender();
+    });
   }
   const KAKAO = () => !!window.KM_CONFIG?.kakao;
   async function kakaoLogin() {
