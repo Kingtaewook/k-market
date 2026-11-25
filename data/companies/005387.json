@@ -47,12 +47,12 @@
   }
  ],
  "fundamentals": {
-  "market_cap_eok": 49947.0,
-  "per": 5.09,
-  "cns_per": 4.37,
+  "market_cap_eok": 49775.0,
+  "per": 5.08,
+  "cns_per": 4.36,
   "cns_eps": 33328.0,
   "pbr": 0.33,
-  "dividend_yield": 0.0693,
+  "dividend_yield": 0.0695,
   "target": 501667.0,
   "recomm": 4.0,
   "roe": 0.0661,
@@ -280,7 +280,7 @@
   ],
   [
    "2026-11-25",
-   145800.0
+   145300.0
   ]
  ],
  "code": "005387",
