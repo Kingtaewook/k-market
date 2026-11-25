@@ -581,3 +581,9 @@ body.locked .nav, body.locked .status, body.locked #tabbar { display: none !impo
 .mact { display: flex; gap: 8px; }
 .mact .btn { flex: 1; justify-content: center; }
 .auth .btn b { margin-left: 4px; }
+/* 휴대폰에서도 관리자 버튼은 보이게 (아이콘 + 숫자만) */
+.admin-banner { display: block; color: inherit; text-decoration: none; }
+@media (max-width: 560px) {
+  .auth a.btn.admin-btn { display: inline-flex; padding-left: 10px; padding-right: 10px; }
+  .auth a.btn.admin-btn .lbl { display: none; }
+}
