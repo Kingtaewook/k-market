@@ -16,7 +16,7 @@
     return cache[path];
   }
 
-  let CFG, MK, LIST, NEWS, ALL = {}, GROUPS = null;
+  let CFG, MK, LIST, NEWS, ALL = {}, GROUPS = null, US = null;
   const CODE2THEMES = {};
   let SB = null, USER = null, MYCACHE = null;
   const $app = document.getElementById("app");
@@ -25,7 +25,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const isNum = (v) => typeof v === "number" && isFinite(v);
   const won = (v) => (isNum(v) ? Math.round(v).toLocaleString("ko-KR") : "–");
-  const pct = (v, d = 1, sign = true) => (isNum(v) ? `${sign && v > 0 ? "+" : ""}${(v * 100).toFixed(d)}%` : "–");
+  const pct = (v, d = 1, sign = true) => { if (!isNum(v)) return "–"; const t = (v * 100).toFixed(d); const z = Number(t) === 0; return `${sign && v > 0 && !z ? "+" : ""}${z ? (0).toFixed(d) : t}%`; };
   const cls = (v) => (isNum(v) ? (v > 0 ? "up" : v < 0 ? "down" : "") : "");
   const times = (v, d = 2) => (isNum(v) ? `${v.toFixed(d)}배` : "–");
   const cap = (eok) => {
@@ -106,7 +106,7 @@
     const basis = MK.themes[0]?.basis || "";
     return `<div class="card">
       <div class="card-head"><div><h2>내 관심 테마 랭킹</h2><div class="muted" style="font-size:13px">${esc(basis)} 1·3개월 수익률로 계산 · 50 = 기준선</div></div>
-      <a class="more" href="#/themes">전체 보기 →</a></div>
+      <a class="more" href="#/themes/mine">전체 보기 →</a></div>
       ${rows.map((t) => `
         <div class="rank-row" data-go="#/themes/${encodeURIComponent(t.name)}" title="평균 1개월 ${pct(t.avg1m)} · 3개월 ${pct(t.avg3m)} · 상승 ${t.up}/${t.total}">
           <div class="rk num">${t.rank ?? "–"}</div>
@@ -164,13 +164,56 @@
   }
 
   function hotTopics() {
-    const gs = (GROUPS?.themes || []).filter((g) => (g.total || 0) >= 5 && isNum(g.chg));
-    if (!gs.length) return [];
-    const sorted = gs.slice().sort((a, b) => b.chg - a.chg);
-    const picks = sorted.slice(0, 3).map((g) => ({ g, tag: g.chg >= 0.03 ? "급등" : "강세", tone: "up" }));
+    const T = themeStats().filter((t) => isNum(t.chg) && t.n >= 4);
+    if (!T.length) return [];
+    const sorted = T.slice().sort((a, b) => b.chg - a.chg);
+    const picks = sorted.filter((t) => !t.lead.chg).slice(0, 3).map((g) => ({ g, tag: g.chg >= 0.03 ? "급등" : "강세", tone: "up" }));
     const worst = sorted[sorted.length - 1];
     if (worst && worst.chg < 0) picks.push({ g: worst, tag: "약세", tone: "down" });
     return picks;
+  }
+
+
+
+  // 미국 분위기 0~100 = 주요 지수(S&P·나스닥·다우·반도체) 평균 등락 60% + VIX 수준 40%
+  function usMoodScore() {
+    const ix = (US?.indices || []).filter((x) => isNum(x.chg));
+    const parts = [];
+    if (ix.length) parts.push([clamp01((ix.reduce((a, x) => a + x.chg, 0) / ix.length + 0.03) / 0.06), 0.6]);
+    if (isNum(US?.vix?.close)) parts.push([clamp01((35 - US.vix.close) / 23), 0.4]);
+    if (!parts.length) return null;
+    const w = parts.reduce((a, [, x]) => a + x, 0);
+    return Math.round((parts.reduce((a, [v, x]) => a + v * x, 0) / w) * 100);
+  }
+  function usMoodLine() {
+    const ix = US?.indices || [];
+    const by = (k) => ix.find((x) => x.key === k);
+    const nq = by("nasdaq"), dj = by("dow"), sox = by("sox");
+    if (!nq || !dj) return "미국 마감 데이터를 기다리는 중이에요";
+    const tech = (nq.chg + (sox?.chg ?? nq.chg)) / 2;
+    if (tech < -0.01 && dj.chg > 0) return "기술주는 약세, 경기·가치주로 돈이 이동";
+    if (tech > 0.01 && dj.chg < 0) return "기술주 독주, 나머지는 쉬어감";
+    if (tech > 0 && dj.chg > 0) return "기술주와 경기주가 함께 오름";
+    if (tech < 0 && dj.chg < 0) return "전반적인 위험 회피 분위기";
+    return "방향을 탐색하는 혼조세";
+  }
+  function usMoodCard() {
+    if (!US) return "";
+    const s = usMoodScore();
+    const ix = US.indices || [];
+    const v = US.vix, fx = US.usdkrw;
+    return `<div class="brief-mood brief-us ${s === null ? "" : moodTone(s)}">
+        <div class="eyebrow">미국 장 · ${esc(US.as_of || "")} 마감</div>
+        ${gaugeSvg(s)}
+        <div class="mood-score num">${s ?? "–"}<span>${s === null ? "" : moodLabel(s)}</span></div>
+        <p class="mood-line">${esc(usMoodLine())}</p>
+        <div class="us-grid">
+          ${ix.map((x) => `<div class="us-cell"><em>${esc(x.name)}</em><b class="num ${cls(x.chg)}">${pct(x.chg, 2)}</b><span class="num muted">${isNum(x.close) ? x.close.toLocaleString("en-US", { maximumFractionDigits: 2 }) : "–"}</span></div>`).join("")}
+          ${v ? `<div class="us-cell"><em>VIX 공포지수</em><b class="num">${isNum(v.close) ? v.close.toFixed(1) : "–"}</b><span class="num ${cls(-(v.chg || 0))}">${pct(v.chg, 1)}</span></div>` : ""}
+          ${fx ? `<div class="us-cell"><em>원/달러</em><b class="num">${isNum(fx.close) ? won(fx.close) : "–"}</b><span class="num ${cls(fx.chg)}">${pct(fx.chg, 2)}</span></div>` : ""}
+        </div>
+        ${US.preview ? `<div class="us-note">미리보기 · 일부 값은 예시예요</div>` : ""}
+      </div>`;
   }
 
   function briefCard() {
@@ -186,9 +229,9 @@
       .sort((a, c) => `${c.date}${c.time || ""}`.localeCompare(`${a.date}${a.time || ""}`));
     const seen = new Set(), heads = [];
     for (const n of auto) { if (seen.has(n.title)) continue; seen.add(n.title); heads.push(n); if (heads.length >= 3) break; }
-    return `<section class="brief">
+    return `<section class="brief ${US ? "has-us" : ""}">
       <div class="brief-mood ${s === null ? "" : moodTone(s)}">
-        <div class="eyebrow">10초 브리핑 · ${esc(MK.as_of || "")}</div>
+        <div class="eyebrow">한국 장 · ${esc(MK.as_of || "")}</div>
         ${gaugeSvg(s)}
         <div class="mood-score num">${s ?? "–"}<span>${s === null ? "" : moodLabel(s)}</span></div>
         <p class="mood-line">${line}</p>
@@ -200,24 +243,25 @@
         ${total ? `<div class="breadth-bar" title="상승 ${b.up} · 하락 ${b.down}"><i class="u" style="flex:${b.up}"></i><i class="d" style="flex:${b.down}"></i></div>
         <div class="breadth-legend num"><span class="up">상승 ${b.up.toLocaleString("ko-KR")}</span><span class="down">하락 ${b.down.toLocaleString("ko-KR")}</span></div>` : ""}
       </div>
+      ${usMoodCard()}
       <div class="brief-topics">
-        <div class="eyebrow">지금 뜨는 토픽</div>
+        <div class="tcol"><div class="eyebrow">지금 뜨는 토픽</div>
         ${topics.length ? topics.map(({ g, tag, tone }) => `
           <a class="topic" href="#/market/g/theme/${g.no}">
             <span class="ttag ${tone}">${tag}</span>
             <span class="tbody"><b>${esc(g.name)}</b>
-              <span class="tlead">${(tone === "down" ? groupLaggards(g, 3) : groupLeaders(g, 3)).map((l) => `${esc(l.name)} <em class="${cls(l.chg)}">${pct(l.chg, 1)}</em>`).join(" · ")}</span></span>
+              <span class="tlead">${g.members.filter((x) => isNum(x.chg)).sort((x, y) => (tone === "down" ? x.chg - y.chg : y.chg - x.chg)).slice(0, 3).map((l) => `${esc(l.name)} <em class="${cls(l.chg)}">${pct(l.chg, 1)}</em>`).join(" · ")}</span></span>
             <span class="tchg num ${cls(g.chg)}">${pct(g.chg, 1)}</span>
-          </a>`).join("") : `<div class="empty">다음 자동 갱신 후 표시됩니다.</div>`}
-        ${heads.length ? `<div class="eyebrow" style="margin-top:18px">오늘의 헤드라인</div>
+          </a>`).join("") : `<div class="empty">다음 자동 갱신 후 표시됩니다.</div>`}</div>
+        ${heads.length ? `<div class="hcol"><div class="eyebrow">오늘의 헤드라인</div>
           ${heads.map((n) => `<a class="headline" href="${esc(n.url || "#/news")}" ${n.url ? 'target="_blank" rel="noopener"' : ""}>
-            ${impactBadge(n.impact)}<span>${esc(n.title)}</span><em>${esc(n.source || "")}</em></a>`).join("")}` : ""}
+            ${impactBadge(n.impact)}<span>${esc(n.title)}</span><em>${esc(n.source || "")}</em></a>`).join("")}</div>` : ""}
       </div>
     </section>`;
   }
 
   function heatmapCard() {
-    const gs = (GROUPS?.themes || []).filter((g) => (g.total || 0) >= 5 && isNum(g.chg));
+    const gs = themeStats().filter((g) => g.n >= 4 && isNum(g.chg));
     if (gs.length < 6) return "";
     const s = gs.slice().sort((a, b) => b.chg - a.chg);
     const pick = [...s.slice(0, 12), ...s.slice(-6)];
@@ -225,11 +269,11 @@
     const tile = (g, i) => {
       const t = Math.min(1, Math.abs(g.chg) / max);
       const lvl = g.chg === 0 ? 0 : Math.max(1, Math.ceil(t * 4));
-      return `<a class="tile ${g.chg >= 0 ? "u" : "d"}${lvl} ${i < 2 ? "big" : ""}" href="#/market/g/theme/${g.no}" title="${esc(g.name)} · 상승 ${g.rise} / 하락 ${g.fall}">
+      return `<a class="tile ${g.chg >= 0 ? "u" : "d"}${lvl} ${i < 2 ? "big" : ""}" href="#/market/g/theme/${g.no}" title="${esc(g.name)} · 거래대금 10억 이상 ${g.n}종목 중앙값${g.lead.chg ? ` · ${esc(g.lead.chg.name)} 1종목 주도` : ""}">
         <span class="tn">${esc(g.name)}</span><b class="num">${pct(g.chg, 1)}</b></a>`;
     };
     return `<div class="card section">
-      <div class="card-head"><div><h2>테마 지도</h2><div class="muted" style="font-size:12.5px">오늘 가장 강한 테마 12개와 약한 테마 6개 · 색이 진할수록 많이 움직였어요</div></div><a class="more" href="#/market/groups/theme">전체 →</a></div>
+      <div class="card-head"><div><h2>테마 지도</h2><div class="muted" style="font-size:12.5px">오늘 가장 강한 테마 12개와 약한 테마 6개 · 거래대금 10억 이상 종목의 중앙값 · 색이 진할수록 많이 움직였어요</div></div><a class="more" href="#/market/groups/theme">전체 →</a></div>
       <div class="heatmap">${pick.map(tile).join("")}</div>
     </div>`;
   }
@@ -278,13 +322,13 @@
       }).join("")}</tbody></table></div>`;
   }
 
-  function pageThemes(focus) {
+  function pageMyThemes(focus) {
     const T = MK.themes;
     const sel = focus && T.find((t) => t.name === focus) ? focus : null;
     const list = sel ? T.filter((t) => t.name === sel) : T;
     return `${staleBanner()}
-    <div class="page-head"><div><h1>섹터·테마 모니터</h1><p class="lede">테마별 핵심 종목의 1·3개월 모멘텀과 52주 위치입니다. 종목을 누르면 기업분석으로 이동합니다.</p></div></div>
-    <div class="chips"><a class="chip ${sel ? "" : "on"}" href="#/themes">전체</a>${T.map((t) => `<a class="chip ${sel === t.name ? "on" : ""}" href="#/themes/${encodeURIComponent(t.name)}">${esc(t.name)}</a>`).join("")}</div>
+    <div class="page-head"><div><h1>내 관심 테마</h1><p class="lede">config.json 에 직접 정한 테마의 1·3개월 모멘텀입니다. <a href="#/themes" style="color:var(--accent)">← 전체 테마 모니터</a></p></div></div>
+    <div class="chips"><a class="chip ${sel ? "" : "on"}" href="#/themes/mine">전체</a>${T.map((t) => `<a class="chip ${sel === t.name ? "on" : ""}" href="#/themes/${encodeURIComponent(t.name)}">${esc(t.name)}</a>`).join("")}</div>
     ${sel ? "" : `<div style="margin-bottom:16px">${rankingCard()}</div>`}
     ${list.map((t) => `
       <div class="card theme-block">
@@ -293,6 +337,126 @@
         </div>
         ${stockTable(t.stocks)}
       </div>`).join("")}`;
+  }
+
+
+  // ------------------------------------------------------------ 테마 모니터 (네이버 테마 전체 자동)
+  const thState = { period: "chg", view: "all" };
+  const PERIODS = [["chg", "오늘"], ["r1w", "1주"], ["r1m", "1개월"], ["r3m", "3개월"]];
+  const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  let THEME_CACHE = null, THEME_ALL_COUNT = 0;
+  const MIN_AMOUNT = 1e9;        // A. 거래대금 10억 미만은 테마 계산에서 제외
+  const LEAD_SHARE = 0.5;        // B. 한 종목이 상승분의 50% 이상이면 쏠림 표시
+  const FAMILY_OVERLAP = 0.75;   // D. 작은 쪽의 75% 이상 + 큰 쪽의 60% 이상이 겹치면 같은 테마 가족
+  const NOT_THEME = /밸류업|신규상장|스팩|SPAC|기업인수목적/i; // 지수·상장 묶음은 테마가 아님
+  const median = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y), h = s.length >> 1; return s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2; };
+  function themeStats() {
+    if (THEME_CACHE) return THEME_CACHE;
+    let out = (GROUPS?.themes || []).filter((g) => (g.total || 0) >= 3 && !NOT_THEME.test(g.name)).map((g) => {
+      const all = (g.codes || []).map((c) => ({ code: c, name: nameOf(c), ...(ALL[c] || {}) })).filter((x) => isNum(x.chg));
+      const m = all.filter((x) => (x.amount || 0) >= MIN_AMOUNT);
+      const pick = (k) => median(m.map((x) => x[k]).filter(isNum));
+      const t = { no: g.no, name: g.name, n: m.length, nAll: all.length, chg: pick("chg"), r1w: pick("r1w"), r1m: pick("r1m"), r3m: pick("r3m"),
+        amount: m.reduce((a, x) => a + (x.amount || 0), 0), hi: m.filter((x) => isNum(x.pos52) && x.pos52 >= 0.98).length, members: m, codes: new Set(m.map((x) => x.code)) };
+      t.lead = {};
+      for (const k of ["chg", "r1w", "r1m", "r3m"]) {
+        const pos = m.filter((x) => isNum(x[k]) && x[k] > 0);
+        const sum = pos.reduce((a, x) => a + x[k], 0);
+        const top = pos.sort((a, b) => b[k] - a[k])[0];
+        if (top && m.length >= 4 && sum > 0 && top[k] / sum >= LEAD_SHARE) t.lead[k] = { name: top.name, share: top[k] / sum };
+      }
+      return t;
+    }).filter((t) => t.n >= 3);
+    // 비슷한 테마 묶기: 큰 테마부터 대표로 두고, 대표와 60% 이상 겹치면 그 가족으로
+    const reps = [];
+    for (const t of [...out].sort((a, b) => b.n - a.n)) {
+      const rep = reps.find((r) => { let c = 0; for (const x of t.codes) if (r.codes.has(x)) c++; return t.codes.size >= 5 && r.codes.size >= 5 && c / Math.min(t.codes.size, r.codes.size) >= FAMILY_OVERLAP && c / Math.max(t.codes.size, r.codes.size) >= 0.6; });
+      if (rep) (rep.family ||= []).push(t.name); else reps.push(t);
+    }
+    THEME_ALL_COUNT = out.length;
+    out = reps;
+    const rankBy = (k) => { const s = out.filter((t) => isNum(t[k])).sort((a, b) => b[k] - a[k]); s.forEach((t, i) => (t["rk_" + k] = i + 1)); };
+    ["chg", "r1w", "r1m", "r3m", "amount"].forEach(rankBy);
+    out.forEach((t) => {
+      const { chg, r1w, r1m } = t;
+      t.jump = isNum(t.rk_r1m) && isNum(t.rk_r1w) ? t.rk_r1m - t.rk_r1w : 0;
+      t.signal = !isNum(r1w) || !isNum(r1m) ? ["확인 필요", ""]
+        : r1m >= 0.4 || r1w >= 0.25 ? ["과열 주의", "warn"]
+        : r1w >= 0.05 && r1m <= 0.05 ? ["새로 부상", "acc"]
+        : r1w > 0 && r1m >= 0.1 && chg >= 0 ? ["지속 강세", "pos"]
+        : r1m >= 0.1 && r1w < 0 ? ["눌림목", "good"]
+        : r1w < 0 && r1m < 0 && chg < 0 ? ["지속 약세", "neg"]
+        : chg >= 0.02 && r1w < 0 ? ["단기 반등", "acc"]
+        : chg <= -0.02 && r1w > 0 ? ["차익 실현", "warn"]
+        : r1m >= 0.05 ? ["완만한 상승", "pos"]
+        : r1m <= -0.05 ? ["완만한 하락", "neg"]
+        : ["횡보", ""];
+    });
+    return (THEME_CACHE = out);
+  }
+  function upRatio(t, k) {
+    const v = t.members.map((x) => x[k]).filter(isNum);
+    return v.length ? v.filter((x) => x > 0).length / v.length : 0;
+  }
+  function pageThemes(focus) {
+    if (focus === "mine" || (focus && CFG.themes.some((t) => t.name === focus))) return pageMyThemes(focus === "mine" ? null : focus);
+    const T = themeStats();
+    if (!T.length) return `<div class="page-head"><div><h1>테마 모니터</h1></div></div><div class="empty">테마 데이터는 다음 자동 갱신 후 표시됩니다.</div>`;
+    const k = thState.period, pl = PERIODS.find((p) => p[0] === k)[1];
+    const byChg = [...T].filter((t) => !t.lead.chg && isNum(t.chg)).sort((a, b) => b.chg - a.chg)[0];
+    const rising = [...T].filter((t) => (t.r1w || 0) > 0).sort((a, b) => b.jump - a.jump)[0];
+    const money = [...T].sort((a, b) => b.amount - a.amount)[0];
+    let rows = T.filter((t) => isNum(t[k]));
+    if (thState.view === "up") rows = rows.filter((t) => t[k] > 0);
+    if (thState.view === "down") rows = rows.filter((t) => t[k] < 0);
+    if (thState.view === "new") rows = rows.filter((t) => t.signal[0] === "새로 부상" || (t.jump >= 60 && (t.r1w || 0) > 0));
+    if (thState.view === "hot") rows = rows.filter((t) => t.signal[0] === "과열 주의");
+    rows.sort((a, b) => (thState.view === "down" ? a[k] - b[k] : b[k] - a[k]));
+    const hl = (t, label, val, foot) => t ? `<a class="card stat th-hl" href="#/market/g/theme/${t.no}"><div class="label">${label}</div><div class="value sm">${esc(t.name)}</div><div class="foot">${val}</div>${foot ? `<div class="foot muted">${foot}</div>` : ""}</a>` : "";
+    return `${staleBanner()}
+    <div class="page-head"><div><h1>테마 모니터</h1><p class="lede">네이버 테마 ${THEME_ALL_COUNT}개를 비슷한 것끼리 묶어 ${T.length}개로 정리했어요 · 거래대금 10억 이상 종목의 중앙값 기준 · ${esc(GROUPS?.as_of || "")} · <a href="#/themes/mine" style="color:var(--accent)">내 관심 테마 ${CFG.themes.length}개 →</a></p></div></div>
+    <div class="grid g3">
+      ${hl(byChg, "오늘 가장 강한 테마", `오늘 <b class="${cls(byChg?.chg)}">${pct(byChg?.chg, 1)}</b> · 상승 ${Math.round(upRatio(byChg, "chg") * 100)}%`, byChg?.members.slice().sort((a, b) => b.chg - a.chg).slice(0, 2).map((x) => esc(x.name)).join(" · "))}
+      ${hl(rising, "이번 주 새로 뜨는 테마", `1주 <b class="${cls(rising?.r1w)}">${pct(rising?.r1w, 1)}</b> · 순위 ${rising?.rk_r1m}위 → ${rising?.rk_r1w}위`, "1개월 순위보다 1주 순위가 가장 많이 오른 테마")}
+      ${hl(money, "돈이 가장 몰린 테마", `거래대금 <b>${bigWon(money?.amount)}</b>`, `오늘 <span class="${cls(money?.chg)}">${pct(money?.chg, 1)}</span>`)}
+    </div>
+    <div class="card section">
+      <div class="th-controls">
+        <div class="seg">${PERIODS.map(([v, l]) => `<button class="${v === k ? "on" : ""}" data-period="${v}">${l}</button>`).join("")}</div>
+        <div class="chips" style="margin:0">${[["all", "전체"], ["up", "상승"], ["down", "하락"], ["new", "새로 부상"], ["hot", "과열 주의"]].map(([v, l]) => `<button class="chip ${v === thState.view ? "on" : ""}" data-view="${v}">${l}</button>`).join("")}</div>
+        <div class="search-box th-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="th-q" type="search" placeholder="테마 이름 검색 (예: 로봇, 원전)" autocomplete="off"></div>
+      </div>
+      <div class="muted" style="font-size:12.5px;margin:10px 0 4px">${rows.length}개 테마 · ${pl} 등락률(중앙값) 순 · 막대는 ${pl} 상승 종목 비율</div>
+      <div class="table-wrap"><table class="th-table">
+        <thead><tr><th class="c-rank">#</th><th>테마</th><th class="r c-val">${pl}</th>${PERIODS.filter(([v]) => v !== k && v !== "r3m").map(([, l]) => `<th class="r hide-s">${l}</th>`).join("")}<th class="hide-s">상승 비율</th><th class="r hide-s">거래대금</th><th class="c-sig">신호</th><th class="hide-m">대장주</th></tr></thead>
+        <tbody>${rows.map((t, i) => {
+          const ur = upRatio(t, k);
+          const lead = t.members.filter((x) => isNum(x[k])).sort((a, b) => b[k] - a[k]).slice(0, 3);
+          return `<tr class="link" data-go="#/market/g/theme/${t.no}" data-name="${esc([t.name, ...(t.family || [])].join(" ").toLowerCase())}">
+            <td class="muted num">${i + 1}</td>
+            <td><b class="th-name">${esc(t.name)}</b>${t.lead[k] ? ` <span class="badge warn lead-badge" title="이 종목이 ${pl} 상승분의 ${Math.round(t.lead[k].share * 100)}%를 차지해요">${esc(t.lead[k].name)} 1종목 주도</span>` : ""}<div class="muted th-sub">${t.n}종목${t.nAll > t.n ? `<span title="거래대금 10억 미만 ${t.nAll - t.n}종목 제외">(전체 ${t.nAll})</span>` : ""}${t.hi ? ` · 신고가 ${t.hi}` : ""}${t.jump >= 30 ? ` · <span class="up">순위 ▲${t.jump}</span>` : ""}${t.family ? ` · <span title="${esc(t.family.join(", "))}">비슷한 테마 ${t.family.length}개 포함</span>` : ""}</div></td>
+            <td class="r num big ${cls(t[k])}">${pct(t[k], 1)}</td>
+            ${PERIODS.filter(([v]) => v !== k && v !== "r3m").map(([v]) => `<td class="r num hide-s ${cls(t[v])}">${pct(t[v], 1)}</td>`).join("")}
+            <td class="hide-s"><div class="ubar" title="상승 ${Math.round(ur * 100)}%"><i style="width:${ur * 100}%"></i></div></td>
+            <td class="r num hide-s">${bigWon(t.amount)}</td>
+            <td><span class="badge ${t.signal[1]}">${t.signal[0]}</span></td>
+            <td class="hide-m th-lead">${lead.map((x) => `${esc(x.name)} <span class="${cls(x[k])}">${pct(x[k], 0)}</span>`).join(" · ")}</td></tr>`;
+        }).join("")}</tbody></table></div>
+      ${rows.length ? "" : `<div class="empty">지금 이 조건에 해당하는 테마가 없어요.</div>`}
+      <div class="empty" id="th-none" hidden>검색 결과가 없어요.</div>
+    </div>
+    <p class="muted" style="font-size:12.5px;margin-top:10px">계산 기준 — 거래대금 10억 미만 종목 제외 · 테마 값은 평균이 아닌 중앙값(한 종목 급등에 덜 흔들림) · 한 종목이 상승분의 50% 이상이면 "1종목 주도" 표시 · 종목이 대부분(75% 이상) 겹치는 테마는 하나로 묶음.<br>신호 기준 — 과열 주의: 1개월 +40% 이상 또는 1주 +25% 이상 · 새로 부상: 1주 +5% 이상인데 1개월은 +5% 이하 · 지속 강세: 1주·1개월·오늘 모두 상승(1개월 +10% 이상) · 눌림목: 1개월 +10% 이상인데 1주 하락 · 지속 약세: 오늘·1주·1개월 모두 하락 · 단기 반등: 1주 하락 중 오늘 +2% 이상 · 차익 실현: 1주 상승 중 오늘 -2% 이하 · 그 밖은 1개월 ±5%로 완만한 상승/하락/횡보. 규칙 기반 참고 지표예요.</p>`;
+  }
+  function wireThemes() {
+    document.querySelectorAll("[data-period]").forEach((b) => b.addEventListener("click", () => { thState.period = b.dataset.period; rerender(); }));
+    document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => { thState.view = b.dataset.view; rerender(); }));
+    const q = document.getElementById("th-q");
+    q?.addEventListener("input", () => {
+      const v = q.value.trim().toLowerCase();
+      let n = 0;
+      document.querySelectorAll(".th-table tbody tr").forEach((tr) => { const ok = !v || tr.dataset.name.includes(v); tr.hidden = !ok; if (ok) n++; });
+      document.getElementById("th-none").hidden = n > 0;
+    });
   }
 
   // ------------------------------------------------------------ 검색
@@ -1132,6 +1296,7 @@
     $app.innerHTML = html;
     wireSearch("home-q"); wireSearch("q"); wireSearch("cq"); wireInstall();
     if (page === "market") wireMarket();
+    if (page === "themes") wireThemes();
     if (page === "my") wireMy();
     if (page === "company") {
       const code = parts[1] || trackedCodes()[0];
@@ -1150,7 +1315,7 @@
 
   async function init() {
     let all;
-    [CFG, MK, LIST, NEWS, all, GROUPS] = await Promise.all([getJSON("config.json"), getJSON("market.json"), getJSON("stocks.json"), getJSON("theme_news.json"), getJSON("market_all.json"), getJSON("groups.json")]);
+    [CFG, MK, LIST, NEWS, all, GROUPS, US] = await Promise.all([getJSON("config.json"), getJSON("market.json"), getJSON("stocks.json"), getJSON("theme_news.json"), getJSON("market_all.json"), getJSON("groups.json"), getJSON("us_market.json")]);
     (GROUPS?.themes || []).forEach((g) => (g.codes || []).forEach((c) => (CODE2THEMES[c] ||= []).push(g)));
     Object.values(CODE2THEMES).forEach((l) => l.sort((a, b) => b.chg - a.chg));
     if (!CFG || !MK) {
