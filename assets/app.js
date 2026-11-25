@@ -122,7 +122,7 @@
   function newsItems(items, opts = {}) {
     if (!items || !items.length) return `<div class="empty">표시할 뉴스가 없습니다.</div>`;
     return `<div class="news-list">${items.map((n) => posLocked(n.impact) ? `
-      <div class="news-item locked">${posLockHTML()}${impactBadge(n.impact)}<div class="meta">${esc(n.date || "")}${n.stock ? " · " + esc(n.stock) : ""}</div></div>` : `
+      <div class="news-item locked">${posLockHTML(n.impact)}${impactBadge(n.impact)}<div class="meta">${esc(n.date || "")}${n.theme ? " · " + esc(n.theme) : ""}</div></div>` : `
       <div class="news-item">
         ${n.url ? `<a class="t" href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>` : `<div class="t">${esc(n.title)}</div>`}
         ${impactBadge(n.impact)}
@@ -212,7 +212,7 @@
             <span class="tchg num ${cls(g.chg)}">${pct(g.chg, 1)}</span>
           </a>`).join("") : `<div class="empty">다음 자동 갱신 후 표시됩니다.</div>`}
         ${heads.length ? `<div class="eyebrow" style="margin-top:18px">오늘의 헤드라인</div>
-          ${heads.map((n) => posLocked(n.impact) ? `<div class="headline">${impactBadge(n.impact)}${posLockHTML()}</div>` : `<a class="headline" href="${esc(n.url || "#/news")}" ${n.url ? 'target="_blank" rel="noopener"' : ""}>
+          ${heads.map((n) => posLocked(n.impact) ? `<div class="headline">${impactBadge(n.impact)}${posLockHTML(n.impact)}</div>` : `<a class="headline" href="${esc(n.url || "#/news")}" ${n.url ? 'target="_blank" rel="noopener"' : ""}>
             ${impactBadge(n.impact)}<span>${esc(n.title)}</span><em>${esc(n.source || "")}</em></a>`).join("")}` : ""}
       </div>
     </section>`;
@@ -604,7 +604,7 @@
       const head = opts.group && n.date !== last ? `<div class="nday">${dayLabel(n.date)}</div>` : "";
       last = n.date;
       const tag = [n.stock, n.theme].filter(Boolean).map(esc).join(" · ");
-      if (posLocked(n.impact)) return `${head}<div class="ncard t-긍정 locked"><div class="ntop">${sentBadge(n.impact)}${tag ? `<span class="ntag">${tag}</span>` : ""}<span class="ntime num">${opts.group ? esc(n.time || "") : esc(n.date || "")}</span></div>${posLockHTML()}</div>`;
+      if (posLocked(n.impact)) return `${head}<div class="ncard t-${toneOf(n.impact)} locked"><div class="ntop">${sentBadge(n.impact)}${n.theme ? `<span class="ntag">${esc(n.theme)}</span>` : ""}<span class="ntime num">${opts.group ? esc(n.time || "") : esc(n.date || "")}</span></div>${posLockHTML(n.impact)}</div>`;
       return `${head}<a class="ncard t-${toneOf(n.impact)}" ${n.url ? `href="${esc(n.url)}" target="_blank" rel="noopener"` : ""}>
         <div class="ntop">${sentBadge(n.impact)}${tag ? `<span class="ntag">${tag}</span>` : ""}<span class="ntime num">${opts.group ? esc(n.time || "") : esc(n.date || "")}</span></div>
         <div class="ntitle">${esc(n.title)}</div>
@@ -809,7 +809,7 @@
       </div>
       <div class="grid g-main section">
         <div class="card"><div class="card-head"><h2>최신 뉴스</h2><span class="muted" style="font-size:12.5px">최근 7일 · 시총 상위 종목 기사</span></div>
-          ${s && s.items.length ? `<div class="news-list">${s.items.map(([d, t, title, src, url, imp, st]) => posLocked(imp) ? `<div class="news-item locked"><div style="display:flex;gap:8px;align-items:center">${sentBadge(imp)}${posLockHTML()}</div><div class="meta num">${esc(st)} · ${esc(d || "")}</div></div>` : `<div class="news-item">
+          ${s && s.items.length ? `<div class="news-list">${s.items.map(([d, t, title, src, url, imp, st]) => posLocked(imp) ? `<div class="news-item locked"><div style="display:flex;gap:8px;align-items:center">${sentBadge(imp)}${posLockHTML(imp)}</div><div class="meta num">${esc(d || "")} ${esc(t || "")}</div></div>` : `<div class="news-item">
             <div style="display:flex;gap:8px;align-items:flex-start">${sentBadge(imp)}<a class="t" style="font-weight:600" href="${esc(url || "#")}" target="_blank" rel="noopener">${esc(title)}</a></div>
             <div class="meta num">${esc(st)} · ${esc(src)} · ${esc(d || "")} ${esc(t || "")}</div></div>`).join("")}</div>`
             : `<div class="empty">${GNEWS ? "최근 7일 동안 모인 뉴스가 없어요." : "섹터 뉴스는 다음 자동 갱신 후 표시됩니다."}</div>`}
@@ -1047,9 +1047,12 @@
   const CAN_SEE = () => !APPROVAL() || (USER && (!PROFILE_OK || PROFILE?.status === "approved"));
   const LOCKED_PAGES = new Set(["themes", "sectors", "news", "my", "admin"]);
   // 긍정 뉴스는 관리자가 열어준 회원만 (회원별 권한)
-  const CAN_POS = () => !APPROVAL() || IS_ADMIN() || (CAN_SEE() && (!PROFILE_OK || PROFILE?.can_positive === true || PROFILE?.can_positive === undefined));
-  const posLocked = (imp) => imp === "긍정" && !CAN_POS();
-  const posLockHTML = () => `<span class="pos-lock">🔒 긍정 뉴스는 관리자가 열어준 회원만 볼 수 있어요</span>`;
+  // 관리자 '회원 화면 미리보기': 켜면 관리자도 일반 회원(긍정 뉴스 권한 없음)처럼 보여요
+  const PREVIEW = () => { try { return IS_ADMIN() && localStorage.getItem("km_preview") === "1"; } catch { return false; } };
+  const CAN_POS = () => PREVIEW() ? false : !APPROVAL() || IS_ADMIN() || (CAN_SEE() && (!PROFILE_OK || PROFILE?.can_positive === true || PROFILE?.can_positive === undefined));
+  // 긍정·악재 뉴스는 관리자가 열어준 회원만 (보통 뉴스는 누구나)
+  const posLocked = (imp) => (imp === "긍정" || imp === "주의" || imp === "부정") && !CAN_POS();
+  const posLockHTML = (imp) => `<span class="pos-lock">🔒 ${imp === "긍정" ? "긍정" : "악재"} 뉴스 가림 · 관리자에게 문의하세요</span>`;
   // 카카오 가입 후 추가 정보가 비었는지
   const NEEDS_INFO = () => APPROVAL() && USER && PROFILE_OK && PROFILE && !PROFILE.is_admin && (!PROFILE.phone || !PROFILE.agreed_at);
   let NOTIF = [];
@@ -1121,11 +1124,16 @@
     if (!el) return;
     if (!SB) { el.innerHTML = ""; return; }
     el.innerHTML = USER
-      ? `<a class="btn sm admin-btn bell" href="#/alerts" title="알람">🔔${UNREAD() ? `<b class="dot num">${UNREAD()}</b>` : ""}</a>${IS_ADMIN() ? `<a class="btn sm admin-btn ${PENDING_N ? "primary" : ""}" href="#/admin" title="회원 관리">👥<span class="lbl"> 회원 관리</span>${PENDING_N ? ` <b class="num">${PENDING_N}</b>` : ""}</a>` : ""}<a class="btn sm" href="#/my">내 투자</a><button class="btn sm ghost" id="logout" title="${esc(USER.email)}">로그아웃</button>`
+      ? `<a class="btn sm admin-btn bell" href="#/alerts" title="알람">🔔${UNREAD() ? `<b class="dot num">${UNREAD()}</b>` : ""}</a>${IS_ADMIN() ? `<button class="btn sm admin-btn ${PREVIEW() ? "primary" : ""}" id="preview" title="회원 화면 미리보기">👁<span class="lbl"> ${PREVIEW() ? "회원 화면 보는 중" : "회원 화면"}</span></button>` : ""}${IS_ADMIN() ? `<a class="btn sm admin-btn ${PENDING_N ? "primary" : ""}" href="#/admin" title="회원 관리">👥<span class="lbl"> 회원 관리</span>${PENDING_N ? ` <b class="num">${PENDING_N}</b>` : ""}</a>` : ""}<a class="btn sm" href="#/my">내 투자</a><button class="btn sm ghost" id="logout" title="${esc(USER.email)}">로그아웃</button>`
       : `${APPROVAL() ? `<button class="btn sm" id="signup">회원가입</button>` : ""}<button class="btn sm primary" id="login">로그인</button>`;
     document.getElementById("signup")?.addEventListener("click", () => openAuth("signup"));
     document.getElementById("login")?.addEventListener("click", () => openAuth("login"));
     document.getElementById("logout")?.addEventListener("click", async () => { await SB.auth.signOut(); });
+    document.getElementById("preview")?.addEventListener("click", () => {
+      try { localStorage.setItem("km_preview", PREVIEW() ? "0" : "1"); } catch {}
+      alertBox(PREVIEW() ? "회원 화면으로 보는 중이에요 (긍정·악재 뉴스 가림). 👁를 다시 누르면 관리자 화면으로 돌아와요." : "관리자 화면으로 돌아왔어요");
+      renderAuthButton(); rerender();
+    });
   }
   const KAKAO = () => !!window.KM_CONFIG?.kakao;
   async function kakaoLogin() {
@@ -1478,7 +1486,7 @@
         <div class="card-head"><div><h2 class="num">${j.date} <span class="muted" style="font-size:13px;font-weight:600">${["일", "월", "화", "수", "목", "금", "토"][new Date(j.date + "T00:00:00+09:00").getDay()]}요일</span></h2></div>
           <div class="num" style="text-align:right"><b class="${cls(j.day_pnl)}">${signWon(+j.day_pnl)}</b> <span class="${cls(j.day_ret)}">(${pct(j.day_ret, 2)})</span><div class="muted" style="font-size:12px">코스피 ${pct(j.kospi_ret, 2)} · 평가 ${bigWon(+j.total_value)} · 누적 ${pct(j.cum_ret)}</div></div></div>
         ${movers.length ? `<div class="chips" style="margin-bottom:10px">${movers.map((p) => `<a class="chip" href="#/company/${p.code}">${esc(p.name)} <span class="${cls(p.chg)}">${pct(p.chg, 1)}</span></a>`).join("")}</div>` : ""}
-        ${ev.length ? `<ul class="events">${ev.map((e) => posLocked(e.impact) ? `<li><span>${icon[e.type] || "•"}</span>${posLockHTML()} ${impactBadge(e.impact)}</li>` : `<li><span>${icon[e.type] || "•"}</span>${e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.text)}</a>` : esc(e.text)}${e.impact ? " " + impactBadge(e.impact) : ""}</li>`).join("")}</ul>` : `<div class="muted" style="font-size:13px">특별한 이벤트 없음</div>`}
+        ${ev.length ? `<ul class="events">${ev.map((e) => posLocked(e.impact) ? `<li><span>${icon[e.type] || "•"}</span>${posLockHTML(e.impact)} ${impactBadge(e.impact)}</li>` : `<li><span>${icon[e.type] || "•"}</span>${e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.text)}</a>` : esc(e.text)}${e.impact ? " " + impactBadge(e.impact) : ""}</li>`).join("")}</ul>` : `<div class="muted" style="font-size:13px">특별한 이벤트 없음</div>`}
         <div class="note-box"><textarea data-note="${j.date}" placeholder="오늘의 한 줄 회고 (예: 반도체 비중 줄일지 고민)">${esc(j.note || "")}</textarea><button class="btn sm" data-savenote="${j.date}">메모 저장</button></div>
       </div>`;
     }).join("");
@@ -1675,7 +1683,7 @@
         ${p.is_admin ? "" : `<div class="mact">
           ${p.status !== "approved" ? `<button class="btn primary sm" data-set="approved" data-id="${p.id}">✅ 승인</button>` : `<button class="btn sm" data-set="pending" data-id="${p.id}">승인 취소</button>`}
           ${p.status !== "rejected" ? `<button class="btn sm" data-set="rejected" data-id="${p.id}">거절</button>` : `<button class="btn sm" data-set="pending" data-id="${p.id}">대기로 되돌리기</button>`}</div>
-          ${p.status === "approved" ? `<label class="pos-toggle"><input type="checkbox" data-pos="${p.id}" ${p.can_positive ? "checked" : ""}> 긍정 뉴스 보기 허용</label>` : ""}`}
+          ${p.status === "approved" ? `<label class="pos-toggle"><input type="checkbox" data-pos="${p.id}" ${p.can_positive ? "checked" : ""}> 긍정·악재 뉴스 보기 허용</label>` : ""}`}
       </div>`).join("")}</div>` : `<div class="empty">${adminTab === "pending" ? "승인 대기 중인 회원이 없어요." : "없어요."}</div>`}
       <p class="muted" style="font-size:12px;margin-top:12px">회원을 완전히 삭제하려면 Supabase → Authentication → Users 에서 삭제하세요 (회원 정보도 함께 지워져요).</p>`;
   }
@@ -1685,8 +1693,8 @@
       c.disabled = true;
       const r = await SB.from("profiles").update({ can_positive: c.checked }).eq("id", c.dataset.pos);
       if (r.error) { alertBox("변경하지 못했어요: " + r.error.message); c.checked = !c.checked; c.disabled = false; return; }
-      if (c.checked) await sendNotif([c.dataset.pos], "perm", "긍정 뉴스가 열렸어요", "이제 뉴스 화면에서 긍정 뉴스도 볼 수 있어요.", "#/news");
-      alertBox(c.checked ? "긍정 뉴스를 열어줬어요" : "긍정 뉴스를 닫았어요"); c.disabled = false;
+      if (c.checked) await sendNotif([c.dataset.pos], "perm", "긍정·악재 뉴스가 열렸어요", "이제 뉴스 화면에서 긍정·악재 뉴스도 볼 수 있어요.", "#/news");
+      alertBox(c.checked ? "긍정·악재 뉴스를 열어줬어요" : "긍정·악재 뉴스를 닫았어요"); c.disabled = false;
     }));
     document.getElementById("nform")?.addEventListener("submit", async (e) => {
       e.preventDefault();
