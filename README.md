@@ -27,6 +27,14 @@ GitHub Pages로 무료 호스팅되고, GitHub Actions가 평일 16:20(KST)에 �
 - 전 종목 재무·분기 실적: 평일마다 1/5씩 나눠 수집 → 1주일에 한 바퀴 (`data/companies/`)
 - 테마 종목 + 사용자 보유·관심 종목: 매일 1년 차트·재무·뉴스
 
+## 섹터 검색기 (`#/sectors`)
+
+- 네이버 테마(약 265개)·업종(약 79개)과 소속 종목을 평일 16:20에 새로 받아옵니다 → `data/groups.json`
+- 섹터 이름·줄임말(원전, 방산, 배터리…)이나 종목명으로 검색. 종목명을 넣으면 그 종목이 속한 섹터가 나옵니다.
+- **강도** = 오늘 등락 40% + 1주 30% + 1개월 30%를 전체 섹터 중 순위(0~100)로 환산.
+- **섹터 뉴스**: 섹터마다 시가총액 상위 3종목의 최근 7일 기사를 모아 긍정·보통·악재로 자동 분류 → `data/group_news.json` (08:20, 16:20 갱신)
+- 섹터·테마 화면 맨 위의 「오늘의 자동 섹터 TOP 8」은 이 순위로 매일 바뀝니다. 그 아래 8개 관심 테마는 `config.json` 그대로입니다.
+
 ## 종목·테마 바꾸기
 
 `data/config.json` 만 고치면 됩니다 (GitHub 웹에서 연필 아이콘으로 편집 가능).
@@ -45,6 +53,7 @@ GitHub Pages로 무료 호스팅되고, GitHub Actions가 평일 16:20(KST)에 �
 | `data/config.json` | 직접 편집하는 설정 |
 | `data/market.json` | 시세·테마 랭킹 (자동 생성) |
 | `data/companies/*.json` | 종목별 재무·분기 실적·뉴스·주가 (자동 생성) |
+| `data/groups.json`, `data/group_news.json` | 네이버 테마·업종과 섹터 뉴스 (자동 생성) |
 | `data/theme_news.json` | 테마 뉴스 (자동 + 직접 정리한 `curated`) |
 | `data/stocks.json` | 전체 상장 종목 목록 |
 | `scripts/update_data.py` | 수집 스크립트 |

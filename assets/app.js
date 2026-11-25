@@ -283,7 +283,9 @@
     const sel = focus && T.find((t) => t.name === focus) ? focus : null;
     const list = sel ? T.filter((t) => t.name === sel) : T;
     return `${staleBanner()}
-    <div class="page-head"><div><h1>섹터·테마 모니터</h1><p class="lede">테마별 핵심 종목의 1·3개월 모멘텀과 52주 위치입니다. 종목을 누르면 기업분석으로 이동합니다.</p></div></div>
+    <div class="page-head"><div><h1>섹터·테마 모니터</h1><p class="lede">위쪽은 매일 자동으로 바뀌는 섹터 순위, 아래는 직접 고른 관심 테마예요. 종목을 누르면 기업분석으로 이동합니다.</p></div><a class="btn primary" href="#/sectors">🔍 섹터 검색기</a></div>
+    ${sel ? "" : autoSectorCard()}
+    <h2 style="margin:6px 0 10px;font-size:17px">내 관심 테마 <span class="muted" style="font-size:12.5px;font-weight:500">data/config.json 에서 편집</span></h2>
     <div class="chips"><a class="chip ${sel ? "" : "on"}" href="#/themes">전체</a>${T.map((t) => `<a class="chip ${sel === t.name ? "on" : ""}" href="#/themes/${encodeURIComponent(t.name)}">${esc(t.name)}</a>`).join("")}</div>
     ${sel ? "" : `<div style="margin-bottom:16px">${rankingCard()}</div>`}
     ${list.map((t) => `
@@ -291,6 +293,7 @@
         <div class="theme-head"><span class="badge acc num">${t.rank ?? "–"}위</span><h2>${esc(t.name)}</h2>${verdictBadge(t.verdict)}
           <div class="theme-kpis num"><span>관심도<b>${t.score ?? "–"}</b></span><span>평균 1개월<b class="${cls(t.avg1m)}">${pct(t.avg1m)}</b></span><span>평균 3개월<b class="${cls(t.avg3m)}">${pct(t.avg3m)}</b></span>${isNum(t.rel1m) ? `<span>코스피 대비 1개월<b class="${cls(t.rel1m)}">${pct(t.rel1m)}p</b></span>` : ""}<span>상승<b>${t.up}/${t.total}</b></span></div>
         </div>
+        ${themeSent(t.name) ? `<div class="theme-sent"><span class="muted">최근 뉴스</span>${sentBar(themeSent(t.name))}<a class="more" href="#/news">뉴스 보기 →</a></div>` : ""}
         ${stockTable(t.stocks)}
       </div>`).join("")}`;
   }
@@ -643,6 +646,167 @@
     return (GROUPS?.[kind === "theme" ? "themes" : "industries"] || []).find((g) => String(g.no) === String(no));
   }
 
+  // ------------------------------------------------------------ 섹터 검색기 · 섹터 뉴스 (긍정·보통·악재)
+  let GNEWS = null; // data/group_news.json (섹터 화면에서만 불러옴)
+  const SENT = { 긍정: ["긍정", "pos"], 중립: ["보통", ""], 주의: ["악재", "neg"], 부정: ["악재", "neg"] };
+  const sentBadge = (t) => { const [l, k] = SENT[t] || SENT.중립; return `<span class="badge ${k}">${l}</span>`; };
+  const gkey = (kind, no) => `${kind === "industry" ? "i" : "t"}${no}`;
+  const gnewsOf = (kind, no) => { const v = GNEWS?.g?.[gkey(kind, no)]; return v ? { p: v[0], m: v[1], n: v[2], items: v[3] || [] } : null; };
+  function sentBar(s, big) {
+    if (!s) return `<span class="muted" style="font-size:12px">뉴스 수집 전</span>`;
+    const tot = s.p + s.m + s.n;
+    if (!tot) return `<span class="muted" style="font-size:12px">최근 7일 뉴스 없음</span>`;
+    return `<div class="sent ${big ? "big" : ""}" title="긍정 ${s.p} · 보통 ${s.m} · 악재 ${s.n}">
+      <div class="sent-bar"><i class="p" style="flex:${s.p}"></i><i class="m" style="flex:${s.m}"></i><i class="n" style="flex:${s.n}"></i></div>
+      <div class="sent-num num"><span class="up">${s.p}</span><span class="muted">${s.m}</span><span class="down">${s.n}</span></div></div>`;
+  }
+  // 테마·업종 묶음의 1주·1개월 평균과 종합 강도(오늘 40% · 1주 30% · 1개월 30% 백분위)
+  let GSTAT = null;
+  function allGroups() {
+    if (GSTAT) return GSTAT;
+    const avg = (codes, k) => { const v = codes.map((c) => ALL[c]?.[k]).filter(isNum); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+    const gs = [...(GROUPS?.themes || []).map((g) => ({ ...g, kind: "theme" })), ...(GROUPS?.industries || []).map((g) => ({ ...g, kind: "industry" }))]
+      .filter((g) => (g.total || 0) >= 3)
+      .map((g) => ({ ...g, r1w: avg(g.codes || [], "r1w"), r1m: avg(g.codes || [], "r1m") }));
+    const prc = (k) => { const v = gs.map((g) => g[k]).filter(isNum).sort((a, b) => a - b); return (x) => (isNum(x) && v.length > 1 ? v.filter((y) => y < x).length / (v.length - 1) : 0.5); };
+    const pc = prc("chg"), pw = prc("r1w"), pm = prc("r1m");
+    gs.forEach((g) => (g.score = Math.round(100 * (0.4 * pc(g.chg) + 0.3 * pw(g.r1w) + 0.3 * pm(g.r1m)))));
+    return (GSTAT = gs);
+  }
+  const secState = { q: "", kind: "전체", sort: "score", limit: 40 };
+  const SECSORT = { score: "종합 강도", chg: "오늘", r1w: "1주", r1m: "1개월", pos: "긍정 뉴스", neg: "악재 뉴스" };
+  const norm = (s) => String(s || "").replace(/\s/g, "").toLowerCase();
+  // 줄임말 → 네이버 섹터 이름에 들어가는 말
+  const SEC_ALIAS = { 원전: ["원자력"], 배터리: ["2차전지", "전지"], 이차전지: ["2차전지"], 인공지능: ["ai", "인공지능"], 방산: ["방위산업", "국방"],
+    우주: ["우주"], 바이오: ["바이오", "제약", "의료"], 헬스케어: ["의료", "제약", "헬스케어"], 전력망: ["전력", "스마트그리드"], 데이터센터: ["데이터센터", "전력설비"],
+    조선: ["조선", "해운"], 엔터: ["엔터"], 반도체: ["반도체", "hbm"], 로봇: ["로봇"], 금융: ["은행", "증권", "보험"], 화장품: ["화장품"], 자율주행: ["자율주행"] };
+  const secMatch = (name, q) => { const n = norm(name); return n.includes(q) || (SEC_ALIAS[q] || []).some((a) => n.includes(a)); };
+  function sectorRows() {
+    let gs = allGroups();
+    if (secState.kind === "테마") gs = gs.filter((g) => g.kind === "theme");
+    if (secState.kind === "업종") gs = gs.filter((g) => g.kind === "industry");
+    const q = norm(secState.q);
+    let byStock = null;
+    if (q) {
+      const hit = LIST.find((r) => norm(r[0]) === q || r[1] === q) || (q.length >= 2 ? LIST.find((r) => norm(r[0]).startsWith(q)) : null);
+      const named = gs.filter((g) => secMatch(g.name, q));
+      if (hit) byStock = { name: hit[0], code: hit[1], groups: gs.filter((g) => (g.codes || []).includes(hit[1]) && !named.includes(g)) };
+      gs = named;
+    }
+    const sv = (g) => { const s = gnewsOf(g.kind, g.no); const k = secState.sort;
+      if (k === "pos") return s ? s.p - s.n * 0.5 : -1e9;
+      if (k === "neg") return s ? s.n - s.p * 0.5 : -1e9;
+      return isNum(g[k]) ? g[k] : -1e9; };
+    const sorter = (a, b) => sv(b) - sv(a);
+    return { rows: gs.slice().sort(sorter), byStock: byStock && { ...byStock, groups: byStock.groups.sort(sorter) } };
+  }
+  function sectorTable(rows, start = 0) {
+    if (!rows.length) return `<div class="empty">찾는 섹터가 없어요. 다른 이름이나 종목명으로 검색해 보세요.</div>`;
+    return `<div class="table-wrap"><table class="sec-table">
+      <thead><tr><th>#</th><th>섹터</th><th class="r">강도</th><th class="r">오늘</th><th class="r">1주</th><th class="r">1개월</th><th>상승 비율</th><th>최근 뉴스 <span class="muted" style="font-weight:500">긍정·보통·악재</span></th></tr></thead>
+      <tbody>${rows.map((g, i) => {
+        const br = g.rise + g.fall ? g.rise / (g.rise + g.fall) : 0;
+        return `<tr class="link" data-go="#/sectors/${g.kind}/${g.no}">
+          <td class="muted num">${start + i + 1}</td>
+          <td><span class="stock-name">${esc(g.name)}</span> <span class="badge">${g.kind === "theme" ? "테마" : "업종"}</span>
+            <div class="muted" style="font-size:11.5px">${groupLeaders(g, 2).map((l) => `${esc(l.name)} <span class="${cls(l.chg)}">${pct(l.chg, 1)}</span>`).join(" · ")}</div></td>
+          <td class="r num"><b>${g.score}</b></td>
+          <td class="r num ${cls(g.chg)}">${pct(g.chg, 2)}</td>
+          <td class="r num ${cls(g.r1w)}">${pct(g.r1w)}</td>
+          <td class="r num ${cls(g.r1m)}">${pct(g.r1m)}</td>
+          <td><span class="gbreadth" style="display:block;width:70px" title="상승 ${g.rise} · 하락 ${g.fall}"><i style="width:${br * 100}%"></i></span></td>
+          <td>${sentBar(gnewsOf(g.kind, g.no))}</td></tr>`;
+      }).join("")}</tbody></table></div>`;
+  }
+  function sectorResults() {
+    const { rows, byStock } = sectorRows();
+    return `${byStock && byStock.groups.length ? `<div class="card section"><div class="card-head"><h2>‘${esc(byStock.name)}’이(가) 속한 섹터</h2><a class="more" href="#/company/${byStock.code}">기업분석 →</a></div>${sectorTable(byStock.groups)}</div>` : ""}
+      ${byStock && byStock.groups.length && !rows.length ? "" : `<div class="card section"><div class="card-head"><h2>${secState.q ? `‘${esc(secState.q)}’ 관련 섹터` : "전체 섹터 순위"}</h2><span class="muted" style="font-size:13px">${rows.length}개</span></div>
+        ${sectorTable(rows.slice(0, secState.limit))}
+        ${rows.length > secState.limit ? `<div style="text-align:center;margin-top:14px"><button class="btn" id="sec-more">40개 더 보기</button></div>` : ""}</div>`}`;
+  }
+  function pageSectors(parts) {
+    if (parts[1] && parts[2]) return pageSectorDetail(parts[1], parts[2]);
+    if (!GROUPS) return `<div class="empty">섹터 목록은 다음 자동 갱신(평일 16:20) 후 표시됩니다.</div>`;
+    return `<div class="page-head"><div><h1>섹터 검색기</h1><p class="lede">네이버 테마 ${GROUPS.themes.length}개 · 업종 ${GROUPS.industries.length}개를 매일 새로 받아옵니다. 섹터 이름이나 종목명으로 찾고, 최근 7일 뉴스를 긍정·보통·악재로 나눠 보여줘요. · ${esc(GROUPS.as_of || "")} 기준${GNEWS ? ` · 뉴스 ${esc((GNEWS.updated_at || "").replace("T", " ").slice(0, 16))}` : ""}</p></div></div>
+      <div class="search-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="sec-q" type="search" autocomplete="off" placeholder="예: 반도체, 원전, 2차전지, 또는 종목명 ‘한화오션’" value="${esc(secState.q)}"></div>
+      <div class="chips" style="margin-top:12px">${["전체", "테마", "업종"].map((k) => `<button class="chip ${secState.kind === k ? "on" : ""}" data-sk="${k}">${k}</button>`).join("")}
+        <span class="muted" style="align-self:center;margin:0 4px 0 10px;font-size:12.5px">정렬</span>${Object.entries(SECSORT).map(([k, l]) => `<button class="chip ${secState.sort === k ? "on" : ""}" data-ss="${k}">${l}</button>`).join("")}</div>
+      <div id="sec-results">${sectorResults()}</div>
+      <p class="muted" style="font-size:12px;margin-top:10px">강도 = 오늘 등락 40% + 1주 30% + 1개월 30%를 전체 섹터 중 순위(0~100)로 바꾼 값. 뉴스는 섹터 시가총액 상위 3종목의 기사 제목 키워드로 자동 분류한 참고용입니다.</p>`;
+  }
+  function wireSectors() {
+    const inp = document.getElementById("sec-q");
+    const box = document.getElementById("sec-results");
+    const draw = () => { box.innerHTML = sectorResults(); document.getElementById("sec-more")?.addEventListener("click", () => { secState.limit += 40; draw(); }); };
+    inp?.addEventListener("input", () => { secState.q = inp.value.trim(); secState.limit = 40; draw(); });
+    document.querySelectorAll("[data-sk]").forEach((b) => b.addEventListener("click", () => { secState.kind = b.dataset.sk; secState.limit = 40; rerender(); }));
+    document.querySelectorAll("[data-ss]").forEach((b) => b.addEventListener("click", () => { secState.sort = b.dataset.ss; secState.limit = 40; rerender(); }));
+    if (box) draw();
+  }
+  function sentDonut(s) {
+    const tot = s.p + s.m + s.n, r = 42, C = 2 * Math.PI * r;
+    let off = 0;
+    const seg = (v, col) => { const len = (v / tot) * C; const el = v ? `<circle r="${r}" cx="55" cy="55" fill="none" stroke="${col}" stroke-width="16" stroke-dasharray="${len} ${C - len}" stroke-dashoffset="${-off}" transform="rotate(-90 55 55)"/>` : ""; off += len; return el; };
+    const tone = s.p > s.n ? ["긍정 우세", "up"] : s.n > s.p ? ["악재 우세", "down"] : ["팽팽", ""];
+    return `<svg viewBox="0 0 110 110" width="128" height="128" role="img" aria-label="긍정 ${s.p} 보통 ${s.m} 악재 ${s.n}">
+      <circle r="${r}" cx="55" cy="55" fill="none" stroke="var(--line)" stroke-width="16"/>
+      ${seg(s.p, "var(--up)")}${seg(s.m, "var(--ink-3)")}${seg(s.n, "var(--down)")}
+      <text x="55" y="52" text-anchor="middle" font-size="18" font-weight="800" fill="var(--ink)">${tot}</text>
+      <text x="55" y="69" text-anchor="middle" font-size="10" fill="var(--ink-3)">건</text></svg>
+      <div class="sent-tone ${tone[1]}">${tone[0]}</div>`;
+  }
+  function pageSectorDetail(kind, no) {
+    const g = allGroups().find((x) => x.kind === kind && String(x.no) === String(no)) || (findGroup(kind, no) && { ...findGroup(kind, no), kind });
+    if (!g) return `<div class="empty">섹터를 찾지 못했어요. <a href="#/sectors" style="color:var(--accent)">섹터 검색기로</a></div>`;
+    const s = gnewsOf(kind, no);
+    const mem = (g.codes || []).map((c) => ({ code: c, name: nameOf(c), ...(ALL[c] || {}) })).sort((a, b) => (b.marcap || 0) - (a.marcap || 0));
+    const tot = s ? s.p + s.m + s.n : 0;
+    return `<div class="page-head"><div><a href="#/sectors" class="muted" style="font-size:13px">← 섹터 검색기</a>
+      <h1>${esc(g.name)} <span class="badge">${kind === "theme" ? "테마" : "업종"}</span></h1>
+      <p class="lede">${g.total}종목 · 오늘 <span class="${cls(g.chg)}">${pct(g.chg, 2)}</span> · 상승 ${g.rise} / 하락 ${g.fall}${isNum(g.score) ? ` · 강도 <b>${g.score}</b>` : ""}</p></div></div>
+      <div class="grid g4 section">
+        <div class="card stat"><div class="label">오늘</div><div class="value num ${cls(g.chg)}">${pct(g.chg, 2)}</div></div>
+        <div class="card stat"><div class="label">1주 평균</div><div class="value num ${cls(g.r1w)}">${pct(g.r1w)}</div></div>
+        <div class="card stat"><div class="label">1개월 평균</div><div class="value num ${cls(g.r1m)}">${pct(g.r1m)}</div></div>
+        <div class="card stat"><div class="label">상승 종목</div><div class="value num">${g.rise}<span class="muted" style="font-size:15px"> / ${g.total}</span></div></div>
+      </div>
+      <div class="grid g-main section">
+        <div class="card"><div class="card-head"><h2>최신 뉴스</h2><span class="muted" style="font-size:12.5px">최근 7일 · 시총 상위 종목 기사</span></div>
+          ${s && s.items.length ? `<div class="news-list">${s.items.map(([d, t, title, src, url, imp, st]) => `<div class="news-item">
+            <div style="display:flex;gap:8px;align-items:flex-start">${sentBadge(imp)}<a class="t" style="font-weight:600" href="${esc(url || "#")}" target="_blank" rel="noopener">${esc(title)}</a></div>
+            <div class="meta num">${esc(st)} · ${esc(src)} · ${esc(d || "")} ${esc(t || "")}</div></div>`).join("")}</div>`
+            : `<div class="empty">${GNEWS ? "최근 7일 동안 모인 뉴스가 없어요." : "섹터 뉴스는 다음 자동 갱신 후 표시됩니다."}</div>`}
+        </div>
+        <div class="card"><div class="card-head"><h2>뉴스 분위기</h2></div>
+          ${tot ? `<div class="sent-wrap">${sentDonut(s)}<div class="sent-legend">
+            <div><i class="p"></i>긍정<b class="num up">${s.p}</b></div><div><i class="m"></i>보통<b class="num">${s.m}</b></div><div><i class="n"></i>악재<b class="num down">${s.n}</b></div></div></div>
+            ${sentBar(s, true)}` : `<div class="empty">집계할 뉴스가 없어요.</div>`}
+          <p class="muted" style="font-size:12px;margin-top:10px">기사 제목 키워드(수주·최대 실적·목표가 상향 ↔ 적자·유상증자·목표가 하향 등)로 자동 분류한 참고용이에요.</p>
+        </div>
+      </div>
+      <div class="card section"><div class="card-head"><h2>소속 종목</h2><a class="more" href="#/market/g/${kind}/${no}">정렬 가능한 표 →</a></div>
+        <div class="table-wrap"><table><thead><tr><th>종목</th><th class="r">현재가</th><th class="r">오늘</th><th class="r">1주</th><th class="r">1개월</th><th>52주 위치</th><th class="r">시총</th></tr></thead>
+        <tbody>${mem.slice(0, 30).map((r) => `<tr class="link" data-go="#/company/${r.code}"><td><span class="stock-name">${esc(r.name)}</span><span class="code">${r.code}</span></td>
+          <td class="r num">${won(r.close)}</td><td class="r num ${cls(r.chg)}">${pct(r.chg, 2)}</td><td class="r num ${cls(r.r1w)}">${pct(r.r1w)}</td><td class="r num ${cls(r.r1m)}">${pct(r.r1m)}</td><td>${pos52(r.pos52)}</td><td class="r num">${cap(r.marcap)}</td></tr>`).join("")}</tbody></table></div></div>`;
+  }
+  // 섹터·테마 화면 맨 위: 매일 바뀌는 자동 섹터 순위
+  function autoSectorCard() {
+    if (!GROUPS) return "";
+    const top = allGroups().filter((g) => g.kind === "theme" && g.total >= 5).sort((a, b) => b.score - a.score).slice(0, 8);
+    return `<div class="card section"><div class="card-head"><div><h2>오늘의 자동 섹터 TOP 8</h2><div class="muted" style="font-size:12.5px">네이버 테마 ${GROUPS.themes.length}개에서 매일 새로 뽑아요 · ${esc(GROUPS.as_of || "")} 기준</div></div><a class="more" href="#/sectors">섹터 검색기 →</a></div>
+      <div class="auto-sec">${top.map((g, i) => `<a class="asec" href="#/sectors/theme/${g.no}">
+        <span class="rk num">${i + 1}</span><b>${esc(g.name)}</b>
+        <span class="num"><span class="${cls(g.chg)}">${pct(g.chg, 1)}</span> · 1주 <span class="${cls(g.r1w)}">${pct(g.r1w)}</span></span>
+        ${sentBar(gnewsOf("theme", g.no))}</a>`).join("")}</div></div>`;
+  }
+  // 내 관심 테마(config) 블록용 뉴스 분위기 — theme_news.json 자동 수집분
+  function themeSent(name) {
+    const l = NEWS?.auto?.[name] || [];
+    return l.length ? { p: l.filter((n) => n.impact === "긍정").length, m: l.filter((n) => n.impact === "중립").length, n: l.filter((n) => n.impact === "주의" || n.impact === "부정").length } : null;
+  }
+
   // ------------------------------------------------------------ 수급·컨센서스·공시
   const shares = (v) => {
     if (!isNum(v)) return "–";
@@ -748,7 +912,7 @@
     const b = MK.breadth;
     const th = (k, label, r = true) => `<th class="${r ? "r" : ""} sortable" data-sort="${k}">${label}${mkState.sort === k ? (mkState.dir === -1 ? " ▼" : " ▲") : ""}</th>`;
     const G = mkState.group;
-    return `<div class="page-head"><div><h1>${G ? esc(G.name) : "시장 전체"}</h1><p class="lede">${G ? `${parts[2] === "industry" ? "업종" : "테마"} · ${G.total}종목 · 평균 <span class="${cls(G.chg)}">${pct(G.chg, 2)}</span> · 상승 ${G.rise} / 하락 ${G.fall} · <a href="#/market" style="color:var(--accent)">전체 시장 보기</a>` : `국내 상장 ${LIST.length.toLocaleString()}개 종목 · ${esc(ALLMETA.as_of || "자동 갱신 후 표시")} 기준`}</p></div></div>
+    return `<div class="page-head"><div><h1>${G ? esc(G.name) : "시장 전체"}</h1><p class="lede">${G ? `${parts[2] === "industry" ? "업종" : "테마"} · ${G.total}종목 · 평균 <span class="${cls(G.chg)}">${pct(G.chg, 2)}</span> · 상승 ${G.rise} / 하락 ${G.fall} · <a href="#/sectors/${parts[2] === "industry" ? "industry" : "theme"}/${G.no}" style="color:var(--accent)">섹터 뉴스·분위기</a> · <a href="#/market" style="color:var(--accent)">전체 시장 보기</a>` : `국내 상장 ${LIST.length.toLocaleString()}개 종목 · ${esc(ALLMETA.as_of || "자동 갱신 후 표시")} 기준`}</p></div></div>
       ${searchBox("q")}
       ${b && !G ? `<div class="grid g4 section">
         <div class="card stat"><div class="label">상승 / 하락</div><div class="value sm num"><span class="up">${b.up.toLocaleString()}</span> <span class="muted">/</span> <span class="down">${b.down.toLocaleString()}</span></div><div class="foot">전체 ${b.total.toLocaleString()}종목</div></div>
@@ -1121,9 +1285,11 @@
     const parts = (location.hash || "#/").slice(2).split("/").map(decodeURIComponent);
     let page = parts[0] || "home";
     if (page === "search") { if (parts[1]) { location.replace(`#/company/${parts[1]}`); return; } page = "market"; }
-    document.querySelectorAll(".nav a, .tabbar a").forEach((a) => a.classList.toggle("active", a.dataset.page === page));
+    document.querySelectorAll(".nav a, .tabbar a").forEach((a) => a.classList.toggle("active", a.dataset.page === page || (page === "sectors" && a.dataset.page === "themes" && !a.closest(".nav"))));
     let html = "";
+    if ((page === "sectors" || page === "themes") && !GNEWS) GNEWS = (await getJSON("group_news.json")) || { g: {} };
     if (page === "themes") html = pageThemes(parts[1]);
+    else if (page === "sectors") html = pageSectors(parts);
     else if (page === "market") html = pageMarket(parts);
     else if (page === "company") html = await pageCompany(parts[1]);
     else if (page === "news") html = pageNews();
@@ -1132,6 +1298,7 @@
     $app.innerHTML = html;
     wireSearch("home-q"); wireSearch("q"); wireSearch("cq"); wireInstall();
     if (page === "market") wireMarket();
+    if (page === "sectors" && !parts[1]) wireSectors();
     if (page === "my") wireMy();
     if (page === "company") {
       const code = parts[1] || trackedCodes()[0];

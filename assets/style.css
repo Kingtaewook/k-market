@@ -477,3 +477,31 @@ a.card:hover, .card.stat:hover { transform: translateY(-1px); box-shadow: 0 10px
   .nav a.active { background: var(--accent-soft); color: var(--accent); }
 }
 .tbody { min-width: 0; }
+
+/* 섹터 검색기 · 뉴스 분위기 (긍정·보통·악재) */
+.sent { display: flex; align-items: center; gap: 8px; min-width: 120px; }
+.sent-bar { display: flex; flex: 1; height: 8px; border-radius: 4px; overflow: hidden; background: var(--line); gap: 1px; }
+.sent-bar i { display: block; height: 100%; }
+.sent-bar .p, .sent-legend .p { background: var(--up); }
+.sent-bar .m, .sent-legend .m { background: var(--ink-3); opacity: .55; }
+.sent-bar .n, .sent-legend .n { background: var(--down); }
+.sent-num { display: flex; gap: 6px; font-size: 12px; font-weight: 700; }
+.sent.big { margin-top: 14px; }
+.sent.big .sent-bar { height: 12px; border-radius: 6px; }
+.sent-wrap { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.sent-wrap > svg { flex: none; }
+.sent-tone { font-weight: 800; font-size: 14px; text-align: center; width: 128px; margin-top: -4px; }
+.sent-tone.up { color: var(--up); } .sent-tone.down { color: var(--down); }
+.sent-legend { display: grid; gap: 8px; font-size: 14px; }
+.sent-legend div { display: flex; align-items: center; gap: 8px; }
+.sent-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.sent-legend b { margin-left: auto; min-width: 28px; text-align: right; }
+.theme-sent { display: flex; align-items: center; gap: 10px; margin: 4px 0 12px; font-size: 12.5px; }
+.theme-sent .sent { max-width: 260px; flex: 1; }
+.auto-sec { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.asec { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); position: relative; }
+.asec:hover { border-color: var(--accent); }
+.asec .rk { position: absolute; top: 10px; right: 12px; color: var(--ink-3); font-size: 12px; font-weight: 800; }
+.asec b { font-size: 15px; padding-right: 20px; }
+.asec > .num { font-size: 13px; color: var(--ink-2); }
+.sec-table td { vertical-align: middle; }
