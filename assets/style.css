@@ -505,3 +505,5 @@ a.card:hover, .card.stat:hover { transform: translateY(-1px); box-shadow: 0 10px
 .asec b { font-size: 15px; padding-right: 20px; }
 .asec > .num { font-size: 13px; color: var(--ink-2); }
 .sec-table td { vertical-align: middle; }
+.rank-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.rank-sum .chip b { margin-left: 4px; }

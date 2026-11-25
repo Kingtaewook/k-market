@@ -105,7 +105,7 @@
     const rows = MK.themes.slice(0, limit || MK.themes.length);
     const basis = MK.themes[0]?.basis || "";
     return `<div class="card">
-      <div class="card-head"><div><h2>내 관심 테마 랭킹</h2><div class="muted" style="font-size:13px">${esc(basis)} 1·3개월 수익률로 계산 · 50 = 기준선</div></div>
+      <div class="card-head"><div><h2>추천 테마 랭킹</h2><div class="muted" style="font-size:13px">${esc(basis)} 1·3개월 수익률로 계산 · 50 = 기준선</div></div>
       <a class="more" href="#/themes">전체 보기 →</a></div>
       ${rows.map((t) => `
         <div class="rank-row" data-go="#/themes/${encodeURIComponent(t.name)}" title="평균 1개월 ${pct(t.avg1m)} · 3개월 ${pct(t.avg3m)} · 상승 ${t.up}/${t.total}">
@@ -283,9 +283,10 @@
     const sel = focus && T.find((t) => t.name === focus) ? focus : null;
     const list = sel ? T.filter((t) => t.name === sel) : T;
     return `${staleBanner()}
-    <div class="page-head"><div><h1>섹터·테마 모니터</h1><p class="lede">위쪽은 매일 자동으로 바뀌는 섹터 순위, 아래는 직접 고른 관심 테마예요. 종목을 누르면 기업분석으로 이동합니다.</p></div><a class="btn primary" href="#/sectors">🔍 섹터 검색기</a></div>
+    <div class="page-head"><div><h1>섹터·테마 모니터</h1><p class="lede">매일 바뀌는 자동 섹터 순위, 내가 ☆로 등록한 관심 테마, 기본 추천 테마, 맨 아래 테마 순위 종합 순서예요.</p></div><a class="btn primary" href="#/sectors">🔍 섹터 검색기</a></div>
     ${sel ? "" : autoSectorCard()}
-    <h2 style="margin:6px 0 10px;font-size:17px">내 관심 테마 <span class="muted" style="font-size:12.5px;font-weight:500">data/config.json 에서 편집</span></h2>
+    ${sel ? "" : myThemesCard(false)}
+    <h2 style="margin:18px 0 10px;font-size:17px">기본 추천 테마 <span class="muted" style="font-size:12.5px;font-weight:500">핵심 종목을 매일 자세히 분석하는 8개 테마</span></h2>
     <div class="chips"><a class="chip ${sel ? "" : "on"}" href="#/themes">전체</a>${T.map((t) => `<a class="chip ${sel === t.name ? "on" : ""}" href="#/themes/${encodeURIComponent(t.name)}">${esc(t.name)}</a>`).join("")}</div>
     ${sel ? "" : `<div style="margin-bottom:16px">${rankingCard()}</div>`}
     ${list.map((t) => `
@@ -295,7 +296,8 @@
         </div>
         ${themeSent(t.name) ? `<div class="theme-sent"><span class="muted">최근 뉴스</span>${sentBar(themeSent(t.name))}<a class="more" href="#/news">뉴스 보기 →</a></div>` : ""}
         ${stockTable(t.stocks)}
-      </div>`).join("")}`;
+      </div>`).join("")}
+    ${sel ? "" : themeRankAll()}`;
   }
 
   // ------------------------------------------------------------ 검색
@@ -363,7 +365,7 @@
         <div class="card">
           <div class="company-title"><h2 style="font-size:22px">${esc(row[0])}</h2><span class="code num">${code}</span><span class="badge">${esc(row[2] || "")}</span></div>
           <dl class="kv" style="margin-top:16px">
-            <dt>관심 테마</dt><dd>${themes.length ? themes.map((t) => `<a class="badge acc" href="#/themes/${encodeURIComponent(t)}">${esc(t)}</a>`).join(" ") : `<span class="muted">미등록</span>`}</dd>
+            <dt>추천 테마</dt><dd>${themes.length ? themes.map((t) => `<a class="badge acc" href="#/themes/${encodeURIComponent(t)}">${esc(t)}</a>`).join(" ") : `<span class="muted">미등록</span>`}</dd>
             <dt>테마 점수</dt><dd>${theme ? `<span class="num">${theme.score ?? "–"}</span> ${verdictBadge(theme.verdict)} <span class="muted">(${theme.rank}위)</span>` : `<span class="muted">–</span>`}</dd>
             <dt>최근 종가</dt><dd class="num">${s ? won(s.close) : "–"}</dd>
             <dt>1개월 / 3개월</dt><dd class="num">${s ? `<span class="${cls(s.r1m)}">${pct(s.r1m)}</span> / <span class="${cls(s.r3m)}">${pct(s.r3m)}</span>` : "–"}</dd>
@@ -765,7 +767,9 @@
     const tot = s ? s.p + s.m + s.n : 0;
     return `<div class="page-head"><div><a href="#/sectors" class="muted" style="font-size:13px">← 섹터 검색기</a>
       <h1>${esc(g.name)} <span class="badge">${kind === "theme" ? "테마" : "업종"}</span></h1>
-      <p class="lede">${g.total}종목 · 오늘 <span class="${cls(g.chg)}">${pct(g.chg, 2)}</span> · 상승 ${g.rise} / 하락 ${g.fall}${isNum(g.score) ? ` · 강도 <b>${g.score}</b>` : ""}</p></div></div>
+      <p class="lede">${g.total}종목 · 오늘 <span class="${cls(g.chg)}">${pct(g.chg, 2)}</span> · 상승 ${g.rise} / 하락 ${g.fall}${isNum(g.score) ? ` · 강도 <b>${g.score}</b>` : ""}</p></div>
+      ${SB ? (() => { const t = MYCACHE?.themes?.find((x) => x.kind === kind && String(x.no) === String(no)); const s = t && themeSince(t);
+        return `<div style="text-align:right"><button class="btn ${t ? "" : "primary"}" id="tstar" data-kind="${kind}" data-no="${esc(no)}" data-name="${esc(g.name)}">${t ? "★ 관심 테마" : "☆ 관심 테마 추가"}</button>${s ? `<div class="num" style="font-size:12.5px;margin-top:6px">${esc(t.created_at.slice(0, 10))} 등록 후 <b class="${cls(s.ret)}">${pct(s.ret, 2)}</b></div>` : ""}</div>`; })() : ""}</div>
       <div class="grid g4 section">
         <div class="card stat"><div class="label">오늘</div><div class="value num ${cls(g.chg)}">${pct(g.chg, 2)}</div></div>
         <div class="card stat"><div class="label">1주 평균</div><div class="value num ${cls(g.r1w)}">${pct(g.r1w)}</div></div>
@@ -801,6 +805,39 @@
         <span class="num"><span class="${cls(g.chg)}">${pct(g.chg, 1)}</span> · 1주 <span class="${cls(g.r1w)}">${pct(g.r1w)}</span></span>
         ${sentBar(gnewsOf("theme", g.no))}</a>`).join("")}</div></div>`;
   }
+  // 섹터·테마 화면 맨 아래: 테마 순위 종합 (오늘·1주·1개월 순위를 한 표로)
+  let rankLimit = 30;
+  function themeRankAll() {
+    if (!GROUPS) return "";
+    const gs = allGroups().filter((g) => g.kind === "theme" && g.total >= 5);
+    const rk = (k) => { const o = gs.filter((g) => isNum(g[k])).slice().sort((a, b) => b[k] - a[k]); const m = new Map(o.map((g, i) => [g, i + 1])); return (g) => m.get(g); };
+    const rc = rk("chg"), rw = rk("r1w"), rm = rk("r1m");
+    const N = gs.length, top = (r) => r && r <= N * 0.2, bot = (r) => r && r > N * 0.6;
+    const rows = gs.slice().sort((a, b) => b.score - a.score);
+    const mine = new Set((MYCACHE?.themes || []).map((t) => `${t.kind}${t.no}`));
+    const steady = rows.filter((g) => top(rc(g)) && top(rw(g)) && top(rm(g))).slice(0, 6);
+    const rebound = rows.filter((g) => top(rc(g)) && bot(rm(g))).slice(0, 6);
+    const fading = gs.filter((g) => bot(rc(g)) && bot(rw(g)) && top(rm(g))).slice(0, 6);
+    const chipL = (l) => l.length ? l.map((g) => `<a class="chip" href="#/sectors/theme/${g.no}">${esc(g.name)} <b class="${cls(g.chg)}">${pct(g.chg, 1)}</b></a>`).join("") : `<span class="muted" style="font-size:12.5px">오늘은 없어요</span>`;
+    const rankCell = (r, v, d = 1) => `<td class="r num"><span class="${cls(v)}">${pct(v, d)}</span><div class="muted" style="font-size:11px">${r ? r + "위" : "–"}</div></td>`;
+    return `<div class="card section" id="rank-all"><div class="card-head"><div><h2>테마 순위 종합</h2><div class="muted" style="font-size:12.5px">네이버 테마 ${N}개(5종목 이상) · 오늘·1주·1개월 순위를 한 번에 · ${esc(GROUPS.as_of || "")} 기준</div></div><a class="more" href="#/sectors">섹터 검색기 →</a></div>
+      <div class="rank-sum">
+        <div><div class="mini-title">🔥 꾸준히 강한 테마 <span class="muted">오늘·1주·1개월 모두 상위 20%</span></div><div class="chips" style="margin:6px 0 0">${chipL(steady)}</div></div>
+        <div><div class="mini-title">🌱 반등 시작 <span class="muted">1개월은 약했는데 오늘 상위 20%</span></div><div class="chips" style="margin:6px 0 0">${chipL(rebound)}</div></div>
+        <div><div class="mini-title">🍂 힘 빠지는 테마 <span class="muted">1개월은 강했는데 오늘·1주 약세</span></div><div class="chips" style="margin:6px 0 0">${chipL(fading)}</div></div>
+      </div>
+      <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>종합</th><th>테마</th><th class="r">강도</th><th class="r">오늘</th><th class="r">1주</th><th class="r">1개월</th><th>상승 비율</th><th>최근 뉴스</th></tr></thead><tbody>
+        ${rows.slice(0, rankLimit).map((g, i) => { const br = g.rise + g.fall ? g.rise / (g.rise + g.fall) : 0;
+          return `<tr class="link" data-go="#/sectors/theme/${g.no}"><td class="num"><b>${i + 1}</b></td>
+          <td><span class="stock-name">${mine.has(`theme${g.no}`) ? "★ " : ""}${esc(g.name)}</span><div class="muted" style="font-size:11.5px">${g.total}종목 · ${groupLeaders(g, 1).map((l) => `${esc(l.name)} <span class="${cls(l.chg)}">${pct(l.chg, 1)}</span>`).join("")}</div></td>
+          <td class="r num"><b>${g.score}</b></td>${rankCell(rc(g), g.chg, 2)}${rankCell(rw(g), g.r1w)}${rankCell(rm(g), g.r1m)}
+          <td><span class="gbreadth" style="display:block;width:64px"><i style="width:${br * 100}%"></i></span></td>
+          <td>${sentBar(gnewsOf("theme", g.no))}</td></tr>`; }).join("")}
+      </tbody></table></div>
+      ${rows.length > rankLimit ? `<div style="text-align:center;margin-top:14px"><button class="btn" id="rank-more">30개 더 보기 (${rankLimit}/${rows.length})</button></div>` : ""}
+      <p class="muted" style="font-size:12px;margin-top:10px">강도 = 오늘 40% + 1주 30% + 1개월 30%를 순위(0~100)로 환산. ★는 내 관심 테마.</p></div>`;
+  }
+
   // 내 관심 테마(config) 블록용 뉴스 분위기 — theme_news.json 자동 수집분
   function themeSent(name) {
     const l = NEWS?.auto?.[name] || [];
@@ -895,7 +932,7 @@
     else if (mkState.mkt === "KOSDAQ") rows = rows.filter((r) => (r.market || "").startsWith("KOSDAQ"));
     else if (mkState.mkt === "신고가") rows = rows.filter((r) => (r.pos52 ?? 0) >= 0.98);
     else if (mkState.mkt === "신저가") rows = rows.filter((r) => r.pos52 !== undefined && r.pos52 !== null && r.pos52 <= 0.02);
-    else if (mkState.mkt === "관심 테마") { const t = new Set(trackedCodes()); rows = rows.filter((r) => t.has(r.code)); }
+    else if (mkState.mkt === "추천 테마") { const t = new Set(trackedCodes()); rows = rows.filter((r) => t.has(r.code)); }
     const k = mkState.sort;
     rows.sort((a, b) => ((isNum(b[k]) ? b[k] : -Infinity) - (isNum(a[k]) ? a[k] : -Infinity)) * (mkState.dir === -1 ? 1 : -1));
     return rows;
@@ -923,7 +960,7 @@
       ${!G && GROUPS ? leadersCard() : ""}
       <div class="card section">
         <div class="card-head" style="flex-wrap:wrap">
-          <div class="chips" style="margin:0">${(G ? ["전체", "KOSPI", "KOSDAQ"] : ["전체", "KOSPI", "KOSDAQ", "신고가", "신저가", "관심 테마"]).map((m) => `<button class="chip ${m === mkState.mkt ? "on" : ""}" data-mkt="${m}">${m}</button>`).join("")}</div>
+          <div class="chips" style="margin:0">${(G ? ["전체", "KOSPI", "KOSDAQ"] : ["전체", "KOSPI", "KOSDAQ", "신고가", "신저가", "추천 테마"]).map((m) => `<button class="chip ${m === mkState.mkt ? "on" : ""}" data-mkt="${m}">${m}</button>`).join("")}</div>
           <span class="muted" style="font-size:13px">${rows.length.toLocaleString()}종목 · 제목을 눌러 정렬</span>
         </div>
         ${Object.keys(ALL).length ? `<div class="table-wrap"><table class="mk-table">
@@ -1050,7 +1087,9 @@
     ]);
     const err = t.error || w.error || j.error;
     if (err) throw err;
-    MYCACHE = { trades: t.data, watch: w.data, journal: j.data };
+    const th = await SB.from("my_themes").select("*").order("created_at", { ascending: false });
+    MYCACHE = { trades: t.data, watch: w.data, journal: j.data, themes: th.error ? [] : th.data, themesReady: !th.error };
+    backfillWatchPrice(MYCACHE.watch);
     return MYCACHE;
   }
   function portfolio(trades) {
@@ -1104,7 +1143,7 @@
 
   function pagePortfolio(d) {
     const P = portfolio(d.trades);
-    if (!d.trades.length) return `<div class="empty" style="padding:48px 16px"><b style="font-size:16px;color:var(--ink)">첫 매매를 기록해 보세요</b><br>보유 종목을 매수 기록으로 넣으면 포트폴리오와 자동 일지가 시작돼요.<br><br><button class="btn primary" data-newtrade>+ 매매 기록</button></div>${watchCard(d)}`;
+    if (!d.trades.length) return `<div class="empty" style="padding:48px 16px"><b style="font-size:16px;color:var(--ink)">첫 매매를 기록해 보세요</b><br>보유 종목을 매수 기록으로 넣으면 포트폴리오와 자동 일지가 시작돼요.<br><br><button class="btn primary" data-newtrade>+ 매매 기록</button></div>${watchCard(d)}${myThemesCard(true)}`;
     // 테마·업종 비중
     const group = (keyFn) => {
       const g = {};
@@ -1141,12 +1180,21 @@
           <div class="mini-title">테마</div><div class="score-items" style="margin-top:6px">${bars(byTheme)}</div>
           ${bySector.some(([k]) => k !== "기타") ? `<div class="mini-title" style="margin-top:18px">업종</div><div class="score-items" style="margin-top:6px">${bars(bySector.slice(0, 6))}</div>` : ""}</div>
       </div>
-      ${watchCard(d)}`;
+      ${watchCard(d)}${myThemesCard(true)}`;
   }
   function watchCard(d) {
-    return `<div class="card section"><div class="card-head"><h2>관심 종목</h2><span class="muted" style="font-size:12.5px">기업분석에서 ☆를 눌러 추가 · 매일 뉴스·차트 수집</span></div>
-      ${d.watch.length ? `<div class="table-wrap"><table><thead><tr><th>종목</th><th class="r">현재가</th><th class="r">오늘</th><th class="r">1개월</th><th>52주 위치</th></tr></thead><tbody>
-        ${d.watch.map((w) => { const p = priceOf(w.code); return `<tr class="link" data-go="#/company/${w.code}"><td><span class="stock-name">${esc(w.name)}</span><span class="code">${w.code}</span></td><td class="r num">${won(p.close)}</td><td class="r num ${cls(p.chg)}">${pct(p.chg, 2)}</td><td class="r num ${cls(p.r1m)}">${pct(p.r1m)}</td><td>${pos52(p.pos52)}</td></tr>`; }).join("")}
+    const rows = d.watch.map((w) => { const p = priceOf(w.code); const b = +w.price; return { w, p, ret: b > 0 && isNum(p.close) ? p.close / b - 1 : null }; });
+    const rs = rows.map((r) => r.ret).filter(isNum);
+    const best = rows.filter((r) => isNum(r.ret)).sort((a, b) => b.ret - a.ret);
+    return `<div class="card section"><div class="card-head"><div><h2>관심 종목</h2><div class="muted" style="font-size:12.5px">기업분석에서 ☆를 누르면 그때 현재가가 등록가로 저장돼요</div></div>
+        ${rs.length ? `<span class="num" style="font-size:13px">평균 <b class="${cls(rs.reduce((a, b) => a + b, 0) / rs.length)}">${pct(rs.reduce((a, b) => a + b, 0) / rs.length, 2)}</b> · 상승 ${rs.filter((x) => x > 0).length}/${rs.length}</span>` : ""}</div>
+      ${best.length > 1 ? `<div class="chips" style="margin:0 0 10px"><span class="chip">🏆 ${esc(best[0].w.name)} <b class="${cls(best[0].ret)}">${pct(best[0].ret, 1)}</b></span><span class="chip">🔻 ${esc(best[best.length - 1].w.name)} <b class="${cls(best[best.length - 1].ret)}">${pct(best[best.length - 1].ret, 1)}</b></span></div>` : ""}
+      ${d.watch.length ? `<div class="table-wrap"><table><thead><tr><th>종목</th><th>등록일</th><th class="r">등록가</th><th class="r">현재가</th><th class="r">등록 후 수익률</th><th class="r">오늘</th><th>52주 위치</th></tr></thead><tbody>
+        ${rows.map(({ w, p, ret }) => `<tr class="link" data-go="#/company/${w.code}"><td><span class="stock-name">${esc(w.name)}</span><span class="code">${w.code}</span></td>
+          <td class="num muted">${esc((w.created_at || "").slice(0, 10))}</td>
+          <td class="r num">${+w.price > 0 ? won(+w.price) : "–"}</td><td class="r num">${won(p.close)}</td>
+          <td class="r num ${cls(ret)}"><b>${pct(ret, 2)}</b>${isNum(ret) && isNum(p.close) ? `<div style="font-size:11.5px">${ret >= 0 ? "+" : ""}${won(p.close - +w.price)}원</div>` : ""}</td>
+          <td class="r num ${cls(p.chg)}">${pct(p.chg, 2)}</td><td>${pos52(p.pos52)}</td></tr>`).join("")}
       </tbody></table></div>` : `<div class="empty">아직 관심 종목이 없어요.</div>`}</div>`;
   }
   function perfChart(series) {
@@ -1274,8 +1322,68 @@
     const code = btn.dataset.code, name = btn.dataset.name;
     await loadMine();
     const on = MYCACHE.watch.some((w) => w.code === code);
-    const r = on ? await SB.from("watchlist").delete().eq("code", code).eq("user_id", USER.id) : await SB.from("watchlist").insert({ code, name });
-    if (!r.error) { await loadMine(true); btn.textContent = on ? "☆ 관심 추가" : "★ 관심"; }
+    let r;
+    if (on) r = await SB.from("watchlist").delete().eq("code", code).eq("user_id", USER.id);
+    else {
+      const price = priceOf(code).close;
+      r = await SB.from("watchlist").insert({ code, name, price: isNum(price) ? price : null });
+      if (r.error && /price/.test(r.error.message || "")) r = await SB.from("watchlist").insert({ code, name }); // DB 업데이트 전
+    }
+    if (!r.error) {
+      await loadMine(true); btn.textContent = on ? "☆ 관심 추가" : "★ 관심";
+      if (!on) alertBox(`관심 종목에 추가했어요 · 등록가 ${won(priceOf(code).close)}원`);
+    }
+  }
+  // 예전에 등록해 등록가가 비어 있는 관심 종목: 등록일 종가로 한 번 채워 넣기
+  async function backfillWatchPrice(list) {
+    for (const w of (list || []).filter((x) => !("price" in x) ? false : x.price === null)) {
+      const c = await getJSON(`companies/${w.code}.json`);
+      const day = (w.created_at || "").slice(0, 10);
+      const h = (c?.history || c?.history_w || []).filter((r) => r[0] <= day);
+      const px = h.length ? h[h.length - 1][1] : null;
+      if (!isNum(px)) continue;
+      const r = await SB.from("watchlist").update({ price: px }).eq("code", w.code).eq("user_id", USER.id);
+      if (!r.error) w.price = px;
+    }
+  }
+  // 관심 테마(섹터) 등록 · 해제 — 등록 시점 소속 종목 종가를 함께 저장해 등록 후 수익률 계산
+  async function toggleTheme(btn) {
+    if (!USER) { openAuth("login"); return; }
+    await loadMine();
+    if (!MYCACHE.themesReady) { alertBox("관심 테마 저장소가 아직 준비되지 않았어요 (Supabase 업데이트 필요)."); return; }
+    const { kind, no, name } = btn.dataset;
+    const on = MYCACHE.themes.some((t) => t.kind === kind && String(t.no) === String(no));
+    let r;
+    if (on) r = await SB.from("my_themes").delete().eq("kind", kind).eq("no", String(no)).eq("user_id", USER.id);
+    else {
+      const g = findGroup(kind, no);
+      const base = {};
+      (g?.codes || []).forEach((c) => { if (isNum(ALL[c]?.close)) base[c] = ALL[c].close; });
+      r = await SB.from("my_themes").insert({ kind, no: String(no), name, base });
+    }
+    if (r.error) { alertBox("저장하지 못했어요: " + r.error.message); return; }
+    await loadMine(true);
+    btn.textContent = on ? "☆ 관심 테마 추가" : "★ 관심 테마";
+    if (!on) alertBox(`관심 테마에 추가했어요 · 오늘부터 수익률을 계산해요`);
+  }
+  // 관심 테마 등록 후 수익률 = 소속 종목 (현재가 ÷ 등록 시 종가 − 1) 평균
+  function themeSince(t) {
+    const rs = Object.entries(t.base || {}).map(([c, b]) => (isNum(ALL[c]?.close) && b > 0 ? ALL[c].close / b - 1 : null)).filter(isNum);
+    return rs.length ? { ret: rs.reduce((a, b) => a + b, 0) / rs.length, up: rs.filter((x) => x > 0).length, n: rs.length } : null;
+  }
+  function myThemesCard(compact) {
+    if (!SB) return "";
+    if (!USER) return `<div class="card section"><div class="card-head"><h2>내 관심 테마</h2></div><div class="empty">로그인하면 섹터를 ☆로 등록하고 등록 후 수익률을 볼 수 있어요. <button class="btn sm primary" data-login>로그인</button></div></div>`;
+    const ts = MYCACHE?.themes || [];
+    const rows = ts.map((t) => ({ t, g: allGroups().find((x) => x.kind === t.kind && String(x.no) === String(t.no)) || findGroup(t.kind, t.no) || {}, s: themeSince(t) }));
+    return `<div class="card section"><div class="card-head"><div><h2>내 관심 테마</h2><div class="muted" style="font-size:12.5px">섹터 화면에서 ☆를 눌러 추가 · 등록 후 수익률 = 소속 종목 평균</div></div><a class="more" href="#/sectors">섹터 찾기 →</a></div>
+      ${MYCACHE && !MYCACHE.themesReady ? `<div class="empty">관심 테마 저장소 준비 중이에요 (Supabase 업데이트 후 사용 가능).</div>` : rows.length ? `<div class="table-wrap"><table><thead><tr><th>테마</th><th>등록일</th><th class="r">등록 후</th><th class="r">오늘</th><th class="r">1주</th>${compact ? "" : `<th class="r">1개월</th><th>최근 뉴스</th>`}</tr></thead><tbody>
+        ${rows.map(({ t, g, s }) => `<tr class="link" data-go="#/sectors/${t.kind}/${t.no}"><td><span class="stock-name">${esc(t.name)}</span> <span class="badge">${t.kind === "theme" ? "테마" : "업종"}</span>${s ? `<div class="muted" style="font-size:11.5px">${s.up}/${s.n}종목 상승</div>` : ""}</td>
+          <td class="num muted">${esc((t.created_at || "").slice(0, 10))}</td>
+          <td class="r num ${cls(s?.ret)}"><b>${pct(s?.ret, 2)}</b></td>
+          <td class="r num ${cls(g.chg)}">${pct(g.chg, 2)}</td><td class="r num ${cls(g.r1w)}">${pct(g.r1w)}</td>
+          ${compact ? "" : `<td class="r num ${cls(g.r1m)}">${pct(g.r1m)}</td><td>${sentBar(gnewsOf(t.kind, t.no))}</td>`}</tr>`).join("")}
+      </tbody></table></div>` : `<div class="empty">아직 관심 테마가 없어요. <a href="#/sectors" style="color:var(--accent)">섹터 검색기</a>에서 ☆를 눌러 추가하세요.</div>`}</div>`;
   }
 
   // ------------------------------------------------------------ 라우터
@@ -1288,6 +1396,7 @@
     document.querySelectorAll(".nav a, .tabbar a").forEach((a) => a.classList.toggle("active", a.dataset.page === page || (page === "sectors" && a.dataset.page === "themes" && !a.closest(".nav"))));
     let html = "";
     if ((page === "sectors" || page === "themes") && !GNEWS) GNEWS = (await getJSON("group_news.json")) || { g: {} };
+    if ((page === "themes" || page === "sectors") && USER && !MYCACHE) await loadMine().catch(() => {});
     if (page === "themes") html = pageThemes(parts[1]);
     else if (page === "sectors") html = pageSectors(parts);
     else if (page === "market") html = pageMarket(parts);
@@ -1299,6 +1408,9 @@
     wireSearch("home-q"); wireSearch("q"); wireSearch("cq"); wireInstall();
     if (page === "market") wireMarket();
     if (page === "sectors" && !parts[1]) wireSectors();
+    document.getElementById("tstar")?.addEventListener("click", (e) => toggleTheme(e.currentTarget).then(rerender));
+    document.querySelectorAll("[data-login]").forEach((b) => b.addEventListener("click", () => openAuth("login")));
+    document.getElementById("rank-more")?.addEventListener("click", () => { rankLimit += 30; rerender(); });
     if (page === "my") wireMy();
     if (page === "company") {
       const code = parts[1] || trackedCodes()[0];
