@@ -136,6 +136,104 @@
     return `<div class="pos52" title="52주 최저 0% ~ 최고 100%"><div class="bar"><i style="left:${p * 100}%"></i></div><span class="num">${Math.round(p * 100)}%</span></div>`;
   }
 
+  // ------------------------------------------------------------ 10초 브리핑 (홈 상단)
+  const clamp01 = (v) => Math.max(0, Math.min(1, v));
+  // 시장 분위기 0~100 = 상승 종목 비율 50% + 코스피 당일 등락 30% + 52주 신고가/신저가 균형 20%
+  function moodScore() {
+    const b = MK.breadth || {}, k = MK.kospi || {};
+    const parts = [];
+    if (isNum(b.up) && isNum(b.down) && b.up + b.down > 0) parts.push([b.up / (b.up + b.down), 0.5]);
+    if (isNum(k.chg)) parts.push([clamp01((k.chg + 0.03) / 0.06), 0.3]);
+    if (isNum(b.high52) && isNum(b.low52) && b.high52 + b.low52 > 0) parts.push([((b.high52 - b.low52) / (b.high52 + b.low52) + 1) / 2, 0.2]);
+    if (!parts.length) return null;
+    const w = parts.reduce((a, [, x]) => a + x, 0);
+    return Math.round((parts.reduce((a, [v, x]) => a + v * x, 0) / w) * 100);
+  }
+  const moodLabel = (s) => (s >= 80 ? "매우 뜨거움" : s >= 60 ? "뜨거움" : s >= 40 ? "보통" : s >= 20 ? "차가움" : "얼어붙음");
+  const moodTone = (s) => (s >= 60 ? "hot" : s >= 40 ? "mid" : "cold");
+
+  function gaugeSvg(score) {
+    const seg = [["#3b82f6", 0, 20], ["#93b8f5", 20, 40], ["#c9ccd4", 40, 60], ["#f5a3a3", 60, 80], ["#e5484d", 80, 100]];
+    const P = (v, r) => { const a = Math.PI * (1 - v / 100); return [100 + r * Math.cos(a), 100 - r * Math.sin(a)]; };
+    const arc = (a, b) => { const [x1, y1] = P(a + 0.8, 80), [x2, y2] = P(b - 0.8, 80); return `M${x1.toFixed(1)} ${y1.toFixed(1)}A80 80 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}`; };
+    const [nx, ny] = P(score ?? 50, 62);
+    return `<svg class="gauge" viewBox="0 0 200 112" role="img" aria-label="시장 분위기 ${score ?? "–"}점">
+      ${seg.map(([c, a, b]) => `<path d="${arc(a, b)}" stroke="${c}" stroke-width="14" fill="none" stroke-linecap="butt"/>`).join("")}
+      ${score === null ? "" : `<line x1="100" y1="100" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" class="needle" stroke-width="3.5" stroke-linecap="round"/><circle cx="100" cy="100" r="6" class="needle-dot"/>`}
+      <text x="22" y="111" class="gl">차가움</text><text x="178" y="111" class="gl" text-anchor="end">뜨거움</text></svg>`;
+  }
+
+  function hotTopics() {
+    const gs = (GROUPS?.themes || []).filter((g) => (g.total || 0) >= 5 && isNum(g.chg));
+    if (!gs.length) return [];
+    const sorted = gs.slice().sort((a, b) => b.chg - a.chg);
+    const picks = sorted.slice(0, 3).map((g) => ({ g, tag: g.chg >= 0.03 ? "급등" : "강세", tone: "up" }));
+    const worst = sorted[sorted.length - 1];
+    if (worst && worst.chg < 0) picks.push({ g: worst, tag: "약세", tone: "down" });
+    return picks;
+  }
+
+  function briefCard() {
+    const s = moodScore();
+    const k = MK.kospi || {}, b = MK.breadth || {};
+    const topics = hotTopics();
+    const lead = topics.find((t) => t.tone === "up")?.g, lag = topics.find((t) => t.tone === "down")?.g;
+    const line = lead
+      ? `${esc(lead.name)}${lag ? ` 강세, ${esc(lag.name)} 약세` : " 테마가 시장을 이끄는 날"}`
+      : "오늘의 시장 흐름을 정리하고 있어요";
+    const total = (b.up || 0) + (b.down || 0);
+    const auto = Object.values(NEWS?.auto || {}).flat().filter((n) => n.impact && n.impact !== "중립")
+      .sort((a, c) => `${c.date}${c.time || ""}`.localeCompare(`${a.date}${a.time || ""}`));
+    const seen = new Set(), heads = [];
+    for (const n of auto) { if (seen.has(n.title)) continue; seen.add(n.title); heads.push(n); if (heads.length >= 3) break; }
+    return `<section class="brief">
+      <div class="brief-mood ${s === null ? "" : moodTone(s)}">
+        <div class="eyebrow">10초 브리핑 · ${esc(MK.as_of || "")}</div>
+        ${gaugeSvg(s)}
+        <div class="mood-score num">${s ?? "–"}<span>${s === null ? "" : moodLabel(s)}</span></div>
+        <p class="mood-line">${line}</p>
+        <div class="mood-chips">
+          ${isNum(k.chg) ? `<span class="mchip"><em>코스피</em><b class="num ${cls(k.chg)}">${pct(k.chg, 2)}</b></span>` : ""}
+          ${total ? `<span class="mchip"><em>상승 종목</em><b class="num">${Math.round((b.up / total) * 100)}%</b></span>` : ""}
+          ${isNum(b.high52) ? `<span class="mchip"><em>52주 신고가</em><b class="num">${b.high52}</b></span>` : ""}
+        </div>
+        ${total ? `<div class="breadth-bar" title="상승 ${b.up} · 하락 ${b.down}"><i class="u" style="flex:${b.up}"></i><i class="d" style="flex:${b.down}"></i></div>
+        <div class="breadth-legend num"><span class="up">상승 ${b.up.toLocaleString("ko-KR")}</span><span class="down">하락 ${b.down.toLocaleString("ko-KR")}</span></div>` : ""}
+      </div>
+      <div class="brief-topics">
+        <div class="eyebrow">지금 뜨는 토픽</div>
+        ${topics.length ? topics.map(({ g, tag, tone }) => `
+          <a class="topic" href="#/market/g/theme/${g.no}">
+            <span class="ttag ${tone}">${tag}</span>
+            <span class="tbody"><b>${esc(g.name)}</b>
+              <span class="tlead">${(tone === "down" ? groupLaggards(g, 3) : groupLeaders(g, 3)).map((l) => `${esc(l.name)} <em class="${cls(l.chg)}">${pct(l.chg, 1)}</em>`).join(" · ")}</span></span>
+            <span class="tchg num ${cls(g.chg)}">${pct(g.chg, 1)}</span>
+          </a>`).join("") : `<div class="empty">다음 자동 갱신 후 표시됩니다.</div>`}
+        ${heads.length ? `<div class="eyebrow" style="margin-top:18px">오늘의 헤드라인</div>
+          ${heads.map((n) => `<a class="headline" href="${esc(n.url || "#/news")}" ${n.url ? 'target="_blank" rel="noopener"' : ""}>
+            ${impactBadge(n.impact)}<span>${esc(n.title)}</span><em>${esc(n.source || "")}</em></a>`).join("")}` : ""}
+      </div>
+    </section>`;
+  }
+
+  function heatmapCard() {
+    const gs = (GROUPS?.themes || []).filter((g) => (g.total || 0) >= 5 && isNum(g.chg));
+    if (gs.length < 6) return "";
+    const s = gs.slice().sort((a, b) => b.chg - a.chg);
+    const pick = [...s.slice(0, 12), ...s.slice(-6)];
+    const max = Math.max(0.01, ...pick.map((g) => Math.abs(g.chg)));
+    const tile = (g, i) => {
+      const t = Math.min(1, Math.abs(g.chg) / max);
+      const lvl = g.chg === 0 ? 0 : Math.max(1, Math.ceil(t * 4));
+      return `<a class="tile ${g.chg >= 0 ? "u" : "d"}${lvl} ${i < 2 ? "big" : ""}" href="#/market/g/theme/${g.no}" title="${esc(g.name)} · 상승 ${g.rise} / 하락 ${g.fall}">
+        <span class="tn">${esc(g.name)}</span><b class="num">${pct(g.chg, 1)}</b></a>`;
+    };
+    return `<div class="card section">
+      <div class="card-head"><div><h2>테마 지도</h2><div class="muted" style="font-size:12.5px">오늘 가장 강한 테마 12개와 약한 테마 6개 · 색이 진할수록 많이 움직였어요</div></div><a class="more" href="#/market/groups/theme">전체 →</a></div>
+      <div class="heatmap">${pick.map(tile).join("")}</div>
+    </div>`;
+  }
+
   // ------------------------------------------------------------ 홈
   function pageHome() {
     const T = MK.themes;
@@ -147,14 +245,8 @@
     const auto = Object.values(NEWS?.auto || {}).flat().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     const latest = (auto.length ? auto : curated).slice(0, 5);
     return `${staleBanner()}
-    <div class="page-head"><div><h1>${esc(CFG.site_title || "K-Market Intelligence")}</h1>
-      <p class="lede">관심 테마 ${T.length}개 · 핵심 종목 ${all.length}개의 모멘텀과 기업 지표를 매일 자동으로 정리합니다.</p></div></div>
-    <div class="grid g4">
-      <a class="card stat" href="#/themes/${encodeURIComponent(top?.name || "")}"><div class="label">가장 강한 관심 테마 <span class="muted">(코스피 대비)</span></div><div class="value sm">${esc(top?.name || "–")}</div><div class="foot">관심도 <b>${top?.score ?? "–"}</b> · 1개월 <span class="${cls(top?.avg1m)}">${pct(top?.avg1m)}</span></div></a>
-      <a class="card stat" href="#/themes/${encodeURIComponent(low?.name || "")}"><div class="label">가장 약한 관심 테마</div><div class="value sm">${esc(low?.name || "–")}</div><div class="foot">관심도 <b>${low?.score ?? "–"}</b> · 1개월 <span class="${cls(low?.avg1m)}">${pct(low?.avg1m)}</span></div></a>
-      <div class="card stat"><div class="label">코스피 1개월</div><div class="value num ${cls(k?.r1m)}">${k ? pct(k.r1m) : "–"}</div><div class="foot">${k ? `지수 ${won(k.close)} · 3개월 <span class="${cls(k.r3m)}">${pct(k.r3m)}</span>` : "자동 갱신 후 표시"}</div></div>
-      <div class="card stat"><div class="label">1개월 상승 종목</div><div class="value num">${ups}<span class="muted" style="font-size:18px"> / ${all.length}</span></div><div class="foot">핵심 종목 기준</div></div>
-    </div>
+    ${briefCard()}
+    ${heatmapCard()}
     ${leadersCard()}
     <div class="grid g-main section">
       ${rankingCard()}
@@ -521,6 +613,10 @@
   function groupLeaders(g, n = 3) {
     return (g.codes || []).map((c) => ({ code: c, name: nameOf(c), chg: ALL[c]?.chg, amount: ALL[c]?.amount }))
       .filter((x) => isNum(x.chg)).sort((a, b) => b.chg - a.chg).slice(0, n);
+  }
+  function groupLaggards(g, n = 3) {
+    return (g.codes || []).map((c) => ({ code: c, name: nameOf(c), chg: ALL[c]?.chg }))
+      .filter((x) => isNum(x.chg)).sort((a, b) => a.chg - b.chg).slice(0, n);
   }
   function groupList(kind, limit, compact) {
     const gs = (GROUPS?.[kind === "theme" ? "themes" : "industries"] || []).filter((g) => (g.total || 0) >= 3)
