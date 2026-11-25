@@ -4,4 +4,6 @@ window.KM_CONFIG = {
     url: "https://unqahkpxfasufcvpbeai.supabase.co",
     anonKey: "sb_publishable_36Ho4MZMd5KnfkXji6af9g_8tF6uLKW",
   },
+  // true = 초대받은 회원만 사이트를 볼 수 있음 (로그인 필수, 회원가입 버튼 숨김)
+  membersOnly: true,
 };

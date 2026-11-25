@@ -1037,6 +1037,17 @@
     const c = window.KM_CONFIG?.supabase;
     return c && c.url && !c.url.startsWith("YOUR") && window.supabase?.createClient;
   }
+  const MEMBERS_ONLY = () => !!(window.KM_CONFIG?.membersOnly && SB);
+  // 초대 회원 전용: 로그인 전에는 이 화면만 보여요
+  function lockScreen() {
+    return `<div class="lock"><div class="lock-card">
+      <div class="lock-ic">🔒</div>
+      <h1>K-Market Intelligence</h1>
+      <p>초대받은 회원만 이용할 수 있어요.<br>초대 메일을 받으셨다면 메일의 링크를 눌러 비밀번호를 정한 뒤 로그인하세요.</p>
+      <button class="btn primary" id="lock-login" style="width:100%;justify-content:center">로그인</button>
+      <a href="#" id="lock-reset" class="muted" style="font-size:13px">비밀번호를 잊었어요</a>
+    </div></div>`;
+  }
   function renderAuthButton() {
     const el = document.getElementById("auth");
     if (!el) return;
@@ -1054,7 +1065,7 @@
     m.innerHTML = `<div class="modal" role="dialog" aria-modal="true">
       <button class="modal-x" aria-label="닫기">×</button>
       <h2>${mode === "login" ? "로그인" : mode === "signup" ? "회원가입" : "비밀번호 재설정"}</h2>
-      <p class="sub" style="font-size:13.5px;margin:6px 0 16px">${mode === "reset" ? "가입한 이메일로 재설정 링크를 보내드려요." : "내 포트폴리오·매매 일지·자동 일지는 본인만 볼 수 있어요."}</p>
+      <p class="sub" style="font-size:13.5px;margin:6px 0 16px">${mode === "reset" ? "가입한 이메일로 재설정 링크를 보내드려요." : MEMBERS_ONLY() ? "초대 메일로 받은 이메일과 내가 정한 비밀번호로 로그인하세요." : "내 포트폴리오·매매 일지·자동 일지는 본인만 볼 수 있어요."}</p>
       <form id="authform" class="form">
         <label>이메일<input name="email" type="email" required autocomplete="email"></label>
         ${mode !== "reset" ? `<label>비밀번호<input name="pw" type="password" required minlength="6" autocomplete="${mode === "signup" ? "new-password" : "current-password"}"></label>` : ""}
@@ -1062,7 +1073,7 @@
         <button class="btn primary" style="width:100%;justify-content:center" type="submit">${mode === "login" ? "로그인" : mode === "signup" ? "가입하기" : "링크 보내기"}</button>
       </form>
       <div class="modal-foot">${mode === "login"
-        ? `<a href="#" data-mode="signup">처음이신가요? 회원가입</a><a href="#" data-mode="reset">비밀번호를 잊었어요</a>`
+        ? `${MEMBERS_ONLY() ? `<span class="muted">초대받은 회원만 이용할 수 있어요</span>` : `<a href="#" data-mode="signup">처음이신가요? 회원가입</a>`}<a href="#" data-mode="reset">비밀번호를 잊었어요</a>`
         : `<a href="#" data-mode="login">이미 계정이 있어요. 로그인</a>`}</div></div>`;
     document.body.appendChild(m);
     m.addEventListener("click", (e) => { if (e.target === m || e.target.closest(".modal-x")) closeModal(); });
@@ -1084,11 +1095,11 @@
       closeModal();
     });
   }
-  function openNewPassword() {
+  function openNewPassword(welcome) {
     closeModal();
     const m = document.createElement("div");
     m.className = "modal-bg";
-    m.innerHTML = `<div class="modal"><h2>새 비밀번호</h2><form id="pwform" class="form" style="margin-top:14px">
+    m.innerHTML = `<div class="modal"><h2>${welcome ? "환영해요! 비밀번호를 정해 주세요" : "새 비밀번호"}</h2>${welcome ? `<p class="sub" style="font-size:13.5px;margin-top:6px">다음부터 이 이메일과 비밀번호로 로그인해요.</p>` : ""}<form id="pwform" class="form" style="margin-top:14px">
       <label>새 비밀번호<input name="pw" type="password" minlength="6" required autocomplete="new-password"></label>
       <div class="form-msg"></div><button class="btn primary" type="submit">저장</button></form></div>`;
     document.body.appendChild(m);
@@ -1425,6 +1436,13 @@
     if (page === "search") { if (parts[1]) { location.replace(`#/company/${parts[1]}`); return; } page = "market"; }
     document.querySelectorAll(".nav a, .tabbar a").forEach((a) => a.classList.toggle("active", a.dataset.page === page || (page === "sectors" && a.dataset.page === "themes" && !a.closest(".nav"))));
     let html = "";
+    document.body.classList.toggle("locked", MEMBERS_ONLY() && !USER);
+    if (MEMBERS_ONLY() && !USER) {
+      $app.innerHTML = lockScreen();
+      document.getElementById("lock-login")?.addEventListener("click", () => openAuth("login"));
+      document.getElementById("lock-reset")?.addEventListener("click", (e) => { e.preventDefault(); openAuth("reset"); });
+      return;
+    }
     if ((page === "sectors" || page === "themes") && !GNEWS) GNEWS = (await getJSON("group_news.json")) || { g: {} };
     if ((page === "themes" || page === "sectors") && USER && !MYCACHE) await loadMine().catch(() => {});
     if (page === "themes") html = pageThemes(parts[1]);
@@ -1480,6 +1498,7 @@
     }
     document.title = CFG.site_title || document.title;
     renderStatus();
+    const invited = /type=invite/.test(location.hash);
     if (sbReady()) {
       const c = window.KM_CONFIG.supabase;
       SB = window.supabase.createClient(c.url, c.anonKey);
@@ -1494,6 +1513,7 @@
         if (was !== USER?.id) { if (USER) loadMine().catch(() => {}); rerender(); }
       });
       if (USER) loadMine().catch(() => {});
+      if (USER && invited) { history.replaceState(null, "", location.pathname + "#/"); openNewPassword(true); }
     }
     renderAuthButton();
     renderTabbar();
