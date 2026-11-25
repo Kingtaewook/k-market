@@ -4,6 +4,6 @@ window.KM_CONFIG = {
     url: "https://unqahkpxfasufcvpbeai.supabase.co",
     anonKey: "sb_publishable_36Ho4MZMd5KnfkXji6af9g_8tF6uLKW",
   },
-  // true = 초대받은 회원만 사이트를 볼 수 있음 (로그인 필수, 회원가입 버튼 숨김)
-  membersOnly: true,
+  // 회원 승인제: 홈·시장은 누구나, 테마·섹터·뉴스·내 투자와 종목의 점수·재무지표는 관리자가 승인한 회원만
+  approval: true,
 };
