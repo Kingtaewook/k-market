@@ -517,7 +517,7 @@ def positions_from_trades(trades):
 
 def send_alerts(allrows, today, morning):
     """승인 회원의 관심종목 자동 알람: 급등락(±5%)·52주 신고가(오후), 오늘 긍정·악재 뉴스(아침·오후).
-    긍정 뉴스는 관리자가 '긍정 뉴스 보기'를 허용한 회원에게만. 같은 날 같은 제목은 다시 보내지 않음."""
+    긍정·악재 뉴스는 관리자가 '긍정·악재 뉴스 보기'를 허용한 회원에게만. 같은 날 같은 제목은 다시 보내지 않음."""
     if not supabase_conf()[0]:
         print("[알람] Supabase 키가 없어 건너뜀")
         return
@@ -545,9 +545,11 @@ def send_alerts(allrows, today, morning):
         if code not in news_cache:
             news_cache[code] = [n for n in load(DATA / "companies" / f"{code}.json", {}).get("news", []) if n.get("date") == today]
         for n in news_cache[code]:
+            if not members[uid].get("can_positive"):  # 긍정·악재 뉴스는 관리자가 열어준 회원만
+                continue
             if n.get("impact") == "주의":
                 cand.append(("news", f"[악재] {n['title']}", name, n.get("url")))
-            elif n.get("impact") == "긍정" and members[uid].get("can_positive"):
+            elif n.get("impact") == "긍정":
                 cand.append(("news", f"[긍정] {n['title']}", name, n.get("url")))
         for kind, title, body, link in cand:
             if (uid, title) not in done:
