@@ -245,7 +245,7 @@
     const curated = (NEWS?.curated || []).slice().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     const auto = Object.values(NEWS?.auto || {}).flat().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     const latest = (auto.length ? auto : curated).slice(0, 5);
-    return `${staleBanner()}
+    return `${staleBanner()}${adminBanner()}
     ${briefCard()}
     ${heatmapCard()}
     ${leadersCard()}
@@ -1079,7 +1079,7 @@
     if (!el) return;
     if (!SB) { el.innerHTML = ""; return; }
     el.innerHTML = USER
-      ? `${IS_ADMIN() ? `<a class="btn sm ${PENDING_N ? "primary" : ""}" href="#/admin">회원 관리${PENDING_N ? ` <b class="num">${PENDING_N}</b>` : ""}</a>` : ""}<a class="btn sm" href="#/my">내 투자</a><button class="btn sm ghost" id="logout" title="${esc(USER.email)}">로그아웃</button>`
+      ? `${IS_ADMIN() ? `<a class="btn sm admin-btn ${PENDING_N ? "primary" : ""}" href="#/admin" title="회원 관리">👥<span class="lbl"> 회원 관리</span>${PENDING_N ? ` <b class="num">${PENDING_N}</b>` : ""}</a>` : ""}<a class="btn sm" href="#/my">내 투자</a><button class="btn sm ghost" id="logout" title="${esc(USER.email)}">로그아웃</button>`
       : `${APPROVAL() ? `<button class="btn sm" id="signup">회원가입</button>` : ""}<button class="btn sm primary" id="login">로그인</button>`;
     document.getElementById("signup")?.addEventListener("click", () => openAuth("signup"));
     document.getElementById("login")?.addEventListener("click", () => openAuth("login"));
@@ -1258,12 +1258,13 @@
       </div>`;
   }
 
+  const adminBanner = () => (IS_ADMIN() && PENDING_N ? `<a class="banner section admin-banner" href="#/admin">👥 승인 대기 회원 <b>${PENDING_N}명</b> · 눌러서 승인하기 →</a>` : "");
   async function pageMy(tab) {
     if (!USER) return needLogin();
     let d;
     try { d = await loadMine(); } catch (e) { return `<div class="empty">내 데이터를 불러오지 못했어요: ${esc(e.message)}</div>`; }
     const head = `<div class="page-head"><div><h1>내 투자</h1><p class="lede">${esc(USER.email)}</p></div>
-      <button class="btn primary" data-newtrade>+ 매매 기록</button></div>${myTabs(tab || "")}`;
+      <div style="display:flex;gap:8px">${IS_ADMIN() ? `<a class="btn" href="#/admin">👥 회원 관리${PENDING_N ? ` <b class="num">${PENDING_N}</b>` : ""}</a>` : ""}<button class="btn primary" data-newtrade>+ 매매 기록</button></div></div>${adminBanner()}${myTabs(tab || "")}`;
     if (tab === "trades") return head + pageTrades(d);
     if (tab === "journal") return head + pageJournal(d);
     return head + pagePortfolio(d);
@@ -1633,13 +1634,16 @@
       const { data } = await SB.auth.getSession();
       USER = data.session?.user || null;
       await loadProfile();
-      SB.auth.onAuthStateChange(async (ev, session) => {
-        const was = USER?.id;
-        USER = session?.user || null;
-        if (was !== USER?.id) { MYCACHE = null; await loadProfile(); }
-        renderAuthButton();
-        if (ev === "PASSWORD_RECOVERY") openNewPassword();
-        if (was !== USER?.id) { if (USER) loadMine().catch(() => {}); rerender(); }
+      // 주의: 이 콜백 안에서 Supabase 요청을 바로 await 하면 멈출 수 있어(라이브러리 잠금) setTimeout 으로 한 박자 늦춰 실행
+      SB.auth.onAuthStateChange((ev, session) => {
+        setTimeout(async () => {
+          const was = USER?.id;
+          USER = session?.user || null;
+          if (was !== USER?.id) { MYCACHE = null; await loadProfile(); }
+          renderAuthButton();
+          if (ev === "PASSWORD_RECOVERY") openNewPassword();
+          if (was !== USER?.id) { if (USER) loadMine().catch(() => {}); rerender(); }
+        }, 0);
       });
       if (USER) loadMine().catch(() => {});
       if (USER && invited) { history.replaceState(null, "", location.pathname + "#/"); openNewPassword(true); }
