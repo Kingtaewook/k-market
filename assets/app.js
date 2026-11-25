@@ -16,7 +16,7 @@
     return cache[path];
   }
 
-  let CFG, MK, LIST, NEWS, ALL = {}, GROUPS = null;
+  let CFG, MK, LIST, NEWS, ALL = {}, GROUPS = null, US = null;
   const CODE2THEMES = {};
   let SB = null, USER = null, MYCACHE = null;
   const $app = document.getElementById("app");
@@ -173,6 +173,48 @@
     return picks;
   }
 
+
+  // 미국 분위기 0~100 = 주요 지수(S&P·나스닥·다우·반도체) 평균 등락 60% + VIX 수준 40%
+  function usMoodScore() {
+    const ix = (US?.indices || []).filter((x) => isNum(x.chg));
+    const parts = [];
+    if (ix.length) parts.push([clamp01((ix.reduce((a, x) => a + x.chg, 0) / ix.length + 0.03) / 0.06), 0.6]);
+    if (isNum(US?.vix?.close)) parts.push([clamp01((35 - US.vix.close) / 23), 0.4]);
+    if (!parts.length) return null;
+    const w = parts.reduce((a, [, x]) => a + x, 0);
+    return Math.round((parts.reduce((a, [v, x]) => a + v * x, 0) / w) * 100);
+  }
+  function usMoodLine() {
+    const ix = US?.indices || [];
+    const by = (k) => ix.find((x) => x.key === k);
+    const nq = by("nasdaq"), dj = by("dow"), sox = by("sox");
+    if (!nq || !dj) return "미국 마감 데이터를 기다리는 중이에요";
+    const tech = (nq.chg + (sox?.chg ?? nq.chg)) / 2;
+    if (tech < -0.01 && dj.chg > 0) return "기술주는 약세, 경기·가치주로 돈이 이동";
+    if (tech > 0.01 && dj.chg < 0) return "기술주 독주, 나머지는 쉬어감";
+    if (tech > 0 && dj.chg > 0) return "기술주와 경기주가 함께 오름";
+    if (tech < 0 && dj.chg < 0) return "전반적인 위험 회피 분위기";
+    return "방향을 탐색하는 혼조세";
+  }
+  function usMoodCard() {
+    if (!US) return "";
+    const s = usMoodScore();
+    const ix = US.indices || [];
+    const v = US.vix, fx = US.usdkrw;
+    return `<div class="brief-mood brief-us ${s === null ? "" : moodTone(s)}">
+        <div class="eyebrow">미국 장 · ${esc(US.as_of || "")} 마감</div>
+        ${gaugeSvg(s)}
+        <div class="mood-score num">${s ?? "–"}<span>${s === null ? "" : moodLabel(s)}</span></div>
+        <p class="mood-line">${esc(usMoodLine())}</p>
+        <div class="us-grid">
+          ${ix.map((x) => `<div class="us-cell"><em>${esc(x.name)}</em><b class="num ${cls(x.chg)}">${pct(x.chg, 2)}</b><span class="num muted">${isNum(x.close) ? x.close.toLocaleString("en-US", { maximumFractionDigits: 2 }) : "–"}</span></div>`).join("")}
+          ${v ? `<div class="us-cell"><em>VIX 공포지수</em><b class="num">${isNum(v.close) ? v.close.toFixed(1) : "–"}</b><span class="num ${cls(-(v.chg || 0))}">${pct(v.chg, 1)}</span></div>` : ""}
+          ${fx ? `<div class="us-cell"><em>원/달러</em><b class="num">${isNum(fx.close) ? won(fx.close) : "–"}</b><span class="num ${cls(fx.chg)}">${pct(fx.chg, 2)}</span></div>` : ""}
+        </div>
+        ${US.preview ? `<div class="us-note">미리보기 · 일부 값은 예시예요</div>` : ""}
+      </div>`;
+  }
+
   function briefCard() {
     const s = moodScore();
     const k = MK.kospi || {}, b = MK.breadth || {};
@@ -186,9 +228,9 @@
       .sort((a, c) => `${c.date}${c.time || ""}`.localeCompare(`${a.date}${a.time || ""}`));
     const seen = new Set(), heads = [];
     for (const n of auto) { if (seen.has(n.title)) continue; seen.add(n.title); heads.push(n); if (heads.length >= 3) break; }
-    return `<section class="brief">
+    return `<section class="brief ${US ? "has-us" : ""}">
       <div class="brief-mood ${s === null ? "" : moodTone(s)}">
-        <div class="eyebrow">10초 브리핑 · ${esc(MK.as_of || "")}</div>
+        <div class="eyebrow">한국 장 · ${esc(MK.as_of || "")}</div>
         ${gaugeSvg(s)}
         <div class="mood-score num">${s ?? "–"}<span>${s === null ? "" : moodLabel(s)}</span></div>
         <p class="mood-line">${line}</p>
@@ -200,18 +242,19 @@
         ${total ? `<div class="breadth-bar" title="상승 ${b.up} · 하락 ${b.down}"><i class="u" style="flex:${b.up}"></i><i class="d" style="flex:${b.down}"></i></div>
         <div class="breadth-legend num"><span class="up">상승 ${b.up.toLocaleString("ko-KR")}</span><span class="down">하락 ${b.down.toLocaleString("ko-KR")}</span></div>` : ""}
       </div>
+      ${usMoodCard()}
       <div class="brief-topics">
-        <div class="eyebrow">지금 뜨는 토픽</div>
+        <div class="tcol"><div class="eyebrow">지금 뜨는 토픽</div>
         ${topics.length ? topics.map(({ g, tag, tone }) => `
           <a class="topic" href="#/market/g/theme/${g.no}">
             <span class="ttag ${tone}">${tag}</span>
             <span class="tbody"><b>${esc(g.name)}</b>
               <span class="tlead">${(tone === "down" ? groupLaggards(g, 3) : groupLeaders(g, 3)).map((l) => `${esc(l.name)} <em class="${cls(l.chg)}">${pct(l.chg, 1)}</em>`).join(" · ")}</span></span>
             <span class="tchg num ${cls(g.chg)}">${pct(g.chg, 1)}</span>
-          </a>`).join("") : `<div class="empty">다음 자동 갱신 후 표시됩니다.</div>`}
-        ${heads.length ? `<div class="eyebrow" style="margin-top:18px">오늘의 헤드라인</div>
+          </a>`).join("") : `<div class="empty">다음 자동 갱신 후 표시됩니다.</div>`}</div>
+        ${heads.length ? `<div class="hcol"><div class="eyebrow">오늘의 헤드라인</div>
           ${heads.map((n) => `<a class="headline" href="${esc(n.url || "#/news")}" ${n.url ? 'target="_blank" rel="noopener"' : ""}>
-            ${impactBadge(n.impact)}<span>${esc(n.title)}</span><em>${esc(n.source || "")}</em></a>`).join("")}` : ""}
+            ${impactBadge(n.impact)}<span>${esc(n.title)}</span><em>${esc(n.source || "")}</em></a>`).join("")}</div>` : ""}
       </div>
     </section>`;
   }
@@ -1250,7 +1293,7 @@
 
   async function init() {
     let all;
-    [CFG, MK, LIST, NEWS, all, GROUPS] = await Promise.all([getJSON("config.json"), getJSON("market.json"), getJSON("stocks.json"), getJSON("theme_news.json"), getJSON("market_all.json"), getJSON("groups.json")]);
+    [CFG, MK, LIST, NEWS, all, GROUPS, US] = await Promise.all([getJSON("config.json"), getJSON("market.json"), getJSON("stocks.json"), getJSON("theme_news.json"), getJSON("market_all.json"), getJSON("groups.json"), getJSON("us_market.json")]);
     (GROUPS?.themes || []).forEach((g) => (g.codes || []).forEach((c) => (CODE2THEMES[c] ||= []).push(g)));
     Object.values(CODE2THEMES).forEach((l) => l.sort((a, b) => b.chg - a.chg));
     if (!CFG || !MK) {

@@ -572,6 +572,53 @@ def write_journals(allrows, kospi_chg, today):
 
 
 # ---------------------------------------------------------------- 메인
+
+# ---------------------------------------------------------------- 미국 장 (네이버 해외지수)
+US_INDICES = [("sp500", "S&P 500", ".INX"), ("nasdaq", "나스닥", ".IXIC"), ("dow", "다우", ".DJI"), ("sox", "필라델피아 반도체", ".SOX")]
+
+
+def _f(v):
+    try:
+        x = float(str(v).replace(",", ""))
+        return x if x == x else None
+    except (TypeError, ValueError):
+        return None
+
+
+def fetch_us():
+    """미국 주요 지수·VIX·원달러 환율. 실패한 항목은 빼고 나머지만 저장."""
+    out, dates = {"indices": []}, []
+    for key, name, sym in US_INDICES + [("vix", "VIX", ".VIX")]:
+        try:
+            j = get(f"https://api.stock.naver.com/index/{sym}/basic").json()
+            close, ratio = _f(j.get("closePrice")), _f(j.get("fluctuationsRatio"))
+            if close is None:
+                continue
+            rec = {"key": key, "name": name, "close": close, "chg": round(ratio / 100, 5) if ratio is not None else None}
+            if key == "vix":
+                out["vix"] = rec
+            else:
+                out["indices"].append(rec)
+                if j.get("localTradedAt"):
+                    dates.append(j["localTradedAt"][:10])
+        except Exception as e:
+            print(f"  미국 {name} 실패: {e}")
+    try:
+        j = get("https://m.stock.naver.com/front-api/marketIndex/productDetail?category=exchange&reutersCode=FX_USDKRW").json()
+        j = j.get("result") or {}
+        close, ratio = _f(j.get("closePrice")), _f(j.get("fluctuationsRatio"))
+        if close is not None:
+            sign = -1 if (j.get("fluctuationsType") or {}).get("name") == "FALLING" and ratio and ratio > 0 else 1
+            out["usdkrw"] = {"close": close, "chg": round(sign * ratio / 100, 5) if ratio is not None else None}
+    except Exception as e:
+        print(f"  원달러 환율 실패: {e}")
+    if not out["indices"]:
+        return None
+    out["as_of"] = max(dates) if dates else None
+    out["updated_at"] = dt.datetime.now(KST).strftime("%Y-%m-%dT%H:%M+09:00")
+    return out
+
+
 def main():
     config = load(DATA / "config.json", None)
     if not config:
@@ -581,6 +628,17 @@ def main():
     now = dt.datetime.now(KST)
     morning = now.hour < 12  # 아침 실행: 뉴스만 갱신
     today = now.date().isoformat()
+
+    # ---- 미국 장 마감 (매 실행)
+    try:
+        us = fetch_us()
+        if us:
+            save(DATA / "us_market.json", us)
+            print(f"미국 장 {us['as_of']} · 지수 {len(us['indices'])}개")
+        else:
+            failures.append({"code": "*", "step": "미국 장", "error": "지수 응답 없음"})
+    except Exception as e:
+        failures.append({"code": "*", "step": "미국 장", "error": str(e)[:200]})
 
     listing, snap = load_listing()
     lmap = {r[1]: r for r in listing}

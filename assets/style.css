@@ -514,3 +514,22 @@ a.card:hover, .card.stat:hover { transform: translateY(-1px); box-shadow: 0 10px
   .th-table td, .th-table th { padding-left: 4px; padding-right: 4px; }
   .th-name { word-break: break-all; }
 }
+/* ---------- v5: 미국 장 분위기 ---------- */
+.brief.has-us { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.brief.has-us .brief-topics { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; }
+.hcol .headline:first-of-type { border-top: 0; }
+.us-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; width: 100%; margin-top: 4px; }
+.us-cell { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; text-align: left; display: grid; gap: 1px; }
+.us-cell em { font-style: normal; font-size: 11.5px; color: var(--ink-3); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.us-cell b { font-size: 16px; font-weight: 800; }
+.us-cell span { font-size: 11.5px; }
+.us-note { font-size: 11.5px; color: var(--warn); margin-top: 10px; }
+@media (max-width: 900px) {
+  .brief.has-us { grid-template-columns: minmax(0, 1fr); }
+  .brief.has-us .brief-topics { display: block; }
+}
+@media (max-width: 560px) { .us-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.hcol { margin-top: 18px; }
+.brief.has-us .hcol { margin-top: 0; }
+@media (max-width: 900px) { .brief.has-us .hcol { margin-top: 18px; } }
