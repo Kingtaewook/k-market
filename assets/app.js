@@ -25,7 +25,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const isNum = (v) => typeof v === "number" && isFinite(v);
   const won = (v) => (isNum(v) ? Math.round(v).toLocaleString("ko-KR") : "–");
-  const pct = (v, d = 1, sign = true) => (isNum(v) ? `${sign && v > 0 ? "+" : ""}${(v * 100).toFixed(d)}%` : "–");
+  const pct = (v, d = 1, sign = true) => { if (!isNum(v)) return "–"; const t = (v * 100).toFixed(d); const z = Number(t) === 0; return `${sign && v > 0 && !z ? "+" : ""}${z ? (0).toFixed(d) : t}%`; };
   const cls = (v) => (isNum(v) ? (v > 0 ? "up" : v < 0 ? "down" : "") : "");
   const times = (v, d = 2) => (isNum(v) ? `${v.toFixed(d)}배` : "–");
   const cap = (eok) => {
@@ -106,7 +106,7 @@
     const basis = MK.themes[0]?.basis || "";
     return `<div class="card">
       <div class="card-head"><div><h2>내 관심 테마 랭킹</h2><div class="muted" style="font-size:13px">${esc(basis)} 1·3개월 수익률로 계산 · 50 = 기준선</div></div>
-      <a class="more" href="#/themes">전체 보기 →</a></div>
+      <a class="more" href="#/themes/mine">전체 보기 →</a></div>
       ${rows.map((t) => `
         <div class="rank-row" data-go="#/themes/${encodeURIComponent(t.name)}" title="평균 1개월 ${pct(t.avg1m)} · 3개월 ${pct(t.avg3m)} · 상승 ${t.up}/${t.total}">
           <div class="rk num">${t.rank ?? "–"}</div>
@@ -278,13 +278,13 @@
       }).join("")}</tbody></table></div>`;
   }
 
-  function pageThemes(focus) {
+  function pageMyThemes(focus) {
     const T = MK.themes;
     const sel = focus && T.find((t) => t.name === focus) ? focus : null;
     const list = sel ? T.filter((t) => t.name === sel) : T;
     return `${staleBanner()}
-    <div class="page-head"><div><h1>섹터·테마 모니터</h1><p class="lede">테마별 핵심 종목의 1·3개월 모멘텀과 52주 위치입니다. 종목을 누르면 기업분석으로 이동합니다.</p></div></div>
-    <div class="chips"><a class="chip ${sel ? "" : "on"}" href="#/themes">전체</a>${T.map((t) => `<a class="chip ${sel === t.name ? "on" : ""}" href="#/themes/${encodeURIComponent(t.name)}">${esc(t.name)}</a>`).join("")}</div>
+    <div class="page-head"><div><h1>내 관심 테마</h1><p class="lede">config.json 에 직접 정한 테마의 1·3개월 모멘텀입니다. <a href="#/themes" style="color:var(--accent)">← 전체 테마 모니터</a></p></div></div>
+    <div class="chips"><a class="chip ${sel ? "" : "on"}" href="#/themes/mine">전체</a>${T.map((t) => `<a class="chip ${sel === t.name ? "on" : ""}" href="#/themes/${encodeURIComponent(t.name)}">${esc(t.name)}</a>`).join("")}</div>
     ${sel ? "" : `<div style="margin-bottom:16px">${rankingCard()}</div>`}
     ${list.map((t) => `
       <div class="card theme-block">
@@ -293,6 +293,105 @@
         </div>
         ${stockTable(t.stocks)}
       </div>`).join("")}`;
+  }
+
+
+  // ------------------------------------------------------------ 테마 모니터 (네이버 테마 전체 자동)
+  const thState = { period: "chg", view: "all" };
+  const PERIODS = [["chg", "오늘"], ["r1w", "1주"], ["r1m", "1개월"], ["r3m", "3개월"]];
+  const avg = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : null);
+  let THEME_CACHE = null;
+  function themeStats() {
+    if (THEME_CACHE) return THEME_CACHE;
+    const out = (GROUPS?.themes || []).filter((g) => (g.total || 0) >= 3).map((g) => {
+      const m = (g.codes || []).map((c) => ({ code: c, name: nameOf(c), ...(ALL[c] || {}) })).filter((x) => isNum(x.chg));
+      const pick = (k) => avg(m.map((x) => x[k]).filter(isNum));
+      const t = { no: g.no, name: g.name, n: m.length, chg: isNum(g.chg) ? g.chg : pick("chg"), r1w: pick("r1w"), r1m: pick("r1m"), r3m: pick("r3m"),
+        amount: m.reduce((a, x) => a + (x.amount || 0), 0), hi: m.filter((x) => isNum(x.pos52) && x.pos52 >= 0.98).length, members: m };
+      return t;
+    }).filter((t) => t.n >= 3);
+    const rankBy = (k) => { const s = out.filter((t) => isNum(t[k])).sort((a, b) => b[k] - a[k]); s.forEach((t, i) => (t["rk_" + k] = i + 1)); };
+    ["chg", "r1w", "r1m", "r3m", "amount"].forEach(rankBy);
+    out.forEach((t) => {
+      const { chg, r1w, r1m } = t;
+      t.jump = isNum(t.rk_r1m) && isNum(t.rk_r1w) ? t.rk_r1m - t.rk_r1w : 0;
+      t.signal = !isNum(r1w) || !isNum(r1m) ? ["확인 필요", ""]
+        : r1m >= 0.4 || r1w >= 0.25 ? ["과열 주의", "warn"]
+        : r1w >= 0.05 && r1m <= 0.05 ? ["새로 부상", "acc"]
+        : r1w > 0 && r1m >= 0.1 && chg >= 0 ? ["지속 강세", "pos"]
+        : r1m >= 0.1 && r1w < 0 ? ["눌림목", "good"]
+        : r1w < 0 && r1m < 0 && chg < 0 ? ["지속 약세", "neg"]
+        : chg >= 0.02 && r1w < 0 ? ["단기 반등", "acc"]
+        : chg <= -0.02 && r1w > 0 ? ["차익 실현", "warn"]
+        : r1m >= 0.05 ? ["완만한 상승", "pos"]
+        : r1m <= -0.05 ? ["완만한 하락", "neg"]
+        : ["횡보", ""];
+    });
+    return (THEME_CACHE = out);
+  }
+  function upRatio(t, k) {
+    const v = t.members.map((x) => x[k]).filter(isNum);
+    return v.length ? v.filter((x) => x > 0).length / v.length : 0;
+  }
+  function pageThemes(focus) {
+    if (focus === "mine" || (focus && CFG.themes.some((t) => t.name === focus))) return pageMyThemes(focus === "mine" ? null : focus);
+    const T = themeStats();
+    if (!T.length) return `<div class="page-head"><div><h1>테마 모니터</h1></div></div><div class="empty">테마 데이터는 다음 자동 갱신 후 표시됩니다.</div>`;
+    const k = thState.period, pl = PERIODS.find((p) => p[0] === k)[1];
+    const byChg = [...T].sort((a, b) => b.chg - a.chg)[0];
+    const rising = [...T].filter((t) => (t.r1w || 0) > 0).sort((a, b) => b.jump - a.jump)[0];
+    const money = [...T].sort((a, b) => b.amount - a.amount)[0];
+    let rows = T.filter((t) => isNum(t[k]));
+    if (thState.view === "up") rows = rows.filter((t) => t[k] > 0);
+    if (thState.view === "down") rows = rows.filter((t) => t[k] < 0);
+    if (thState.view === "new") rows = rows.filter((t) => t.signal[0] === "새로 부상" || (t.jump >= 60 && (t.r1w || 0) > 0));
+    if (thState.view === "hot") rows = rows.filter((t) => t.signal[0] === "과열 주의");
+    rows.sort((a, b) => (thState.view === "down" ? a[k] - b[k] : b[k] - a[k]));
+    const hl = (t, label, val, foot) => t ? `<a class="card stat th-hl" href="#/market/g/theme/${t.no}"><div class="label">${label}</div><div class="value sm">${esc(t.name)}</div><div class="foot">${val}</div>${foot ? `<div class="foot muted">${foot}</div>` : ""}</a>` : "";
+    return `${staleBanner()}
+    <div class="page-head"><div><h1>테마 모니터</h1><p class="lede">네이버 테마 ${T.length}개를 매일 자동으로 다시 계산해요 · ${esc(GROUPS?.as_of || "")} 기준 · <a href="#/themes/mine" style="color:var(--accent)">내 관심 테마 ${CFG.themes.length}개 →</a></p></div></div>
+    <div class="grid g3">
+      ${hl(byChg, "오늘 가장 강한 테마", `오늘 <b class="${cls(byChg?.chg)}">${pct(byChg?.chg, 1)}</b> · 상승 ${Math.round(upRatio(byChg, "chg") * 100)}%`, byChg?.members.slice().sort((a, b) => b.chg - a.chg).slice(0, 2).map((x) => esc(x.name)).join(" · "))}
+      ${hl(rising, "이번 주 새로 뜨는 테마", `1주 <b class="${cls(rising?.r1w)}">${pct(rising?.r1w, 1)}</b> · 순위 ${rising?.rk_r1m}위 → ${rising?.rk_r1w}위`, "1개월 순위보다 1주 순위가 가장 많이 오른 테마")}
+      ${hl(money, "돈이 가장 몰린 테마", `거래대금 <b>${bigWon(money?.amount)}</b>`, `오늘 <span class="${cls(money?.chg)}">${pct(money?.chg, 1)}</span>`)}
+    </div>
+    <div class="card section">
+      <div class="th-controls">
+        <div class="seg">${PERIODS.map(([v, l]) => `<button class="${v === k ? "on" : ""}" data-period="${v}">${l}</button>`).join("")}</div>
+        <div class="chips" style="margin:0">${[["all", "전체"], ["up", "상승"], ["down", "하락"], ["new", "새로 부상"], ["hot", "과열 주의"]].map(([v, l]) => `<button class="chip ${v === thState.view ? "on" : ""}" data-view="${v}">${l}</button>`).join("")}</div>
+        <div class="search-box th-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="th-q" type="search" placeholder="테마 이름 검색 (예: 로봇, 원전)" autocomplete="off"></div>
+      </div>
+      <div class="muted" style="font-size:12.5px;margin:10px 0 4px">${rows.length}개 테마 · ${pl} 평균 등락률 순 · 막대는 ${pl} 상승 종목 비율</div>
+      <div class="table-wrap"><table class="th-table">
+        <thead><tr><th class="c-rank">#</th><th>테마</th><th class="r c-val">${pl}</th>${PERIODS.filter(([v]) => v !== k && v !== "r3m").map(([, l]) => `<th class="r hide-s">${l}</th>`).join("")}<th class="hide-s">상승 비율</th><th class="r hide-s">거래대금</th><th class="c-sig">신호</th><th class="hide-m">대장주</th></tr></thead>
+        <tbody>${rows.map((t, i) => {
+          const ur = upRatio(t, k);
+          const lead = t.members.filter((x) => isNum(x[k])).sort((a, b) => b[k] - a[k]).slice(0, 3);
+          return `<tr class="link" data-go="#/market/g/theme/${t.no}" data-name="${esc(t.name.toLowerCase())}">
+            <td class="muted num">${i + 1}</td>
+            <td><b class="th-name">${esc(t.name)}</b><div class="muted th-sub">${t.n}종목${t.hi ? ` · 신고가 ${t.hi}` : ""}${t.jump >= 30 ? ` · <span class="up">순위 ▲${t.jump}</span>` : ""}</div></td>
+            <td class="r num big ${cls(t[k])}">${pct(t[k], 1)}</td>
+            ${PERIODS.filter(([v]) => v !== k && v !== "r3m").map(([v]) => `<td class="r num hide-s ${cls(t[v])}">${pct(t[v], 1)}</td>`).join("")}
+            <td class="hide-s"><div class="ubar" title="상승 ${Math.round(ur * 100)}%"><i style="width:${ur * 100}%"></i></div></td>
+            <td class="r num hide-s">${bigWon(t.amount)}</td>
+            <td><span class="badge ${t.signal[1]}">${t.signal[0]}</span></td>
+            <td class="hide-m th-lead">${lead.map((x) => `${esc(x.name)} <span class="${cls(x[k])}">${pct(x[k], 0)}</span>`).join(" · ")}</td></tr>`;
+        }).join("")}</tbody></table></div>
+      ${rows.length ? "" : `<div class="empty">지금 이 조건에 해당하는 테마가 없어요.</div>`}
+      <div class="empty" id="th-none" hidden>검색 결과가 없어요.</div>
+    </div>
+    <p class="muted" style="font-size:12.5px;margin-top:10px">신호 기준 — 과열 주의: 1개월 +40% 이상 또는 1주 +25% 이상 · 새로 부상: 1주 +5% 이상인데 1개월은 +5% 이하 · 지속 강세: 1주·1개월·오늘 모두 상승(1개월 +10% 이상) · 눌림목: 1개월 +10% 이상인데 1주 하락 · 지속 약세: 오늘·1주·1개월 모두 하락 · 단기 반등: 1주 하락 중 오늘 +2% 이상 · 차익 실현: 1주 상승 중 오늘 -2% 이하 · 그 밖은 1개월 ±5%로 완만한 상승/하락/횡보. 규칙 기반 참고 지표예요.</p>`;
+  }
+  function wireThemes() {
+    document.querySelectorAll("[data-period]").forEach((b) => b.addEventListener("click", () => { thState.period = b.dataset.period; rerender(); }));
+    document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => { thState.view = b.dataset.view; rerender(); }));
+    const q = document.getElementById("th-q");
+    q?.addEventListener("input", () => {
+      const v = q.value.trim().toLowerCase();
+      let n = 0;
+      document.querySelectorAll(".th-table tbody tr").forEach((tr) => { const ok = !v || tr.dataset.name.includes(v); tr.hidden = !ok; if (ok) n++; });
+      document.getElementById("th-none").hidden = n > 0;
+    });
   }
 
   // ------------------------------------------------------------ 검색
@@ -1132,6 +1231,7 @@
     $app.innerHTML = html;
     wireSearch("home-q"); wireSearch("q"); wireSearch("cq"); wireInstall();
     if (page === "market") wireMarket();
+    if (page === "themes") wireThemes();
     if (page === "my") wireMy();
     if (page === "company") {
       const code = parts[1] || trackedCodes()[0];
