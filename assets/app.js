@@ -1633,13 +1633,16 @@
       const { data } = await SB.auth.getSession();
       USER = data.session?.user || null;
       await loadProfile();
-      SB.auth.onAuthStateChange(async (ev, session) => {
-        const was = USER?.id;
-        USER = session?.user || null;
-        if (was !== USER?.id) { MYCACHE = null; await loadProfile(); }
-        renderAuthButton();
-        if (ev === "PASSWORD_RECOVERY") openNewPassword();
-        if (was !== USER?.id) { if (USER) loadMine().catch(() => {}); rerender(); }
+      // 주의: 이 콜백 안에서 Supabase 요청을 바로 await 하면 멈출 수 있어(라이브러리 잠금) setTimeout 으로 한 박자 늦춰 실행
+      SB.auth.onAuthStateChange((ev, session) => {
+        setTimeout(async () => {
+          const was = USER?.id;
+          USER = session?.user || null;
+          if (was !== USER?.id) { MYCACHE = null; await loadProfile(); }
+          renderAuthButton();
+          if (ev === "PASSWORD_RECOVERY") openNewPassword();
+          if (was !== USER?.id) { if (USER) loadMine().catch(() => {}); rerender(); }
+        }, 0);
       });
       if (USER) loadMine().catch(() => {});
       if (USER && invited) { history.replaceState(null, "", location.pathname + "#/"); openNewPassword(true); }
