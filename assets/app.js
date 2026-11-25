@@ -508,7 +508,7 @@
     const vt = [tagPER(f.per), tagPBR(f.pbr)].filter(Boolean);
     const heavy = vt.includes("부정");
     const cheap = vt.length === 2 && vt.every((t) => t === "긍정");
-    const signals = [
+    const signals = !CAN_SEE() ? (capTier ? `<span class="badge">${capTier}</span>` : "") + `<span class="badge">🔒 투자 신호는 회원 전용</span>` : [
       capTier && `<span class="badge">${capTier}</span>`,
       isNum(f.op_margin) && (f.op_margin >= 0.15 ? `<span class="badge pos">고수익성</span>` : `<span class="badge">수익성 점검</span>`),
       opYoY !== null && (opYoY > 0 ? `<span class="badge pos">이익 모멘텀 ↑</span>` : `<span class="badge neg">이익 모멘텀 ↓</span>`),
@@ -544,19 +544,19 @@
       <div class="card stat"><div class="label">52주 위치</div><div class="value num">${isNum(price.pos52) ? Math.round(price.pos52 * 100) + "%" : "–"}</div><div class="foot num">${isNum(price.lo52) ? `${won(price.lo52)} ~ ${won(price.hi52)}` : "최저 0% ~ 최고 100%"}</div></div>
       <div class="card stat"><div class="label">시가총액</div><div class="value num">${cap(f.market_cap_eok ?? price.marcap)}</div><div class="foot">${isNum(price.amount) ? `거래대금 ${bigWon(price.amount)}` : isNum(price.vol20) ? `20일 평균 거래량 ${won(price.vol20)}` : "&nbsp;"}</div></div>
     </div>
-    ${consensusLine(f, price)}
+    ${CAN_SEE() ? consensusLine(f, price) : ""}
     <div class="grid g-main section">
       <div class="card">
         <div class="card-head"><h2>주가 추이${!c.history?.length && c.history_w?.length ? ` <span class="muted" style="font-size:12px;font-weight:600">주간</span>` : ""}</h2><div class="range-tabs">${["1M", "3M", "6M", "1Y"].map((r) => `<button data-range="${r}" class="${r === chartRange ? "on" : ""}">${r}</button>`).join("")}</div></div>
         ${priceChart(sliceHist(c, chartRange))}
       </div>
-      <div class="card">
+      ${!CAN_SEE() ? secretBox("종합 점수", 260) : `<div class="card">
         <div class="card-head"><h2>종합 점수</h2>${verdictBadge(sc.grade === "매우 긍정" ? "높은 관심" : sc.grade === "긍정" ? "관심" : sc.grade === "위험" ? "약세" : sc.grade === "자료 부족" ? "확인 필요" : sc.grade)}</div>
         <div class="score-ring"><div class="score-big num">${sc.total ?? "–"}</div><div class="sub" style="font-size:13px">100점 만점 · 5개 항목 × 20점${sc.partial ? "<br><span class='muted'>자료 있는 항목만 환산</span>" : ""}<br>가장 약한 항목: <b>${esc(sc.weakest)}</b></div></div>
         <div class="score-items">${sc.items.map(([k, v, why]) => `<div class="score-item" title="${esc(why || "자료 없음")}"><span class="sub">${k}</span><div class="track"><div class="fill" style="width:${isNum(v) ? v * 5 : 0}%"></div></div><b class="num">${v ?? "–"}</b>${why ? `<span class="why">${esc(why)}</span>` : ""}</div>`).join("")}</div>
-      </div>
+      </div>`}
     </div>
-    <div class="card section">
+    ${!CAN_SEE() ? `<div class="section">${secretBox("핵심 재무 지표", 200)}</div>` : `<div class="card section">
       <div class="card-head"><h2>핵심 재무 지표</h2><span class="muted" style="font-size:12.5px">${esc(c.source || "")} ${c.as_of ? "· " + esc(c.as_of) : ""}</span></div>
       <div class="metrics">
         ${metric("PER", times(f.per), tagPER(f.per), tagPER(f.per) === "긍정" ? "이익 대비 주가 부담 낮음" : tagPER(f.per) === "중립" ? "보통 수준" : tagPER(f.per) ? "이익 대비 주가 부담" : "", "주가 ÷ 주당순이익. 15배 이하 긍정, 25배 초과 부담. 업종마다 기준이 다릅니다.")}
@@ -566,7 +566,7 @@
         ${metric("부채비율", pct(f.debt_ratio, 0, false), tagDebt(f.debt_ratio), tagDebt(f.debt_ratio) === "긍정" ? "재무 안정적" : tagDebt(f.debt_ratio) === "중립" ? "지속 점검" : tagDebt(f.debt_ratio) ? "부채 부담 높음" : "", "부채 ÷ 자본. 50% 이하 안정, 100% 초과 점검. 금융·조선 등은 업종 특성상 높을 수 있습니다.")}
       </div>
       <div class="strategy">${strategy}</div>
-    </div>
+    </div>`}
     <div class="grid g2 section">
       <div class="card">
         <div class="card-head"><h2>분기 실적</h2><span class="muted" style="font-size:12.5px">단위 ${esc(c.unit || "억원")}</span></div>
@@ -1037,35 +1037,63 @@
     const c = window.KM_CONFIG?.supabase;
     return c && c.url && !c.url.startsWith("YOUR") && window.supabase?.createClient;
   }
-  const MEMBERS_ONLY = () => !!(window.KM_CONFIG?.membersOnly && SB);
-  // 초대 회원 전용: 로그인 전에는 이 화면만 보여요
-  function lockScreen() {
-    return `<div class="lock"><div class="lock-card">
-      <div class="lock-ic">🔒</div>
-      <h1>K-Market Intelligence</h1>
-      <p>초대받은 회원만 이용할 수 있어요.<br>초대 메일을 받으셨다면 메일의 링크를 눌러 비밀번호를 정한 뒤 로그인하세요.</p>
-      <button class="btn primary" id="lock-login" style="width:100%;justify-content:center">로그인</button>
-      <a href="#" id="lock-reset" class="muted" style="font-size:13px">비밀번호를 잊었어요</a>
-    </div></div>`;
+  // ---------------------------------------------------------- 회원 승인제
+  let PROFILE = null, PROFILE_OK = false, PENDING_N = 0;
+  const APPROVAL = () => !!(window.KM_CONFIG?.approval && SB);
+  const IS_ADMIN = () => !!PROFILE?.is_admin;
+  // 승인된 회원인가? (승인제를 끄거나, 회원 정보 표가 아직 없으면 로그인만으로 통과)
+  const CAN_SEE = () => !APPROVAL() || (USER && (!PROFILE_OK || PROFILE?.status === "approved"));
+  const LOCKED_PAGES = new Set(["themes", "sectors", "news", "my", "admin"]);
+  async function loadProfile() {
+    PROFILE = null; PROFILE_OK = false; PENDING_N = 0;
+    if (!SB || !USER) return;
+    const r = await SB.from("profiles").select("*").eq("id", USER.id).maybeSingle();
+    if (r.error) return; // 표가 아직 없음 → 기존 방식(로그인만)
+    PROFILE_OK = true; PROFILE = r.data;
+    if (PROFILE?.is_admin) {
+      const c = await SB.from("profiles").select("id", { count: "exact", head: true }).eq("status", "pending");
+      PENDING_N = c.count || 0;
+    }
+  }
+  function gateCard(what) {
+    if (!USER) return `<div class="lock"><div class="lock-card"><div class="lock-ic">🔒</div><h1>회원 전용${what ? ` · ${esc(what)}` : ""}</h1>
+      <p>테마·섹터·뉴스와 종목 점수·재무 지표는<br>승인된 회원만 볼 수 있어요.</p>
+      <button class="btn primary" data-auth="signup" style="width:100%;justify-content:center">회원가입</button>
+      <button class="btn" data-auth="login" style="width:100%;justify-content:center">이미 회원이에요 · 로그인</button></div></div>`;
+    const st = PROFILE?.status;
+    return `<div class="lock"><div class="lock-card"><div class="lock-ic">${st === "rejected" ? "🚫" : "⏳"}</div>
+      <h1>${st === "rejected" ? "승인되지 않았어요" : "승인 대기 중이에요"}</h1>
+      <p>${st === "rejected" ? "관리자에게 문의해 주세요." : `관리자가 가입 정보를 확인한 뒤 승인하면<br>모든 화면이 열려요.`}</p>
+      ${PROFILE ? `<div class="muted" style="font-size:13px">${esc(PROFILE.name || "")} · ${esc(PROFILE.email || USER.email)}</div>` : ""}
+      <button class="btn" id="gate-refresh" style="width:100%;justify-content:center">승인 확인하기</button></div></div>`;
+  }
+  // 종목 화면의 점수·재무 지표 가림막 (실제 숫자는 화면에 넣지 않음)
+  function secretBox(title, h = 220) {
+    return `<div class="card secret-card"><div class="card-head"><h2>${esc(title)}</h2><span class="badge">🔒 회원 전용</span></div>
+      <div class="secret" style="height:${h}px"><div class="secret-fake">${Array.from({ length: 6 }, (_, i) => `<i style="width:${90 - i * 9}%"></i>`).join("")}</div>
+      <div class="secret-msg"><b>${USER ? (PROFILE?.status === "rejected" ? "승인되지 않은 계정이에요" : "관리자 승인 후 보여요") : "회원만 볼 수 있어요"}</b>
+      ${USER ? "" : `<button class="btn primary sm" data-auth="signup">회원가입</button><button class="btn sm" data-auth="login">로그인</button>`}</div></div></div>`;
   }
   function renderAuthButton() {
     const el = document.getElementById("auth");
     if (!el) return;
     if (!SB) { el.innerHTML = ""; return; }
     el.innerHTML = USER
-      ? `<a class="btn sm" href="#/my">내 투자</a><button class="btn sm ghost" id="logout" title="${esc(USER.email)}">로그아웃</button>`
-      : `<button class="btn sm primary" id="login">로그인</button>`;
+      ? `${IS_ADMIN() ? `<a class="btn sm ${PENDING_N ? "primary" : ""}" href="#/admin">회원 관리${PENDING_N ? ` <b class="num">${PENDING_N}</b>` : ""}</a>` : ""}<a class="btn sm" href="#/my">내 투자</a><button class="btn sm ghost" id="logout" title="${esc(USER.email)}">로그아웃</button>`
+      : `${APPROVAL() ? `<button class="btn sm" id="signup">회원가입</button>` : ""}<button class="btn sm primary" id="login">로그인</button>`;
+    document.getElementById("signup")?.addEventListener("click", () => openAuth("signup"));
     document.getElementById("login")?.addEventListener("click", () => openAuth("login"));
     document.getElementById("logout")?.addEventListener("click", async () => { await SB.auth.signOut(); });
   }
   function openAuth(mode = "login", msg = "") {
+    if (mode === "signup" && APPROVAL()) return openSignup();
     closeModal();
     const m = document.createElement("div");
     m.className = "modal-bg";
     m.innerHTML = `<div class="modal" role="dialog" aria-modal="true">
       <button class="modal-x" aria-label="닫기">×</button>
       <h2>${mode === "login" ? "로그인" : mode === "signup" ? "회원가입" : "비밀번호 재설정"}</h2>
-      <p class="sub" style="font-size:13.5px;margin:6px 0 16px">${mode === "reset" ? "가입한 이메일로 재설정 링크를 보내드려요." : MEMBERS_ONLY() ? "초대 메일로 받은 이메일과 내가 정한 비밀번호로 로그인하세요." : "내 포트폴리오·매매 일지·자동 일지는 본인만 볼 수 있어요."}</p>
+      <p class="sub" style="font-size:13.5px;margin:6px 0 16px">${mode === "reset" ? "가입한 이메일로 재설정 링크를 보내드려요." : "내 포트폴리오·매매 일지·자동 일지는 본인만 볼 수 있어요."}</p>
       <form id="authform" class="form">
         <label>이메일<input name="email" type="email" required autocomplete="email"></label>
         ${mode !== "reset" ? `<label>비밀번호<input name="pw" type="password" required minlength="6" autocomplete="${mode === "signup" ? "new-password" : "current-password"}"></label>` : ""}
@@ -1073,7 +1101,7 @@
         <button class="btn primary" style="width:100%;justify-content:center" type="submit">${mode === "login" ? "로그인" : mode === "signup" ? "가입하기" : "링크 보내기"}</button>
       </form>
       <div class="modal-foot">${mode === "login"
-        ? `${MEMBERS_ONLY() ? `<span class="muted">초대받은 회원만 이용할 수 있어요</span>` : `<a href="#" data-mode="signup">처음이신가요? 회원가입</a>`}<a href="#" data-mode="reset">비밀번호를 잊었어요</a>`
+        ? `<a href="#" data-mode="signup">처음이신가요? 회원가입</a><a href="#" data-mode="reset">비밀번호를 잊었어요</a>`
         : `<a href="#" data-mode="login">이미 계정이 있어요. 로그인</a>`}</div></div>`;
     document.body.appendChild(m);
     m.addEventListener("click", (e) => { if (e.target === m || e.target.closest(".modal-x")) closeModal(); });
@@ -1094,6 +1122,65 @@
       if (mode === "reset") { out.innerHTML = "<b>메일을 보냈어요.</b> 링크를 눌러 새 비밀번호를 정하세요."; return; }
       closeModal();
     });
+  }
+  // 회원가입: ① 이름·생년월일·성별·전화번호 + 동의 → ② 이메일·비밀번호 → 가입 완료(승인 대기)
+  function openSignup() {
+    closeModal();
+    const info = {};
+    const m = document.createElement("div");
+    m.className = "modal-bg";
+    document.body.appendChild(m);
+    m.addEventListener("click", (e) => { if (e.target === m || e.target.closest(".modal-x")) closeModal(); });
+    const steps = (n) => `<div class="steps"><span class="${n >= 1 ? "on" : ""}">1 회원 정보</span><span class="${n >= 2 ? "on" : ""}">2 계정 만들기</span><span class="${n >= 3 ? "on" : ""}">3 완료</span></div>`;
+    const step1 = () => {
+      m.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><button class="modal-x" aria-label="닫기">×</button>
+        <h2>회원가입</h2>${steps(1)}
+        <form id="s1" class="form">
+          <label>이름<input name="name" required maxlength="30" autocomplete="name" value="${esc(info.name || "")}"></label>
+          <label>생년월일<input name="birth" type="date" required min="1920-01-01" max="${new Date().toISOString().slice(0, 10)}" value="${esc(info.birth || "")}"></label>
+          <div class="radio-row"><span>성별</span>${["남", "여"].map((g) => `<label class="radio"><input type="radio" name="gender" value="${g}" required ${info.gender === g ? "checked" : ""}> ${g}</label>`).join("")}</div>
+          <label>전화번호<input name="phone" type="tel" required inputmode="numeric" placeholder="010-1234-5678" pattern="01[016789]-?\\d{3,4}-?\\d{4}" value="${esc(info.phone || "")}">
+            <span class="hint">승인할 때 관리자가 이 번호로 본인 확인을 할 수 있어요.</span></label>
+          <label class="check"><input type="checkbox" name="agree" required ${info.agreed ? "checked" : ""}> <span><b>[필수] 개인정보 수집·이용 동의</b><br><span class="hint">수집 항목: 이름, 생년월일, 성별, 전화번호, 이메일 · 목적: 회원 확인과 승인 · 보관: 탈퇴 시까지 (탈퇴하면 바로 삭제)</span></span></label>
+          <div class="form-msg"></div>
+          <button class="btn primary" type="submit" style="width:100%;justify-content:center">다음</button>
+        </form>
+        <div class="modal-foot"><a href="#" data-mode="login">이미 회원이에요. 로그인</a></div></div>`;
+      m.querySelector("[data-mode]").addEventListener("click", (e) => { e.preventDefault(); openAuth("login"); });
+      m.querySelector("#s1").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        Object.assign(info, { name: fd.get("name").trim(), birth: fd.get("birth"), gender: fd.get("gender"), phone: String(fd.get("phone")).replace(/\D/g, "").replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3"), agreed: true });
+        step2();
+      });
+    };
+    const step2 = () => {
+      m.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><button class="modal-x" aria-label="닫기">×</button>
+        <h2>회원가입</h2>${steps(2)}
+        <div class="muted" style="font-size:13px;margin-bottom:10px">${esc(info.name)} · ${esc(info.birth)} · ${esc(info.gender)} · ${esc(info.phone)} <a href="#" id="back" style="color:var(--accent)">수정</a></div>
+        <form id="s2" class="form">
+          <label>이메일<input name="email" type="email" required autocomplete="email"></label>
+          <label>비밀번호<input name="pw" type="password" required minlength="8" autocomplete="new-password"><span class="hint">8자 이상</span></label>
+          <label>비밀번호 확인<input name="pw2" type="password" required minlength="8" autocomplete="new-password"></label>
+          <div class="form-msg"></div>
+          <button class="btn primary" type="submit" style="width:100%;justify-content:center">가입하기</button>
+        </form></div>`;
+      m.querySelector("#back").addEventListener("click", (e) => { e.preventDefault(); step1(); });
+      m.querySelector("#s2").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target), out = m.querySelector(".form-msg");
+        if (fd.get("pw") !== fd.get("pw2")) { out.textContent = "비밀번호가 서로 달라요."; return; }
+        out.textContent = "처리 중…";
+        const r = await SB.auth.signUp({ email: fd.get("email"), password: fd.get("pw"),
+          options: { emailRedirectTo: location.origin + location.pathname, data: { name: info.name, birth: info.birth, gender: info.gender, phone: info.phone, agreed: true } } });
+        if (r.error) { out.textContent = authError(r.error.message); return; }
+        m.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><button class="modal-x" aria-label="닫기">×</button>
+          <h2>가입 신청 완료 🎉</h2>${steps(3)}
+          <p style="font-size:14px;line-height:1.7">${r.data.session ? "" : `<b>① 메일함</b>에서 인증 링크를 눌러 주세요. (스팸함도 확인)<br>`}<b>${r.data.session ? "①" : "②"} 관리자 승인</b> 후 테마·뉴스·종목 점수가 열려요.<br>승인되면 같은 이메일·비밀번호로 로그인하면 돼요.</p>
+          <button class="btn primary" style="width:100%;justify-content:center" onclick="this.closest('.modal-bg').remove()">확인</button></div>`;
+      });
+    };
+    step1();
   }
   function openNewPassword(welcome) {
     closeModal();
@@ -1427,6 +1514,42 @@
       </tbody></table></div>` : `<div class="empty">아직 관심 테마가 없어요. <a href="#/sectors" style="color:var(--accent)">섹터 검색기</a>에서 ☆를 눌러 추가하세요.</div>`}</div>`;
   }
 
+  // ------------------------------------------------------------ 관리자: 회원 관리
+  let adminTab = "pending";
+  async function pageAdmin() {
+    const r = await SB.from("profiles").select("*").order("created_at", { ascending: false });
+    if (r.error) return `<div class="empty">회원 정보를 불러오지 못했어요: ${esc(r.error.message)}</div>`;
+    const all = r.data, by = (s) => all.filter((p) => p.status === s);
+    PENDING_N = by("pending").length; renderAuthButton();
+    const age = (b) => { if (!b) return ""; const d = new Date(b), n = new Date(); let a = n.getFullYear() - d.getFullYear(); if (n < new Date(n.getFullYear(), d.getMonth(), d.getDate())) a--; return `만 ${a}세`; };
+    const list = by(adminTab);
+    return `<div class="page-head"><div><h1>회원 관리</h1><p class="lede">가입 신청을 확인하고 승인하면 테마·뉴스·종목 점수가 열려요. 전화번호를 눌러 바로 전화·문자로 본인 확인할 수 있어요.</p></div></div>
+      <div class="seg" style="display:grid;grid-template-columns:repeat(3,1fr)">${[["pending", "승인 대기"], ["approved", "승인됨"], ["rejected", "거절"]].map(([k, l]) => `<button class="${adminTab === k ? "on" : ""}" data-atab="${k}">${l} <b class="num">${by(k).length}</b></button>`).join("")}</div>
+      ${list.length ? `<div class="members">${list.map((p) => `<div class="card member">
+        <div class="mhead"><b>${esc(p.name || "(이름 없음)")}</b>${p.is_admin ? `<span class="badge acc">관리자</span>` : ""}<span class="muted num" style="margin-left:auto;font-size:12px">${esc((p.created_at || "").slice(0, 10))} 가입</span></div>
+        <div class="minfo num">
+          <span>${p.birth ? `${esc(p.birth)} (${age(p.birth)})` : "생년월일 없음"}</span><span>${esc(p.gender || "성별 없음")}</span>
+          ${p.phone ? `<a href="tel:${esc(p.phone)}">📞 ${esc(p.phone)}</a><a href="sms:${esc(p.phone)}">💬 문자</a>` : `<span class="muted">전화번호 없음</span>`}
+          <span class="muted">${esc(p.email || "")}</span></div>
+        ${p.is_admin ? "" : `<div class="mact">
+          ${p.status !== "approved" ? `<button class="btn primary sm" data-set="approved" data-id="${p.id}">✅ 승인</button>` : `<button class="btn sm" data-set="pending" data-id="${p.id}">승인 취소</button>`}
+          ${p.status !== "rejected" ? `<button class="btn sm" data-set="rejected" data-id="${p.id}">거절</button>` : `<button class="btn sm" data-set="pending" data-id="${p.id}">대기로 되돌리기</button>`}</div>`}
+      </div>`).join("")}</div>` : `<div class="empty">${adminTab === "pending" ? "승인 대기 중인 회원이 없어요." : "없어요."}</div>`}
+      <p class="muted" style="font-size:12px;margin-top:12px">회원을 완전히 삭제하려면 Supabase → Authentication → Users 에서 삭제하세요 (회원 정보도 함께 지워져요).</p>`;
+  }
+  function wireAdmin() {
+    document.querySelectorAll("[data-atab]").forEach((b) => b.addEventListener("click", () => { adminTab = b.dataset.atab; rerender(); }));
+    document.querySelectorAll("[data-set]").forEach((b) => b.addEventListener("click", async () => {
+      const st = b.dataset.set;
+      if (st === "rejected" && !confirm("이 회원의 가입을 거절할까요?")) return;
+      b.disabled = true;
+      const r = await SB.from("profiles").update({ status: st, approved_at: st === "approved" ? new Date().toISOString() : null }).eq("id", b.dataset.id);
+      if (r.error) { alertBox("변경하지 못했어요: " + r.error.message); b.disabled = false; return; }
+      alertBox(st === "approved" ? "승인했어요" : st === "rejected" ? "거절했어요" : "대기로 바꿨어요");
+      rerender();
+    }));
+  }
+
   // ------------------------------------------------------------ 라우터
   let ALLMETA = {};
   async function rerender() { window.__kmKeepScroll = true; await route(); window.__kmKeepScroll = false; }
@@ -1436,13 +1559,16 @@
     if (page === "search") { if (parts[1]) { location.replace(`#/company/${parts[1]}`); return; } page = "market"; }
     document.querySelectorAll(".nav a, .tabbar a").forEach((a) => a.classList.toggle("active", a.dataset.page === page || (page === "sectors" && a.dataset.page === "themes" && !a.closest(".nav"))));
     let html = "";
-    document.body.classList.toggle("locked", MEMBERS_ONLY() && !USER);
-    if (MEMBERS_ONLY() && !USER) {
-      $app.innerHTML = lockScreen();
-      document.getElementById("lock-login")?.addEventListener("click", () => openAuth("login"));
-      document.getElementById("lock-reset")?.addEventListener("click", (e) => { e.preventDefault(); openAuth("reset"); });
+    const wireGate = () => {
+      document.querySelectorAll("[data-auth]").forEach((b) => b.addEventListener("click", () => openAuth(b.dataset.auth)));
+      document.getElementById("gate-refresh")?.addEventListener("click", async () => { await loadProfile(); renderAuthButton(); rerender(); });
+    };
+    if (LOCKED_PAGES.has(page) && !CAN_SEE()) {
+      $app.innerHTML = gateCard({ themes: "테마", sectors: "섹터", news: "뉴스", my: "내 투자", admin: "회원 관리" }[page]);
+      wireGate(); if (!window.__kmKeepScroll) window.scrollTo(0, 0);
       return;
     }
+    if (page === "admin" && !IS_ADMIN()) { location.replace("#/"); return; }
     if ((page === "sectors" || page === "themes") && !GNEWS) GNEWS = (await getJSON("group_news.json")) || { g: {} };
     if ((page === "themes" || page === "sectors") && USER && !MYCACHE) await loadMine().catch(() => {});
     if (page === "themes") html = pageThemes(parts[1]);
@@ -1450,10 +1576,12 @@
     else if (page === "market") html = pageMarket(parts);
     else if (page === "company") html = await pageCompany(parts[1]);
     else if (page === "news") html = pageNews();
+    else if (page === "admin") html = await pageAdmin();
     else if (page === "my") html = await pageMy(parts[1]);
     else html = pageHome();
     $app.innerHTML = html;
-    wireSearch("home-q"); wireSearch("q"); wireSearch("cq"); wireInstall();
+    wireSearch("home-q"); wireSearch("q"); wireSearch("cq"); wireInstall(); wireGate();
+    if (page === "admin") wireAdmin();
     if (page === "market") wireMarket();
     if (page === "sectors" && !parts[1]) wireSectors();
     document.getElementById("tstar")?.addEventListener("click", (e) => toggleTheme(e.currentTarget).then(rerender));
@@ -1504,10 +1632,11 @@
       SB = window.supabase.createClient(c.url, c.anonKey);
       const { data } = await SB.auth.getSession();
       USER = data.session?.user || null;
-      SB.auth.onAuthStateChange((ev, session) => {
+      await loadProfile();
+      SB.auth.onAuthStateChange(async (ev, session) => {
         const was = USER?.id;
         USER = session?.user || null;
-        if (was !== USER?.id) MYCACHE = null;
+        if (was !== USER?.id) { MYCACHE = null; await loadProfile(); }
         renderAuthButton();
         if (ev === "PASSWORD_RECOVERY") openNewPassword();
         if (was !== USER?.id) { if (USER) loadMine().catch(() => {}); rerender(); }
