@@ -373,7 +373,7 @@ th.sortable:hover { color: var(--ink); }
   .nav { display: none; }
   .install { display: flex; }
   .tabbar {
-    display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    display: grid; grid-template-columns: repeat(6, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
     background: color-mix(in srgb, var(--surface) 94%, transparent); backdrop-filter: blur(10px);
     border-top: 1px solid var(--line); padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   }
@@ -507,3 +507,44 @@ a.card:hover, .card.stat:hover { transform: translateY(-1px); box-shadow: 0 10px
 .sec-table td { vertical-align: middle; }
 .rank-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
 .rank-sum .chip b { margin-left: 4px; }
+
+/* 뉴스 화면 (모바일 우선) */
+.hscroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+.hscroll::-webkit-scrollbar { display: none; }
+.hscroll .chip { flex: none; }
+.nmood { margin-bottom: 14px; display: grid; gap: 12px; }
+.nmood-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; }
+.nmood-top .label { font-size: 12.5px; color: var(--ink-3); font-weight: 600; }
+.nmood-top b { font-size: 20px; font-weight: 800; }
+.nmood-top b.up { color: var(--up); } .nmood-top b.down { color: var(--down); }
+.tone-btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tone { display: grid; gap: 2px; padding: 8px 4px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink-2); font: inherit; font-size: 12.5px; cursor: pointer; }
+.tone b { font-size: 17px; color: var(--ink); } .tone b.up { color: var(--up); } .tone b.down { color: var(--down); }
+.tone.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.seg { display: none; }
+.ncols { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; align-items: start; }
+.nlist { display: grid; gap: 10px; }
+.nday { font-size: 12.5px; font-weight: 800; color: var(--ink-3); margin: 6px 2px -2px; }
+.nday:first-child { margin-top: 0; }
+.ncard { display: grid; gap: 6px; padding: 12px 14px; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 12px; background: var(--surface); color: inherit; text-decoration: none; }
+.ncard.t-긍정 { border-left-color: var(--up); } .ncard.t-악재 { border-left-color: var(--down); }
+.ncard[href]:active { background: var(--surface-2); }
+.ntop { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ntag { font-size: 12px; color: var(--accent); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.ntime { margin-left: auto; font-size: 12px; color: var(--ink-3); flex: none; }
+.ntitle { font-weight: 700; font-size: 15px; line-height: 1.45; word-break: keep-all; }
+.nsum { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ncp { font-size: 13px; color: var(--ink-2); background: var(--surface-2); padding: 8px 10px; border-radius: 8px; line-height: 1.5; }
+.ncp b { color: var(--ink); margin-right: 4px; }
+.nsrc { font-size: 12px; color: var(--ink-3); }
+@media (max-width: 900px) {
+  .ncols { grid-template-columns: 1fr; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 4px; margin-bottom: 12px; }
+  .seg button { border: 0; background: none; padding: 10px; border-radius: 9px; font: inherit; font-weight: 700; color: var(--ink-3); cursor: pointer; }
+  .seg button.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .seg b { margin-left: 4px; }
+  .ncols.show-auto .ncol-cur, .ncols.show-cur .ncol-auto { display: none; }
+  .ncols .card { padding: 14px 12px; background: transparent; border: 0; box-shadow: none; }
+  .ncols .card-head { display: none; }
+}
+@media (max-width: 560px) { .ntitle { font-size: 15.5px; } .ncard { padding: 12px; } }

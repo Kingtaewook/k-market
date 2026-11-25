@@ -35,8 +35,9 @@
   };
   const eokFmt = (v) => (isNum(v) ? v.toLocaleString("ko-KR", { maximumFractionDigits: Math.abs(v) < 10 ? 2 : 0 }) : "–");
   const impactBadge = (t) => {
-    const k = { 긍정: "pos", 주의: "warn", 부정: "neg", 중립: "" }[t] ?? "";
-    return `<span class="badge ${k}">${esc(t || "중립")}</span>`;
+    // 뉴스 분류 표시: 긍정 · 보통 · 악재 (저장값은 긍정/중립/주의)
+    const [l, k] = { 긍정: ["긍정", "pos"], 주의: ["악재", "neg"], 부정: ["악재", "neg"], 중립: ["보통", ""] }[t || "중립"] ?? [t, ""];
+    return `<span class="badge ${k}">${esc(l)}</span>`;
   };
   const verdictBadge = (v) => {
     const k = { "높은 관심": "pos", 관심: "pos", 중립: "", 주의: "warn", 약세: "neg", 강세: "pos", 상승: "pos", 혼조: "", "확인 필요": "",
@@ -421,7 +422,7 @@
     if (price && isNum(price.r1m) && isNum(price.r3m)) {
       const n = c.news || [];
       const pos = n.filter((x) => x.impact === "긍정").length, neg = n.filter((x) => x.impact === "주의" || x.impact === "부정").length;
-      items.push(["시장·뉴스", Math.max(0, Math.min(20, 10 + (price.r1m > 0 ? 3 : -3) + (price.r3m > 0 ? 2 : -2) + Math.min(5, pos) - Math.min(5, neg))), `1개월 ${pct(price.r1m)}, 3개월 ${pct(price.r3m)}, 긍정 뉴스 ${pos}건·주의 ${neg}건`]);
+      items.push(["시장·뉴스", Math.max(0, Math.min(20, 10 + (price.r1m > 0 ? 3 : -3) + (price.r3m > 0 ? 2 : -2) + Math.min(5, pos) - Math.min(5, neg))), `1개월 ${pct(price.r1m)}, 3개월 ${pct(price.r3m)}, 긍정 뉴스 ${pos}건·악재 ${neg}건`]);
     } else items.push(["시장·뉴스", null]);
     const have = items.filter((i) => i[1] !== null);
     const total = have.length ? Math.round(have.reduce((a, i) => a + i[1], 0) * 100 / (20 * have.length)) : null;
@@ -592,25 +593,53 @@
   }
 
   // ------------------------------------------------------------ 뉴스
-  let newsFilter = "전체";
+  let newsFilter = "전체", newsTone = "전체", newsTab = "auto", newsLimit = 20;
+  const toneOf = (imp) => (imp === "긍정" ? "긍정" : imp === "주의" || imp === "부정" ? "악재" : "보통");
+  const dayLabel = (d) => { const n = daysSince(d); return n === 0 ? "오늘" : n === 1 ? "어제" : d ? `${+d.slice(5, 7)}월 ${+d.slice(8, 10)}일` : "날짜 없음"; };
+  function newsCards(items, opts = {}) {
+    if (!items.length) return `<div class="empty">조건에 맞는 뉴스가 없어요.</div>`;
+    let last = null;
+    return `<div class="nlist">${items.map((n) => {
+      const head = opts.group && n.date !== last ? `<div class="nday">${dayLabel(n.date)}</div>` : "";
+      last = n.date;
+      const tag = [n.stock, n.theme].filter(Boolean).map(esc).join(" · ");
+      return `${head}<a class="ncard t-${toneOf(n.impact)}" ${n.url ? `href="${esc(n.url)}" target="_blank" rel="noopener"` : ""}>
+        <div class="ntop">${sentBadge(n.impact)}${tag ? `<span class="ntag">${tag}</span>` : ""}<span class="ntime num">${opts.group ? esc(n.time || "") : esc(n.date || "")}</span></div>
+        <div class="ntitle">${esc(n.title)}</div>
+        ${n.summary ? `<div class="nsum">${esc(n.summary)}</div>` : ""}
+        ${n.checkpoint ? `<div class="ncp"><b>체크포인트</b> ${esc(n.checkpoint)}</div>` : ""}
+        <div class="nsrc">${esc(n.source || "")}</div></a>`;
+    }).join("")}</div>`;
+  }
   function pageNews() {
     const themes = CFG.themes.map((t) => t.name);
-    const curated = (NEWS?.curated || []).filter((n) => newsFilter === "전체" || n.theme === newsFilter);
-    const autoMap = NEWS?.auto || {};
-    const auto = (newsFilter === "전체" ? Object.entries(autoMap).flatMap(([t, l]) => l.map((n) => ({ ...n, theme: t }))) : (autoMap[newsFilter] || []).map((n) => ({ ...n, theme: newsFilter })))
-      .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-    const count = (k) => curated.filter((n) => n.impact === k).length + auto.filter((n) => n.impact === k).length;
-    return `<div class="page-head"><div><h1>테마 뉴스</h1><p class="lede">테마별 종목 뉴스를 매일 모으고 제목 키워드로 긍정·중립·주의를 자동 분류합니다. 분류는 참고용입니다.</p></div></div>
-      <div class="chips">${["전체", ...themes].map((t) => `<button class="chip ${t === newsFilter ? "on" : ""}" data-nf="${esc(t)}">${esc(t)}</button>`).join("")}</div>
-      <div class="grid g4" style="margin-bottom:16px">
-        <div class="card stat"><div class="label">긍정</div><div class="value num up">${count("긍정")}</div></div>
-        <div class="card stat"><div class="label">중립</div><div class="value num">${count("중립")}</div></div>
-        <div class="card stat"><div class="label">주의</div><div class="value num" style="color:var(--warn)">${count("주의")}</div></div>
-        <div class="card stat"><div class="label">자동 수집 기준일</div><div class="value sm num">${esc(NEWS?.auto_as_of || "갱신 전")}</div></div>
+    const inTheme = (n) => newsFilter === "전체" || n.theme === newsFilter;
+    const curatedAll = (NEWS?.curated || []).filter(inTheme).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    const seen = new Set();
+    const autoAll = Object.entries(NEWS?.auto || {}).flatMap(([t, l]) => l.map((n) => ({ ...n, theme: t })))
+      .filter(inTheme).filter((n) => (seen.has(n.title) ? false : seen.add(n.title)))
+      .sort((a, b) => `${b.date}${b.time || ""}`.localeCompare(`${a.date}${a.time || ""}`));
+    const both = [...autoAll, ...curatedAll];
+    const cnt = { 긍정: 0, 보통: 0, 악재: 0 };
+    both.forEach((n) => cnt[toneOf(n.impact)]++);
+    const byTone = (l) => (newsTone === "전체" ? l : l.filter((n) => toneOf(n.impact) === newsTone));
+    const auto = byTone(autoAll), curated = byTone(curatedAll);
+    const tot = cnt.긍정 + cnt.보통 + cnt.악재;
+    const mood = cnt.긍정 > cnt.악재 ? ["긍정 우세", "up"] : cnt.악재 > cnt.긍정 ? ["악재 우세", "down"] : ["팽팽", ""];
+    return `<div class="page-head"><div><h1>뉴스</h1><p class="lede">추천 테마 종목 뉴스를 하루 두 번 모아 긍정·보통·악재로 자동 분류해요 (참고용).</p></div></div>
+      <div class="hscroll chips">${["전체", ...themes].map((t) => `<button class="chip ${t === newsFilter ? "on" : ""}" data-nf="${esc(t)}">${esc(t)}</button>`).join("")}</div>
+      <div class="card nmood">
+        <div class="nmood-top"><div><div class="label">${newsFilter === "전체" ? "전체" : esc(newsFilter)} 뉴스 분위기</div><b class="${mood[1]}">${mood[0]}</b></div><span class="muted num" style="font-size:12.5px">${tot}건 · ${esc(NEWS?.auto_as_of || "")} 수집</span></div>
+        ${tot ? `<div class="sent-bar" style="height:12px;border-radius:6px"><i class="p" style="flex:${cnt.긍정}"></i><i class="m" style="flex:${cnt.보통}"></i><i class="n" style="flex:${cnt.악재}"></i></div>` : ""}
+        <div class="tone-btns">${[["전체", tot, ""], ["긍정", cnt.긍정, "up"], ["보통", cnt.보통, ""], ["악재", cnt.악재, "down"]].map(([k, v, c]) => `<button class="tone ${newsTone === k ? "on" : ""}" data-nt="${k}"><span>${k}</span><b class="num ${c}">${v}</b></button>`).join("")}</div>
       </div>
-      <div class="grid g2">
-        <div class="card"><div class="card-head"><h2>자동 수집 뉴스</h2><span class="muted" style="font-size:13px">${auto.length}건</span></div>${auto.length ? newsItems(auto.slice(0, 30), { showTheme: true }) : `<div class="empty">GitHub Actions 가 처음 실행되면 테마별 최신 뉴스가 여기에 쌓입니다.</div>`}</div>
-        <div class="card"><div class="card-head"><h2>핵심 뉴스 (직접 정리)</h2><span class="muted" style="font-size:13px">${esc(NEWS?.as_of || "")} 기준</span></div>${newsItems(curated, { showTheme: true })}</div>
+      <div class="seg"><button class="${newsTab === "auto" ? "on" : ""}" data-ntab="auto">자동 수집 <b class="num">${auto.length}</b></button><button class="${newsTab === "cur" ? "on" : ""}" data-ntab="cur">핵심 뉴스 <b class="num">${curated.length}</b></button></div>
+      <div class="ncols show-${newsTab}">
+        <div class="card ncol-auto"><div class="card-head"><h2>자동 수집 뉴스</h2><span class="muted" style="font-size:12.5px">최신순 · ${auto.length}건</span></div>
+          ${autoAll.length ? newsCards(auto.slice(0, newsLimit), { group: true }) : `<div class="empty">다음 자동 수집 후 표시돼요.</div>`}
+          ${auto.length > newsLimit ? `<button class="btn" style="width:100%;margin-top:12px" id="news-more">더 보기 (${newsLimit}/${auto.length})</button>` : ""}</div>
+        <div class="card ncol-cur"><div class="card-head"><h2>핵심 뉴스</h2><span class="muted" style="font-size:12.5px">직접 정리 · ${esc(NEWS?.as_of || "")}</span></div>
+          ${newsCards(curated)}</div>
       </div>`;
   }
 
@@ -898,8 +927,9 @@
       themes: '<circle cx="7" cy="7" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="7" cy="17" r="3"/><circle cx="17" cy="17" r="3"/>',
       company: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
       my: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',
+      news: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/>',
     };
-    t.innerHTML = [["home", "#/", "홈"], ["market", "#/market", "시장"], ["themes", "#/themes", "테마"], ["company", "#/company", "종목"], ["my", "#/my", "내 투자"]]
+    t.innerHTML = [["home", "#/", "홈"], ["market", "#/market", "시장"], ["themes", "#/themes", "테마"], ["news", "#/news", "뉴스"], ["company", "#/company", "종목"], ["my", "#/my", "내 투자"]]
       .map(([k, h, l]) => `<a href="${h}" data-page="${k}"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${ic[k]}</svg><span>${l}</span></a>`).join("");
     document.body.appendChild(t);
   }
@@ -1419,7 +1449,13 @@
       document.getElementById("star")?.addEventListener("click", (e) => toggleStar(e.currentTarget));
       document.querySelectorAll("[data-range]").forEach((b) => b.addEventListener("click", () => { chartRange = b.dataset.range; rerender(); }));
     }
-    if (page === "news") document.querySelectorAll("[data-nf]").forEach((b) => b.addEventListener("click", () => { newsFilter = b.dataset.nf; rerender(); }));
+    if (page === "news") {
+      document.querySelectorAll("[data-nf]").forEach((b) => b.addEventListener("click", () => { newsFilter = b.dataset.nf; newsLimit = 20; rerender(); }));
+      document.querySelectorAll("[data-nt]").forEach((b) => b.addEventListener("click", () => { newsTone = b.dataset.nt; newsLimit = 20; rerender(); }));
+      document.querySelectorAll("[data-ntab]").forEach((b) => b.addEventListener("click", () => { newsTab = b.dataset.ntab; rerender(); }));
+      document.getElementById("news-more")?.addEventListener("click", () => { newsLimit += 20; rerender(); });
+      document.querySelector(".chip.on[data-nf]")?.scrollIntoView({ block: "nearest", inline: "center" });
+    }
     if (!window.__kmKeepScroll) window.scrollTo(0, 0);
   }
   document.addEventListener("click", (e) => {
