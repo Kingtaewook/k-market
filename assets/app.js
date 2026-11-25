@@ -1607,6 +1607,32 @@
     const rs = Object.entries(t.base || {}).map(([c, b]) => (isNum(ALL[c]?.close) && b > 0 ? ALL[c].close / b - 1 : null)).filter(isNum);
     return rs.length ? { ret: rs.reduce((a, b) => a + b, 0) / rs.length, up: rs.filter((x) => x > 0).length, n: rs.length } : null;
   }
+  // 관심 테마 관심도 = 50 + (테마 1개월 - 코스피 1개월)×100 + (테마 3개월 - 코스피 3개월)×50  (추천 테마 랭킹과 같은 계산)
+  function groupScore(g) {
+    const avg = (k) => { const v = (g.codes || []).map((c) => ALL[c]?.[k]).filter(isNum); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+    const a1 = avg("r1m"), a3 = avg("r3m"), k1 = MK.kospi?.r1m, k3 = MK.kospi?.r3m;
+    if (!isNum(a1) || !isNum(a3)) return { score: null, verdict: "확인 필요" };
+    const b1 = isNum(k1) ? a1 - k1 : a1, b3 = isNum(k3) ? a3 - k3 : a3;
+    const score = Math.max(0, Math.min(100, Math.round(50 + b1 * 100 + b3 * 50)));
+    const verdict = score >= 70 ? "시장 압도" : score >= 58 ? "시장보다 강함" : score >= 45 ? "시장 수준" : score >= 33 ? "시장보다 약함" : "크게 약함";
+    return { score, verdict, a1, a3 };
+  }
+  // 관심 테마 랭킹 (점수·시장 수준은 관리자가 열어준 회원만)
+  function myThemeRanking(rows) {
+    if (!rows.length) return "";
+    const open = CAN_POS();
+    // 가린 상태에서는 순서로도 점수가 드러나지 않게 등록 순서 그대로
+    const list = rows.map((r) => ({ ...r, gs: open ? groupScore(r.g) : {} }));
+    if (open) list.sort((a, b) => (b.gs.score ?? -1) - (a.gs.score ?? -1));
+    return `<div class="my-rank"><div class="mini-title" style="margin:14px 0 4px">관심 테마 랭킹 <span class="muted">코스피 대비 1·3개월 · 50 = 기준선</span></div>
+      ${list.map((r, i) => `<div class="rank-row" data-go="#/sectors/${r.t.kind}/${r.t.no}">
+        <div class="rk num">${open ? i + 1 : "–"}</div>
+        <div class="nm">${esc(r.t.name)}</div>
+        ${open ? `<div class="track"><div class="fill" style="width:${r.gs.score ?? 0}%"></div><div class="mid"></div></div>
+        <div class="sc num">${r.gs.score ?? "–"}</div><div>${verdictBadge(r.gs.verdict)}</div>`
+        : `<div class="track locked-track"><span class="pos-lock">🔒 점수·시장 수준 가림 · 관리자에게 문의하세요</span></div><div class="sc num">🔒</div><div><span class="badge">🔒</span></div>`}
+      </div>`).join("")}</div>`;
+  }
   function myThemesCard(compact) {
     if (!SB) return "";
     if (!USER) return `<div class="card section"><div class="card-head"><h2>내 관심 테마</h2></div><div class="empty">로그인하면 섹터를 ☆로 등록하고 등록 후 수익률을 볼 수 있어요. <button class="btn sm primary" data-login>로그인</button></div></div>`;
@@ -1619,7 +1645,7 @@
           <td class="r num ${cls(s?.ret)}"><b>${pct(s?.ret, 2)}</b></td>
           <td class="r num ${cls(g.chg)}">${pct(g.chg, 2)}</td><td class="r num ${cls(g.r1w)}">${pct(g.r1w)}</td>
           ${compact ? "" : `<td class="r num ${cls(g.r1m)}">${pct(g.r1m)}</td><td>${sentBar(gnewsOf(t.kind, t.no))}</td>`}</tr>`).join("")}
-      </tbody></table></div>` : `<div class="empty">아직 관심 테마가 없어요. <a href="#/sectors" style="color:var(--accent)">섹터 검색기</a>에서 ☆를 눌러 추가하세요.</div>`}</div>`;
+      </tbody></table></div>${compact ? "" : myThemeRanking(rows.filter((r) => r.g && r.g.codes))}` : `<div class="empty">아직 관심 테마가 없어요. <a href="#/sectors" style="color:var(--accent)">섹터 검색기</a>에서 ☆를 눌러 추가하세요.</div>`}</div>`;
   }
 
   // ------------------------------------------------------------ 알람 (회원은 읽고 지우기만)
@@ -1683,7 +1709,7 @@
         ${p.is_admin ? "" : `<div class="mact">
           ${p.status !== "approved" ? `<button class="btn primary sm" data-set="approved" data-id="${p.id}">✅ 승인</button>` : `<button class="btn sm" data-set="pending" data-id="${p.id}">승인 취소</button>`}
           ${p.status !== "rejected" ? `<button class="btn sm" data-set="rejected" data-id="${p.id}">거절</button>` : `<button class="btn sm" data-set="pending" data-id="${p.id}">대기로 되돌리기</button>`}</div>
-          ${p.status === "approved" ? `<label class="pos-toggle"><input type="checkbox" data-pos="${p.id}" ${p.can_positive ? "checked" : ""}> 긍정·악재 뉴스 보기 허용</label>` : ""}`}
+          ${p.status === "approved" ? `<label class="pos-toggle"><input type="checkbox" data-pos="${p.id}" ${p.can_positive ? "checked" : ""}> 긍정·악재 뉴스 · 관심 테마 점수 보기 허용</label>` : ""}`}
       </div>`).join("")}</div>` : `<div class="empty">${adminTab === "pending" ? "승인 대기 중인 회원이 없어요." : "없어요."}</div>`}
       <p class="muted" style="font-size:12px;margin-top:12px">회원을 완전히 삭제하려면 Supabase → Authentication → Users 에서 삭제하세요 (회원 정보도 함께 지워져요).</p>`;
   }
@@ -1693,7 +1719,7 @@
       c.disabled = true;
       const r = await SB.from("profiles").update({ can_positive: c.checked }).eq("id", c.dataset.pos);
       if (r.error) { alertBox("변경하지 못했어요: " + r.error.message); c.checked = !c.checked; c.disabled = false; return; }
-      if (c.checked) await sendNotif([c.dataset.pos], "perm", "긍정·악재 뉴스가 열렸어요", "이제 뉴스 화면에서 긍정·악재 뉴스도 볼 수 있어요.", "#/news");
+      if (c.checked) await sendNotif([c.dataset.pos], "perm", "긍정·악재 뉴스와 관심 테마 점수가 열렸어요", "이제 긍정·악재 뉴스와 관심 테마의 점수·시장 수준을 볼 수 있어요.", "#/news");
       alertBox(c.checked ? "긍정·악재 뉴스를 열어줬어요" : "긍정·악재 뉴스를 닫았어요"); c.disabled = false;
     }));
     document.getElementById("nform")?.addEventListener("submit", async (e) => {

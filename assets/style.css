@@ -612,3 +612,6 @@ body.locked .nav, body.locked .status, body.locked #tabbar { display: none !impo
 .notice-box summary { cursor: pointer; list-style: none; display: flex; gap: 8px; align-items: center; }
 .notice-box textarea, .notice-box select { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); }
 .pos-toggle { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; padding-top: 4px; }
+/* 관심 테마 랭킹 가림 */
+.locked-track { background: repeating-linear-gradient(-45deg, var(--surface), var(--surface) 8px, var(--surface-2) 8px, var(--surface-2) 16px) !important; height: auto !important; padding: 4px 10px; border-radius: 8px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.locked-track .pos-lock { font-size: 12px; }
