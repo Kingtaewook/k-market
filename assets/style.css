@@ -533,3 +533,4 @@ a.card:hover, .card.stat:hover { transform: translateY(-1px); box-shadow: 0 10px
 .hcol { margin-top: 18px; }
 .brief.has-us .hcol { margin-top: 0; }
 @media (max-width: 900px) { .brief.has-us .hcol { margin-top: 18px; } }
+.lead-badge { font-size: 11px; padding: 1px 7px; margin-left: 4px; vertical-align: 1px; }
