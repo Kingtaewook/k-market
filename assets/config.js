@@ -6,4 +6,6 @@ window.KM_CONFIG = {
   },
   // 회원 승인제: 홈·시장은 누구나, 테마·섹터·뉴스·내 투자와 종목의 점수·재무지표는 관리자가 승인한 회원만
   approval: true,
+  // true = 카카오로만 가입 (Supabase에 카카오 로그인 설정을 마친 뒤 켜기)
+  kakao: false,
 };

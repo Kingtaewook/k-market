@@ -121,7 +121,8 @@
 
   function newsItems(items, opts = {}) {
     if (!items || !items.length) return `<div class="empty">표시할 뉴스가 없습니다.</div>`;
-    return `<div class="news-list">${items.map((n) => `
+    return `<div class="news-list">${items.map((n) => posLocked(n.impact) ? `
+      <div class="news-item locked">${posLockHTML()}${impactBadge(n.impact)}<div class="meta">${esc(n.date || "")}${n.stock ? " · " + esc(n.stock) : ""}</div></div>` : `
       <div class="news-item">
         ${n.url ? `<a class="t" href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.title)}</a>` : `<div class="t">${esc(n.title)}</div>`}
         ${impactBadge(n.impact)}
@@ -211,7 +212,7 @@
             <span class="tchg num ${cls(g.chg)}">${pct(g.chg, 1)}</span>
           </a>`).join("") : `<div class="empty">다음 자동 갱신 후 표시됩니다.</div>`}
         ${heads.length ? `<div class="eyebrow" style="margin-top:18px">오늘의 헤드라인</div>
-          ${heads.map((n) => `<a class="headline" href="${esc(n.url || "#/news")}" ${n.url ? 'target="_blank" rel="noopener"' : ""}>
+          ${heads.map((n) => posLocked(n.impact) ? `<div class="headline">${impactBadge(n.impact)}${posLockHTML()}</div>` : `<a class="headline" href="${esc(n.url || "#/news")}" ${n.url ? 'target="_blank" rel="noopener"' : ""}>
             ${impactBadge(n.impact)}<span>${esc(n.title)}</span><em>${esc(n.source || "")}</em></a>`).join("")}` : ""}
       </div>
     </section>`;
@@ -603,6 +604,7 @@
       const head = opts.group && n.date !== last ? `<div class="nday">${dayLabel(n.date)}</div>` : "";
       last = n.date;
       const tag = [n.stock, n.theme].filter(Boolean).map(esc).join(" · ");
+      if (posLocked(n.impact)) return `${head}<div class="ncard t-긍정 locked"><div class="ntop">${sentBadge(n.impact)}${tag ? `<span class="ntag">${tag}</span>` : ""}<span class="ntime num">${opts.group ? esc(n.time || "") : esc(n.date || "")}</span></div>${posLockHTML()}</div>`;
       return `${head}<a class="ncard t-${toneOf(n.impact)}" ${n.url ? `href="${esc(n.url)}" target="_blank" rel="noopener"` : ""}>
         <div class="ntop">${sentBadge(n.impact)}${tag ? `<span class="ntag">${tag}</span>` : ""}<span class="ntime num">${opts.group ? esc(n.time || "") : esc(n.date || "")}</span></div>
         <div class="ntitle">${esc(n.title)}</div>
@@ -807,7 +809,7 @@
       </div>
       <div class="grid g-main section">
         <div class="card"><div class="card-head"><h2>최신 뉴스</h2><span class="muted" style="font-size:12.5px">최근 7일 · 시총 상위 종목 기사</span></div>
-          ${s && s.items.length ? `<div class="news-list">${s.items.map(([d, t, title, src, url, imp, st]) => `<div class="news-item">
+          ${s && s.items.length ? `<div class="news-list">${s.items.map(([d, t, title, src, url, imp, st]) => posLocked(imp) ? `<div class="news-item locked"><div style="display:flex;gap:8px;align-items:center">${sentBadge(imp)}${posLockHTML()}</div><div class="meta num">${esc(st)} · ${esc(d || "")}</div></div>` : `<div class="news-item">
             <div style="display:flex;gap:8px;align-items:flex-start">${sentBadge(imp)}<a class="t" style="font-weight:600" href="${esc(url || "#")}" target="_blank" rel="noopener">${esc(title)}</a></div>
             <div class="meta num">${esc(st)} · ${esc(src)} · ${esc(d || "")} ${esc(t || "")}</div></div>`).join("")}</div>`
             : `<div class="empty">${GNEWS ? "최근 7일 동안 모인 뉴스가 없어요." : "섹터 뉴스는 다음 자동 갱신 후 표시됩니다."}</div>`}
@@ -1044,8 +1046,23 @@
   // 승인된 회원인가? (승인제를 끄거나, 회원 정보 표가 아직 없으면 로그인만으로 통과)
   const CAN_SEE = () => !APPROVAL() || (USER && (!PROFILE_OK || PROFILE?.status === "approved"));
   const LOCKED_PAGES = new Set(["themes", "sectors", "news", "my", "admin"]);
+  // 긍정 뉴스는 관리자가 열어준 회원만 (회원별 권한)
+  const CAN_POS = () => !APPROVAL() || IS_ADMIN() || (CAN_SEE() && (!PROFILE_OK || PROFILE?.can_positive === true || PROFILE?.can_positive === undefined));
+  const posLocked = (imp) => imp === "긍정" && !CAN_POS();
+  const posLockHTML = () => `<span class="pos-lock">🔒 긍정 뉴스는 관리자가 열어준 회원만 볼 수 있어요</span>`;
+  // 카카오 가입 후 추가 정보가 비었는지
+  const NEEDS_INFO = () => APPROVAL() && USER && PROFILE_OK && PROFILE && !PROFILE.is_admin && (!PROFILE.phone || !PROFILE.agreed_at);
+  let NOTIF = [];
+  const seenAt = () => { try { return localStorage.getItem("km_seen_" + USER?.id) || ""; } catch { return ""; } };
+  const UNREAD = () => NOTIF.filter((n) => n.created_at > seenAt()).length;
+  async function loadNotif() {
+    NOTIF = [];
+    if (!SB || !USER || !PROFILE_OK) return;
+    const r = await SB.from("notifications").select("*").eq("user_id", USER.id).order("created_at", { ascending: false }).limit(100);
+    if (!r.error) NOTIF = r.data;
+  }
   async function loadProfile() {
-    PROFILE = null; PROFILE_OK = false; PENDING_N = 0;
+    PROFILE = null; PROFILE_OK = false; PENDING_N = 0; NOTIF = [];
     if (!SB || !USER) return;
     const r = await SB.from("profiles").select("*").eq("id", USER.id).maybeSingle();
     if (r.error) return; // 표가 아직 없음 → 기존 방식(로그인만)
@@ -1054,6 +1071,30 @@
       const c = await SB.from("profiles").select("id", { count: "exact", head: true }).eq("status", "pending");
       PENDING_N = c.count || 0;
     }
+    await loadNotif();
+  }
+  // ---------- 기기 제한: 휴대폰 1대 + PC 1대 (새로 로그인한 기기가 이김)
+  const DEVICE_KIND = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "mobile" : "pc";
+  const DEVICE_ID = (() => { try { let d = localStorage.getItem("km_dev"); if (!d) { d = (crypto.randomUUID?.() || String(Math.random()).slice(2) + Date.now()); localStorage.setItem("km_dev", d); } return d; } catch { return "nostore"; } })();
+  const markLogin = () => { try { sessionStorage.setItem("km_claim", "1"); } catch {} };
+  async function claimDevice() {
+    if (!SB || !USER) return;
+    await SB.from("user_devices").upsert({ user_id: USER.id, kind: DEVICE_KIND, device_id: DEVICE_ID, label: navigator.userAgent.slice(0, 140), updated_at: new Date().toISOString() });
+  }
+  async function checkDevice() {
+    if (!SB || !USER || !APPROVAL()) return true;
+    let claim = false; try { claim = sessionStorage.getItem("km_claim") === "1"; sessionStorage.removeItem("km_claim"); } catch {}
+    if (claim) { await claimDevice(); return true; }
+    if (IS_ADMIN()) return true;
+    const r = await SB.from("user_devices").select("device_id").eq("user_id", USER.id).eq("kind", DEVICE_KIND).maybeSingle();
+    if (r.error) return true; // 표가 아직 없음
+    if (!r.data) { await claimDevice(); return true; }
+    if (r.data.device_id !== DEVICE_ID) {
+      await SB.auth.signOut();
+      alertBox(`다른 ${DEVICE_KIND === "mobile" ? "휴대폰" : "PC"}에서 로그인해서 이 기기는 로그아웃됐어요. (휴대폰 1대 + PC 1대까지)`);
+      return false;
+    }
+    return true;
   }
   function gateCard(what) {
     if (!USER) return `<div class="lock"><div class="lock-card"><div class="lock-ic">🔒</div><h1>회원 전용${what ? ` · ${esc(what)}` : ""}</h1>
@@ -1065,6 +1106,7 @@
       <h1>${st === "rejected" ? "승인되지 않았어요" : "승인 대기 중이에요"}</h1>
       <p>${st === "rejected" ? "관리자에게 문의해 주세요." : `관리자가 가입 정보를 확인한 뒤 승인하면<br>모든 화면이 열려요.`}</p>
       ${PROFILE ? `<div class="muted" style="font-size:13px">${esc(PROFILE.name || "")} · ${esc(PROFILE.email || USER.email)}</div>` : ""}
+      ${NEEDS_INFO() ? `<button class="btn primary" id="gate-info" style="width:100%;justify-content:center">가입 정보 입력하기</button>` : ""}
       <button class="btn" id="gate-refresh" style="width:100%;justify-content:center">승인 확인하기</button></div></div>`;
   }
   // 종목 화면의 점수·재무 지표 가림막 (실제 숫자는 화면에 넣지 않음)
@@ -1079,11 +1121,50 @@
     if (!el) return;
     if (!SB) { el.innerHTML = ""; return; }
     el.innerHTML = USER
-      ? `${IS_ADMIN() ? `<a class="btn sm admin-btn ${PENDING_N ? "primary" : ""}" href="#/admin" title="회원 관리">👥<span class="lbl"> 회원 관리</span>${PENDING_N ? ` <b class="num">${PENDING_N}</b>` : ""}</a>` : ""}<a class="btn sm" href="#/my">내 투자</a><button class="btn sm ghost" id="logout" title="${esc(USER.email)}">로그아웃</button>`
+      ? `<a class="btn sm admin-btn bell" href="#/alerts" title="알람">🔔${UNREAD() ? `<b class="dot num">${UNREAD()}</b>` : ""}</a>${IS_ADMIN() ? `<a class="btn sm admin-btn ${PENDING_N ? "primary" : ""}" href="#/admin" title="회원 관리">👥<span class="lbl"> 회원 관리</span>${PENDING_N ? ` <b class="num">${PENDING_N}</b>` : ""}</a>` : ""}<a class="btn sm" href="#/my">내 투자</a><button class="btn sm ghost" id="logout" title="${esc(USER.email)}">로그아웃</button>`
       : `${APPROVAL() ? `<button class="btn sm" id="signup">회원가입</button>` : ""}<button class="btn sm primary" id="login">로그인</button>`;
     document.getElementById("signup")?.addEventListener("click", () => openAuth("signup"));
     document.getElementById("login")?.addEventListener("click", () => openAuth("login"));
     document.getElementById("logout")?.addEventListener("click", async () => { await SB.auth.signOut(); });
+  }
+  const KAKAO = () => !!window.KM_CONFIG?.kakao;
+  async function kakaoLogin() {
+    markLogin();
+    const r = await SB.auth.signInWithOAuth({ provider: "kakao", options: { redirectTo: location.origin + location.pathname } });
+    if (r.error) alertBox("카카오 로그인을 시작하지 못했어요: " + r.error.message);
+  }
+  // 카카오로 가입한 뒤 이름·생년월일·성별·전화번호·동의 받기
+  function openProfileInfo() {
+    closeModal();
+    const p = PROFILE || {};
+    const m = document.createElement("div");
+    m.className = "modal-bg";
+    m.innerHTML = `<div class="modal" role="dialog" aria-modal="true">
+      <h2>가입 정보 입력</h2><p class="sub" style="font-size:13.5px;margin:6px 0 14px">카카오 인증이 끝났어요. 관리자 승인을 위해 아래 정보를 적어 주세요.</p>
+      <form id="pinfo" class="form">
+        <label>이름<input name="name" required maxlength="30" value="${esc(p.name || "")}"></label>
+        <label>생년월일<input name="birth" type="date" required min="1920-01-01" max="${new Date().toISOString().slice(0, 10)}" value="${esc(p.birth || "")}"></label>
+        <div class="radio-row"><span>성별</span>${["남", "여"].map((g) => `<label class="radio"><input type="radio" name="gender" value="${g}" required ${p.gender === g ? "checked" : ""}> ${g}</label>`).join("")}</div>
+        <label>전화번호<input name="phone" type="tel" required inputmode="numeric" placeholder="010-1234-5678" pattern="01[016789]-?\\d{3,4}-?\\d{4}" value="${esc(p.phone || "")}"></label>
+        <label class="check"><input type="checkbox" name="agree" required> <span><b>[필수] 개인정보 수집·이용 동의</b><br><span class="hint">수집 항목: 이름, 생년월일, 성별, 전화번호, 카카오 계정 정보 · 목적: 회원 확인과 승인 · 보관: 탈퇴 시까지</span></span></label>
+        <div class="form-msg"></div>
+        <button class="btn primary" type="submit" style="width:100%;justify-content:center">가입 신청</button>
+      </form>
+      <div class="modal-foot"><a href="#" id="pinfo-out">나중에 할게요 (로그아웃)</a></div></div>`;
+    document.body.appendChild(m);
+    m.querySelector("#pinfo-out").addEventListener("click", async (e) => { e.preventDefault(); closeModal(); await SB.auth.signOut(); });
+    m.querySelector("#pinfo").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target), out = m.querySelector(".form-msg");
+      const phone = String(fd.get("phone")).replace(/\D/g, "").replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3");
+      out.textContent = "저장 중…";
+      const r = await SB.from("profiles").update({ name: fd.get("name").trim(), birth: fd.get("birth"), gender: fd.get("gender"), phone, agreed_at: new Date().toISOString() }).eq("id", USER.id);
+      if (r.error) { out.textContent = /duplicate|unique/i.test(r.error.message) ? "이미 가입된 전화번호예요. 한 번호로 한 계정만 만들 수 있어요." : "저장하지 못했어요: " + r.error.message; return; }
+      await loadProfile(); renderAuthButton();
+      m.querySelector(".modal").innerHTML = `<h2>가입 신청 완료 🎉</h2><p style="font-size:14px;line-height:1.7">관리자가 확인하고 승인하면 테마·뉴스·종목 점수가 열려요.<br>승인되면 🔔 알람으로 알려드려요.</p>
+        <button class="btn primary" style="width:100%;justify-content:center" onclick="this.closest('.modal-bg').remove()">확인</button>`;
+      rerender();
+    });
   }
   function openAuth(mode = "login", msg = "") {
     if (mode === "signup" && APPROVAL()) return openSignup();
@@ -1094,6 +1175,7 @@
       <button class="modal-x" aria-label="닫기">×</button>
       <h2>${mode === "login" ? "로그인" : mode === "signup" ? "회원가입" : "비밀번호 재설정"}</h2>
       <p class="sub" style="font-size:13.5px;margin:6px 0 16px">${mode === "reset" ? "가입한 이메일로 재설정 링크를 보내드려요." : "내 포트폴리오·매매 일지·자동 일지는 본인만 볼 수 있어요."}</p>
+      ${mode === "login" && KAKAO() ? `<button class="btn kakao" id="kakao-btn" type="button">카카오로 로그인</button><div class="or"><span>또는 이메일</span></div>` : ""}
       <form id="authform" class="form">
         <label>이메일<input name="email" type="email" required autocomplete="email"></label>
         ${mode !== "reset" ? `<label>비밀번호<input name="pw" type="password" required minlength="6" autocomplete="${mode === "signup" ? "new-password" : "current-password"}"></label>` : ""}
@@ -1106,6 +1188,7 @@
     document.body.appendChild(m);
     m.addEventListener("click", (e) => { if (e.target === m || e.target.closest(".modal-x")) closeModal(); });
     m.querySelectorAll("[data-mode]").forEach((a) => a.addEventListener("click", (e) => { e.preventDefault(); openAuth(a.dataset.mode); }));
+    m.querySelector("#kakao-btn")?.addEventListener("click", kakaoLogin);
     m.querySelector("input")?.focus();
     m.querySelector("#authform").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1114,7 +1197,7 @@
       out.textContent = "처리 중…";
       const redirect = location.origin + location.pathname;
       let r;
-      if (mode === "login") r = await SB.auth.signInWithPassword({ email, password: pw });
+      if (mode === "login") { markLogin(); r = await SB.auth.signInWithPassword({ email, password: pw }); }
       else if (mode === "signup") r = await SB.auth.signUp({ email, password: pw, options: { emailRedirectTo: redirect } });
       else r = await SB.auth.resetPasswordForEmail(email, { redirectTo: redirect });
       if (r.error) { out.textContent = authError(r.error.message); return; }
@@ -1126,7 +1209,20 @@
   // 회원가입: ① 이름·생년월일·성별·전화번호 + 동의 → ② 이메일·비밀번호 → 가입 완료(승인 대기)
   function openSignup() {
     closeModal();
-    const info = {};
+    if (KAKAO()) {
+      const k = document.createElement("div");
+      k.className = "modal-bg";
+      k.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><button class="modal-x" aria-label="닫기">×</button>
+        <h2>회원가입</h2><p class="sub" style="font-size:13.5px;margin:6px 0 16px">휴대폰 인증이 된 <b>카카오 계정</b>으로만 가입할 수 있어요.<br>카카오 인증 → 가입 정보 입력 → 관리자 승인 순서예요.</p>
+        <button class="btn kakao" id="kakao-signup" type="button">카카오로 가입하기</button>
+        <div class="modal-foot"><a href="#" data-mode="login">이미 회원이에요. 로그인</a></div></div>`;
+      document.body.appendChild(k);
+      k.addEventListener("click", (e) => { if (e.target === k || e.target.closest(".modal-x")) closeModal(); });
+      k.querySelector("#kakao-signup").addEventListener("click", kakaoLogin);
+      k.querySelector("[data-mode]").addEventListener("click", (e) => { e.preventDefault(); openAuth("login"); });
+      return;
+    }
+    const info = {}, opened = Date.now();
     const m = document.createElement("div");
     m.className = "modal-bg";
     document.body.appendChild(m);
@@ -1136,6 +1232,7 @@
       m.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><button class="modal-x" aria-label="닫기">×</button>
         <h2>회원가입</h2>${steps(1)}
         <form id="s1" class="form">
+          <label class="hp" aria-hidden="true">웹사이트<input name="website" tabindex="-1" autocomplete="off"></label>
           <label>이름<input name="name" required maxlength="30" autocomplete="name" value="${esc(info.name || "")}"></label>
           <label>생년월일<input name="birth" type="date" required min="1920-01-01" max="${new Date().toISOString().slice(0, 10)}" value="${esc(info.birth || "")}"></label>
           <div class="radio-row"><span>성별</span>${["남", "여"].map((g) => `<label class="radio"><input type="radio" name="gender" value="${g}" required ${info.gender === g ? "checked" : ""}> ${g}</label>`).join("")}</div>
@@ -1150,6 +1247,7 @@
       m.querySelector("#s1").addEventListener("submit", (e) => {
         e.preventDefault();
         const fd = new FormData(e.target);
+        if (fd.get("website")) { info.bot = true; } // 사람은 볼 수 없는 칸 — 채워져 있으면 로봇
         Object.assign(info, { name: fd.get("name").trim(), birth: fd.get("birth"), gender: fd.get("gender"), phone: String(fd.get("phone")).replace(/\D/g, "").replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3"), agreed: true });
         step2();
       });
@@ -1170,10 +1268,11 @@
         e.preventDefault();
         const fd = new FormData(e.target), out = m.querySelector(".form-msg");
         if (fd.get("pw") !== fd.get("pw2")) { out.textContent = "비밀번호가 서로 달라요."; return; }
+        if (info.bot || Date.now() - opened < 6000) { out.textContent = "잠시 후 다시 시도해 주세요."; return; } // 로봇 자동가입 차단
         out.textContent = "처리 중…";
         const r = await SB.auth.signUp({ email: fd.get("email"), password: fd.get("pw"),
           options: { emailRedirectTo: location.origin + location.pathname, data: { name: info.name, birth: info.birth, gender: info.gender, phone: info.phone, agreed: true } } });
-        if (r.error) { out.textContent = authError(r.error.message); return; }
+        if (r.error) { out.textContent = /Database error/i.test(r.error.message) ? "이미 가입된 전화번호예요. 한 번호로 한 계정만 만들 수 있어요." : authError(r.error.message); return; }
         m.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><button class="modal-x" aria-label="닫기">×</button>
           <h2>가입 신청 완료 🎉</h2>${steps(3)}
           <p style="font-size:14px;line-height:1.7">${r.data.session ? "" : `<b>① 메일함</b>에서 인증 링크를 눌러 주세요. (스팸함도 확인)<br>`}<b>${r.data.session ? "①" : "②"} 관리자 승인</b> 후 테마·뉴스·종목 점수가 열려요.<br>승인되면 같은 이메일·비밀번호로 로그인하면 돼요.</p>
@@ -1379,7 +1478,7 @@
         <div class="card-head"><div><h2 class="num">${j.date} <span class="muted" style="font-size:13px;font-weight:600">${["일", "월", "화", "수", "목", "금", "토"][new Date(j.date + "T00:00:00+09:00").getDay()]}요일</span></h2></div>
           <div class="num" style="text-align:right"><b class="${cls(j.day_pnl)}">${signWon(+j.day_pnl)}</b> <span class="${cls(j.day_ret)}">(${pct(j.day_ret, 2)})</span><div class="muted" style="font-size:12px">코스피 ${pct(j.kospi_ret, 2)} · 평가 ${bigWon(+j.total_value)} · 누적 ${pct(j.cum_ret)}</div></div></div>
         ${movers.length ? `<div class="chips" style="margin-bottom:10px">${movers.map((p) => `<a class="chip" href="#/company/${p.code}">${esc(p.name)} <span class="${cls(p.chg)}">${pct(p.chg, 1)}</span></a>`).join("")}</div>` : ""}
-        ${ev.length ? `<ul class="events">${ev.map((e) => `<li><span>${icon[e.type] || "•"}</span>${e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.text)}</a>` : esc(e.text)}${e.impact ? " " + impactBadge(e.impact) : ""}</li>`).join("")}</ul>` : `<div class="muted" style="font-size:13px">특별한 이벤트 없음</div>`}
+        ${ev.length ? `<ul class="events">${ev.map((e) => posLocked(e.impact) ? `<li><span>${icon[e.type] || "•"}</span>${posLockHTML()} ${impactBadge(e.impact)}</li>` : `<li><span>${icon[e.type] || "•"}</span>${e.url ? `<a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.text)}</a>` : esc(e.text)}${e.impact ? " " + impactBadge(e.impact) : ""}</li>`).join("")}</ul>` : `<div class="muted" style="font-size:13px">특별한 이벤트 없음</div>`}
         <div class="note-box"><textarea data-note="${j.date}" placeholder="오늘의 한 줄 회고 (예: 반도체 비중 줄일지 고민)">${esc(j.note || "")}</textarea><button class="btn sm" data-savenote="${j.date}">메모 저장</button></div>
       </div>`;
     }).join("");
@@ -1515,6 +1614,38 @@
       </tbody></table></div>` : `<div class="empty">아직 관심 테마가 없어요. <a href="#/sectors" style="color:var(--accent)">섹터 검색기</a>에서 ☆를 눌러 추가하세요.</div>`}</div>`;
   }
 
+  // ------------------------------------------------------------ 알람 (회원은 읽고 지우기만)
+  const NICON = { notice: "📢", approval: "✅", move: "⚡", high: "🚀", news: "📰", perm: "🔓" };
+  function pageAlerts() {
+    const html = `<div class="page-head"><div><h1>알람</h1><p class="lede">관리자 공지와 관심종목 알람이 여기 쌓여요. 다 본 알람은 지울 수 있어요.</p></div>
+      ${NOTIF.length ? `<button class="btn" id="al-clear">모두 지우기</button>` : ""}</div>
+      ${!PROFILE_OK ? `<div class="empty">알람 저장소 준비 중이에요.</div>` : NOTIF.length ? `<div class="alist">${NOTIF.map((n) => `<div class="card aitem ${n.created_at > seenAt() ? "new" : ""}">
+        <span class="aic">${NICON[n.kind] || "🔔"}</span>
+        <div class="abody">${n.link ? `<a href="${esc(n.link)}" ${/^https?:/.test(n.link) ? 'target="_blank" rel="noopener"' : ""}><b>${esc(n.title)}</b></a>` : `<b>${esc(n.title)}</b>`}
+          ${n.body ? `<p>${esc(n.body)}</p>` : ""}<span class="muted num">${esc(new Date(n.created_at).toLocaleString("ko-KR", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }))}</span></div>
+        <button class="ax" data-del="${n.id}" aria-label="지우기">✕</button></div>`).join("")}</div>` : `<div class="empty">새 알람이 없어요.</div>`}`;
+    try { if (NOTIF[0]) localStorage.setItem("km_seen_" + USER.id, NOTIF[0].created_at); } catch {}
+    setTimeout(renderAuthButton, 0);
+    return html;
+  }
+  function wireAlerts() {
+    document.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+      b.disabled = true;
+      const r = await SB.from("notifications").delete().eq("id", b.dataset.del);
+      if (r.error) { alertBox("지우지 못했어요"); b.disabled = false; return; }
+      NOTIF = NOTIF.filter((n) => String(n.id) !== b.dataset.del); rerender();
+    }));
+    document.getElementById("al-clear")?.addEventListener("click", async () => {
+      if (!confirm("알람을 모두 지울까요?")) return;
+      const r = await SB.from("notifications").delete().eq("user_id", USER.id);
+      if (!r.error) { NOTIF = []; rerender(); }
+    });
+  }
+  async function sendNotif(userIds, kind, title, body, link) {
+    if (!userIds.length) return { error: null };
+    return SB.from("notifications").insert(userIds.map((u) => ({ user_id: u, kind, title, body: body || null, link: link || null })));
+  }
+
   // ------------------------------------------------------------ 관리자: 회원 관리
   let adminTab = "pending";
   async function pageAdmin() {
@@ -1524,21 +1655,49 @@
     PENDING_N = by("pending").length; renderAuthButton();
     const age = (b) => { if (!b) return ""; const d = new Date(b), n = new Date(); let a = n.getFullYear() - d.getFullYear(); if (n < new Date(n.getFullYear(), d.getMonth(), d.getDate())) a--; return `만 ${a}세`; };
     const list = by(adminTab);
+    ADMIN_MEMBERS = all;
+    const notice = `<details class="card section notice-box"><summary><b>📢 알람 보내기</b> <span class="muted" style="font-size:12.5px">승인된 회원 ${by("approved").filter((p) => !p.is_admin).length}명</span></summary>
+      <form id="nform" class="form" style="margin-top:12px">
+        <label>받는 사람<select name="to"><option value="all">승인된 회원 전체</option>${by("approved").filter((p) => !p.is_admin).map((p) => `<option value="${p.id}">${esc(p.name || p.email)}</option>`).join("")}</select></label>
+        <label>제목<input name="title" required maxlength="80" placeholder="예: 오늘 반도체 테마 주목"></label>
+        <label>내용<textarea name="body" rows="3" maxlength="500"></textarea></label>
+        <label>링크 (선택)<input name="link" placeholder="#/themes 또는 https://..."></label>
+        <div class="form-msg"></div><button class="btn primary" type="submit">보내기</button></form></details>`;
     return `<div class="page-head"><div><h1>회원 관리</h1><p class="lede">가입 신청을 확인하고 승인하면 테마·뉴스·종목 점수가 열려요. 전화번호를 눌러 바로 전화·문자로 본인 확인할 수 있어요.</p></div></div>
+      ${notice}
       <div class="seg" style="display:grid;grid-template-columns:repeat(3,1fr)">${[["pending", "승인 대기"], ["approved", "승인됨"], ["rejected", "거절"]].map(([k, l]) => `<button class="${adminTab === k ? "on" : ""}" data-atab="${k}">${l} <b class="num">${by(k).length}</b></button>`).join("")}</div>
       ${list.length ? `<div class="members">${list.map((p) => `<div class="card member">
-        <div class="mhead"><b>${esc(p.name || "(이름 없음)")}</b>${p.is_admin ? `<span class="badge acc">관리자</span>` : ""}<span class="muted num" style="margin-left:auto;font-size:12px">${esc((p.created_at || "").slice(0, 10))} 가입</span></div>
+        <div class="mhead"><b>${esc(p.name || "(이름 없음)")}</b>${p.is_admin ? `<span class="badge acc">관리자</span>` : ""}${p.provider === "kakao" ? `<span class="badge kakao-badge">카카오 인증</span>` : `<span class="badge">이메일</span>`}${!p.is_admin && (!p.phone || !p.agreed_at) ? `<span class="badge warn">정보 미입력</span>` : ""}<span class="muted num" style="margin-left:auto;font-size:12px">${esc((p.created_at || "").slice(0, 10))} 가입</span></div>
         <div class="minfo num">
           <span>${p.birth ? `${esc(p.birth)} (${age(p.birth)})` : "생년월일 없음"}</span><span>${esc(p.gender || "성별 없음")}</span>
           ${p.phone ? `<a href="tel:${esc(p.phone)}">📞 ${esc(p.phone)}</a><a href="sms:${esc(p.phone)}">💬 문자</a>` : `<span class="muted">전화번호 없음</span>`}
           <span class="muted">${esc(p.email || "")}</span></div>
         ${p.is_admin ? "" : `<div class="mact">
           ${p.status !== "approved" ? `<button class="btn primary sm" data-set="approved" data-id="${p.id}">✅ 승인</button>` : `<button class="btn sm" data-set="pending" data-id="${p.id}">승인 취소</button>`}
-          ${p.status !== "rejected" ? `<button class="btn sm" data-set="rejected" data-id="${p.id}">거절</button>` : `<button class="btn sm" data-set="pending" data-id="${p.id}">대기로 되돌리기</button>`}</div>`}
+          ${p.status !== "rejected" ? `<button class="btn sm" data-set="rejected" data-id="${p.id}">거절</button>` : `<button class="btn sm" data-set="pending" data-id="${p.id}">대기로 되돌리기</button>`}</div>
+          ${p.status === "approved" ? `<label class="pos-toggle"><input type="checkbox" data-pos="${p.id}" ${p.can_positive ? "checked" : ""}> 긍정 뉴스 보기 허용</label>` : ""}`}
       </div>`).join("")}</div>` : `<div class="empty">${adminTab === "pending" ? "승인 대기 중인 회원이 없어요." : "없어요."}</div>`}
       <p class="muted" style="font-size:12px;margin-top:12px">회원을 완전히 삭제하려면 Supabase → Authentication → Users 에서 삭제하세요 (회원 정보도 함께 지워져요).</p>`;
   }
+  let ADMIN_MEMBERS = [];
   function wireAdmin() {
+    document.querySelectorAll("[data-pos]").forEach((c) => c.addEventListener("change", async () => {
+      c.disabled = true;
+      const r = await SB.from("profiles").update({ can_positive: c.checked }).eq("id", c.dataset.pos);
+      if (r.error) { alertBox("변경하지 못했어요: " + r.error.message); c.checked = !c.checked; c.disabled = false; return; }
+      if (c.checked) await sendNotif([c.dataset.pos], "perm", "긍정 뉴스가 열렸어요", "이제 뉴스 화면에서 긍정 뉴스도 볼 수 있어요.", "#/news");
+      alertBox(c.checked ? "긍정 뉴스를 열어줬어요" : "긍정 뉴스를 닫았어요"); c.disabled = false;
+    }));
+    document.getElementById("nform")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target), out = e.target.querySelector(".form-msg");
+      const to = fd.get("to"), ids = to === "all" ? ADMIN_MEMBERS.filter((p) => p.status === "approved" && !p.is_admin).map((p) => p.id) : [to];
+      if (!ids.length) { out.textContent = "보낼 승인 회원이 없어요."; return; }
+      out.textContent = "보내는 중…";
+      const r = await sendNotif(ids, "notice", fd.get("title").trim(), fd.get("body").trim(), fd.get("link").trim());
+      out.textContent = r.error ? "보내지 못했어요: " + r.error.message : `${ids.length}명에게 보냈어요 ✅`;
+      if (!r.error) e.target.reset();
+    });
     document.querySelectorAll("[data-atab]").forEach((b) => b.addEventListener("click", () => { adminTab = b.dataset.atab; rerender(); }));
     document.querySelectorAll("[data-set]").forEach((b) => b.addEventListener("click", async () => {
       const st = b.dataset.set;
@@ -1546,6 +1705,7 @@
       b.disabled = true;
       const r = await SB.from("profiles").update({ status: st, approved_at: st === "approved" ? new Date().toISOString() : null }).eq("id", b.dataset.id);
       if (r.error) { alertBox("변경하지 못했어요: " + r.error.message); b.disabled = false; return; }
+      if (st === "approved") await sendNotif([b.dataset.id], "approval", "가입이 승인됐어요 🎉", "이제 테마·섹터·뉴스·종목 점수를 모두 볼 수 있어요.", "#/themes");
       alertBox(st === "approved" ? "승인했어요" : st === "rejected" ? "거절했어요" : "대기로 바꿨어요");
       rerender();
     }));
@@ -1563,6 +1723,7 @@
     const wireGate = () => {
       document.querySelectorAll("[data-auth]").forEach((b) => b.addEventListener("click", () => openAuth(b.dataset.auth)));
       document.getElementById("gate-refresh")?.addEventListener("click", async () => { await loadProfile(); renderAuthButton(); rerender(); });
+      document.getElementById("gate-info")?.addEventListener("click", openProfileInfo);
     };
     if (LOCKED_PAGES.has(page) && !CAN_SEE()) {
       $app.innerHTML = gateCard({ themes: "테마", sectors: "섹터", news: "뉴스", my: "내 투자", admin: "회원 관리" }[page]);
@@ -1578,11 +1739,13 @@
     else if (page === "company") html = await pageCompany(parts[1]);
     else if (page === "news") html = pageNews();
     else if (page === "admin") html = await pageAdmin();
+    else if (page === "alerts") html = USER ? pageAlerts() : gateCard("알람");
     else if (page === "my") html = await pageMy(parts[1]);
     else html = pageHome();
     $app.innerHTML = html;
     wireSearch("home-q"); wireSearch("q"); wireSearch("cq"); wireInstall(); wireGate();
     if (page === "admin") wireAdmin();
+    if (page === "alerts" && USER) wireAlerts();
     if (page === "market") wireMarket();
     if (page === "sectors" && !parts[1]) wireSectors();
     document.getElementById("tstar")?.addEventListener("click", (e) => toggleTheme(e.currentTarget).then(rerender));
@@ -1634,19 +1797,26 @@
       const { data } = await SB.auth.getSession();
       USER = data.session?.user || null;
       await loadProfile();
+      if (USER && !(await checkDevice())) { USER = null; PROFILE = null; }
       // 주의: 이 콜백 안에서 Supabase 요청을 바로 await 하면 멈출 수 있어(라이브러리 잠금) setTimeout 으로 한 박자 늦춰 실행
       SB.auth.onAuthStateChange((ev, session) => {
         setTimeout(async () => {
           const was = USER?.id;
           USER = session?.user || null;
-          if (was !== USER?.id) { MYCACHE = null; await loadProfile(); }
+          if (was !== USER?.id) { MYCACHE = null; await loadProfile(); if (USER) await checkDevice(); }
           renderAuthButton();
+          if (USER && NEEDS_INFO() && was !== USER.id) openProfileInfo();
           if (ev === "PASSWORD_RECOVERY") openNewPassword();
           if (was !== USER?.id) { if (USER) loadMine().catch(() => {}); rerender(); }
         }, 0);
       });
       if (USER) loadMine().catch(() => {});
       if (USER && invited) { history.replaceState(null, "", location.pathname + "#/"); openNewPassword(true); }
+      if (USER && NEEDS_INFO()) openProfileInfo();
+      // 다른 기기 로그인 확인 + 새 알람: 화면에 돌아올 때와 3분마다
+      const recheck = async () => { if (!USER) return; if (await checkDevice()) { await loadNotif(); renderAuthButton(); } };
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") recheck(); });
+      setInterval(recheck, 180000);
     }
     renderAuthButton();
     renderTabbar();
