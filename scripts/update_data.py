@@ -649,8 +649,14 @@ def main():
             else:
                 rec = {**old, **{k: v for k, v in sn.items() if v}}
             newp[c] = rec
-        allp = {c: [round(v, 5) if isinstance(v, float) and abs(v) < 10 else (round(v) if isinstance(v, float) else v)
-                    for v in (rec.get(f) for f in ALL_FIELDS)] for c, rec in newp.items()}
+        def _num(v):
+            # NaN·무한대(빈 시세)는 None 으로 저장 — 한 종목 때문에 전체 갱신이 멈추지 않게
+            if isinstance(v, float):
+                if v != v or v in (float("inf"), float("-inf")):
+                    return None
+                return round(v, 5) if abs(v) < 10 else round(v)
+            return v
+        allp = {c: [_num(v) for v in (rec.get(f) for f in ALL_FIELDS)] for c, rec in newp.items()}
         save(DATA / "market_all.json", {"as_of": max((v[-1] for v in allp.values() if v and v[-1]), default=today),
                                         "fields": ALL_FIELDS, "rows": allp}, compact=True)
     allrows = {c: dict(zip(ALL_FIELDS, v)) for c, v in allp.items()}
