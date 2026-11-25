@@ -662,7 +662,7 @@ def main():
     allrows = {c: dict(zip(ALL_FIELDS, v)) for c, v in allp.items()}
 
     # ---- 상세 종목: 차트·재무·뉴스
-    stocks, theme_auto = {}, {}
+    stocks, theme_auto, news_cache = {}, {}, {}
     for i, (code, meta) in enumerate(watch.items(), 1):
         print(f"[{i}/{len(watch)}] {meta['name']} ({code})")
         cpath = DATA / "companies" / f"{code}.json"
@@ -685,6 +685,7 @@ def main():
             except Exception as e:
                 failures.append({"code": code, "name": meta["name"], "step": "재무", "error": str(e)[:200]})
         nw = news(code, name=meta["name"])
+        news_cache[code] = nw
         try:
             comp["disclosures"] = disclosures(code)
         except Exception as e:
@@ -742,6 +743,12 @@ def main():
                 seen.add(it["title"])
                 out.append(it)
         theme_auto[th] = out[:6]
+    # ---- 섹터(네이버 테마·업종) 뉴스: 긍정·보통·악재 집계 (아침·오후 모두)
+    try:
+        build_group_news(load(DATA / "groups.json", {}), allrows, lmap, news_cache, today, now)
+    except Exception as e:
+        failures.append({"code": "*", "step": "섹터 뉴스", "error": str(e)[:200]})
+
     tn = load(DATA / "theme_news.json", {"curated": []})
     tn["auto"] = theme_auto or tn.get("auto", {})
     tn["auto_as_of"] = today
@@ -769,6 +776,49 @@ def main():
     print(f"완료: 실패 {len(failures)}건")
     for f in failures:
         print("  실패:", f)
+
+
+def build_group_news(groups, allrows, lmap, cache, today, now, per_group=3, keep=6):
+    """테마·업종마다 시가총액 상위 종목 뉴스를 모아 긍정·보통·악재 개수와 최신 기사를 저장.
+    결과: data/group_news.json  {"g": {"t38": [긍정, 보통, 악재, [[날짜, 시각, 제목, 언론사, url, 분류, 종목명], ...]]}}"""
+    from concurrent.futures import ThreadPoolExecutor
+    kinds = [("t", groups.get("themes") or []), ("i", groups.get("industries") or [])]
+    if not any(g for _, g in kinds):
+        print("[섹터 뉴스] groups.json 이 없어 건너뜀")
+        return
+    mc = lambda c: (allrows.get(c) or {}).get("marcap") or 0  # noqa: E731
+    tops = {}
+    for k, gs in kinds:
+        for g in gs:
+            tops[f"{k}{g['no']}"] = sorted([c for c in g.get("codes", []) if c in lmap], key=mc, reverse=True)[:per_group]
+    need = sorted({c for cs in tops.values() for c in cs if c not in cache})
+    print(f"[섹터 뉴스] 그룹 {len(tops)}개, 새로 받을 종목 {len(need)}개")
+
+    def job(c):
+        try:
+            return c, news(c, n=5, name=lmap[c][0])
+        except Exception:
+            return c, []
+
+    with ThreadPoolExecutor(6) as ex:
+        for c, nw in ex.map(job, need):
+            cache[c] = nw
+    cutoff = (dt.date.fromisoformat(today) - dt.timedelta(days=7)).isoformat()
+    out = {}
+    for key, codes in tops.items():
+        items, seen = [], set()
+        for c in codes:
+            for n in cache.get(c) or []:
+                if n["title"] in seen or (n.get("date") and n["date"] < cutoff):
+                    continue
+                seen.add(n["title"])
+                items.append({**n, "stock": lmap[c][0]})
+        items.sort(key=lambda x: (x.get("date") or "", x.get("time") or ""), reverse=True)
+        cnt = [sum(1 for n in items if n["impact"] == k) for k in ("긍정", "중립", "주의")]
+        out[key] = cnt + [[[n.get("date"), n.get("time"), n["title"], n.get("source", ""), n.get("url"), n["impact"], n["stock"]]
+                           for n in items[:keep]]]
+    save(DATA / "group_news.json", {"as_of": today, "updated_at": now.isoformat(timespec="minutes"), "g": out}, compact=True)
+    print(f"[섹터 뉴스] 저장 {len(out)}개 그룹")
 
 
 ALL_FIELDS = ["close", "chg", "r1w", "r1m", "r3m", "pos52", "hi52", "lo52", "amount", "marcap", "last_date"]
