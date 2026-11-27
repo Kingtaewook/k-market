@@ -252,6 +252,7 @@
     const auto = Object.values(NEWS?.auto || {}).flat().sort((a, b) => (b.date || "").localeCompare(a.date || ""));
     const latest = (auto.length ? auto : curated).slice(0, 5);
     return `${staleBanner()}${adminBanner()}
+    ${indexCards()}
     ${briefCard()}
     ${heatmapCard()}
     ${leadersCard()}
@@ -545,7 +546,7 @@
     ${!c.fundamentals ? `<div class="banner">이 종목의 재무·분기 실적은 아직 수집 전이에요. 전 종목 재무는 평일마다 나눠서 받아 <b>1주일에 한 번</b> 갱신됩니다.</div>` : ""}
     ${c.source === "엑셀 수기 입력" || (age !== null && age > 30) ? `<div class="banner">이 종목의 재무·뉴스는 <b>${esc(c.as_of || "")}</b> 기준${age !== null ? ` (${age}일 전)` : ""}입니다.${c.source === "엑셀 수기 입력" ? " 엑셀에서 옮긴 값이며, 자동 갱신이 시작되면 최신 자료로 바뀝니다." : ""}</div>` : ""}
     <div class="grid g4">
-      <div class="card stat"><div class="label">최근 종가</div><div class="value num">${won(price.close)}</div><div class="foot">${isNum(price.chg) ? `<span class="${cls(price.chg)}">${pct(price.chg, 2)}</span> · ` : ""}${esc(price.last_date || "")}</div></div>
+      <div class="card stat"><div class="label">${RT_AT || LIVE ? "현재가" : "최근 종가"}</div><div class="value num"><span class="px" data-px="${code}">${won(price.close)}</span></div><div class="foot">${isNum(price.chg) ? `<span class="${cls(price.chg)}">${pct(price.chg, 2)}</span> · ` : ""}${esc(price.last_date || "")}</div></div>
       <div class="card stat"><div class="label">1개월 / 3개월</div><div class="value sm num"><span class="${cls(price.r1m)}">${pct(price.r1m)}</span> <span class="muted">/</span> <span class="${cls(price.r3m)}">${pct(price.r3m)}</span></div><div class="foot">모멘텀 ${verdictBadge(price.momentum || "확인 필요")}</div></div>
       <div class="card stat"><div class="label">52주 위치</div><div class="value num">${isNum(price.pos52) ? Math.round(price.pos52 * 100) + "%" : "–"}</div><div class="foot num">${isNum(price.lo52) ? `${won(price.lo52)} ~ ${won(price.hi52)}` : "최저 0% ~ 최고 100%"}</div></div>
       <div class="card stat"><div class="label">시가총액</div><div class="value num">${cap(f.market_cap_eok ?? price.marcap)}</div><div class="foot">${isNum(price.amount) ? `거래대금 ${bigWon(price.amount)}` : isNum(price.vol20) ? `20일 평균 거래량 ${won(price.vol20)}` : "&nbsp;"}</div></div>
@@ -986,13 +987,14 @@
     const b = MK.breadth;
     const th = (k, label, r = true) => `<th class="${r ? "r" : ""} sortable" data-sort="${k}">${label}${mkState.sort === k ? (mkState.dir === -1 ? " ▼" : " ▲") : ""}</th>`;
     const G = mkState.group;
+    const WSET = new Set((MYCACHE?.watch || []).map((w) => w.code));
     return `<div class="page-head"><div><h1>${G ? esc(G.name) : "시장 전체"}</h1><p class="lede">${G ? `${parts[2] === "industry" ? "업종" : "테마"} · ${G.total}종목 · 평균 <span class="${cls(G.chg)}">${pct(G.chg, 2)}</span> · 상승 ${G.rise} / 하락 ${G.fall} · <a href="#/sectors/${parts[2] === "industry" ? "industry" : "theme"}/${G.no}" style="color:var(--accent)">섹터 뉴스·분위기</a> · <a href="#/market" style="color:var(--accent)">전체 시장 보기</a>` : `국내 상장 ${LIST.length.toLocaleString()}개 종목 · ${esc(ALLMETA.as_of || "자동 갱신 후 표시")} 기준`}</p></div></div>
+      ${!G ? indexCards() : ""}
       ${searchBox("q")}
-      ${b && !G ? `<div class="grid g4 section">
+      ${b && !G ? `<div class="grid g3 section">
         <div class="card stat"><div class="label">상승 / 하락</div><div class="value sm num"><span class="up">${b.up.toLocaleString()}</span> <span class="muted">/</span> <span class="down">${b.down.toLocaleString()}</span></div><div class="foot">전체 ${b.total.toLocaleString()}종목</div></div>
         <div class="card stat"><div class="label">52주 신고가</div><div class="value num up">${b.high52}</div><div class="foot">종가 기준 1년 최고</div></div>
         <div class="card stat"><div class="label">52주 신저가</div><div class="value num down">${b.low52}</div><div class="foot">종가 기준 1년 최저</div></div>
-        <div class="card stat"><div class="label">코스피</div><div class="value sm num">${won(MK.kospi?.close)}</div><div class="foot"><span class="${cls(MK.kospi?.chg)}">${pct(MK.kospi?.chg, 2)}</span> · 1개월 <span class="${cls(MK.kospi?.r1m)}">${pct(MK.kospi?.r1m)}</span></div></div>
       </div>` : ""}
       ${!G && GROUPS ? leadersCard() : ""}
       <div class="card section">
@@ -1001,18 +1003,18 @@
           <span class="muted" style="font-size:13px">${rows.length.toLocaleString()}종목 · 제목을 눌러 정렬</span>
         </div>
         ${Object.keys(ALL).length ? `<div class="table-wrap"><table class="mk-table">
-          <thead><tr><th>#</th><th>종목</th>${th("close", "현재가")}${th("chg", "등락")}${th("r1w", "1주")}${th("r1m", "1개월")}${th("r3m", "3개월")}<th class="sortable" data-sort="pos52">52주 위치${mkState.sort === "pos52" ? (mkState.dir === -1 ? " ▼" : " ▲") : ""}</th>${th("amount", "거래대금")}${th("marcap", "시총")}</tr></thead>
+          <thead><tr><th class="rank">순위</th><th class="heart-td"></th><th>종목</th>${th("close", "현재가")}${th("chg", "등락률")}${th("amount", "거래대금")}${th("marcap", "시가총액")}<th class="r opt sortable" data-sort="r1w">1주${mkState.sort === "r1w" ? (mkState.dir === -1 ? " ▼" : " ▲") : ""}</th><th class="r opt sortable" data-sort="r1m">1개월${mkState.sort === "r1m" ? (mkState.dir === -1 ? " ▼" : " ▲") : ""}</th><th class="opt sortable" data-sort="pos52">52주 위치${mkState.sort === "pos52" ? (mkState.dir === -1 ? " ▼" : " ▲") : ""}</th></tr></thead>
           <tbody>${rows.slice(0, mkState.limit).map((r, i) => `<tr class="link" data-go="#/company/${r.code}">
-            <td class="muted num">${i + 1}</td>
-            <td><span class="stock-name">${esc(r.name)}</span><span class="code">${r.code}</span>${r.sector ? `<div class="muted" style="font-size:11.5px">${esc(r.sector)}</div>` : ""}</td>
-            <td class="r num">${won(r.close)}</td>
-            <td class="r num ${cls(r.chg)}">${pct(r.chg, 2)}</td>
-            <td class="r num ${cls(r.r1w)}">${pct(r.r1w)}</td>
-            <td class="r num ${cls(r.r1m)}">${pct(r.r1m)}</td>
-            <td class="r num ${cls(r.r3m)}">${pct(r.r3m)}</td>
-            <td>${pos52(r.pos52)}</td>
+            <td class="rank num">${i + 1}</td>
+            <td class="heart-td"><button class="heart ${WSET.has(r.code) ? "on" : ""}" data-heart="${r.code}" data-name="${esc(r.name)}" aria-label="관심 종목">♥</button></td>
+            <td><div class="stock-cell">${logoMark(r.code, r.name)}<div><span class="stock-name">${esc(r.name)}</span><span class="code">${r.code}</span>${r.sector ? `<div class="muted" style="font-size:11.5px">${esc(r.sector)}</div>` : ""}</div></div></td>
+            <td class="r num"><span class="px" data-px="${r.code}">${won(r.close)}원</span></td>
+            <td class="r num"><span class="chg-pill ${cls(r.chg)}" data-px="${r.code}">${pct(r.chg, 2)}</span></td>
             <td class="r num">${bigWon(r.amount)}</td>
-            <td class="r num">${cap(r.marcap)}</td></tr>`).join("")}</tbody></table></div>
+            <td class="r num">${cap(r.marcap)}</td>
+            <td class="r num opt ${cls(r.r1w)}">${pct(r.r1w)}</td>
+            <td class="r num opt ${cls(r.r1m)}">${pct(r.r1m)}</td>
+            <td class="opt">${pos52(r.pos52)}</td></tr>`).join("")}</tbody></table></div>
           ${rows.length > mkState.limit ? `<div style="text-align:center;margin-top:14px"><button class="btn" id="more">100개 더 보기</button></div>` : ""}`
         : `<div class="empty">전 종목 시세는 다음 자동 갱신(평일 16:20) 후 표시됩니다.</div>`}
       </div>`;
@@ -1025,6 +1027,47 @@
       rerender();
     }));
     document.getElementById("more")?.addEventListener("click", () => { mkState.limit += 100; rerender(); });
+    document.querySelectorAll("[data-heart]").forEach((b) => b.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const on = await toggleWatch(b.dataset.heart, b.dataset.name);
+      if (on !== null) b.classList.toggle("on", on);
+    }));
+  }
+  // 종목 로고 대신: 이름 첫 글자 + 종목코드로 정한 색 동그라미
+  function logoMark(code, name) {
+    const h = (parseInt(code, 10) * 47) % 360;
+    return `<span class="logo" style="--h:${h}">${esc(String(name || "?").replace(/^\(.*?\)/, "").trim().charAt(0))}</span>`;
+  }
+  // 코스피·코스닥 카드 + 오늘 흐름 미니 차트
+  const idxFmt = (v) => (isNum(v) ? v.toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "–");
+  function sparkSvg(pts, base, tone) {
+    if (!pts || pts.length < 2) return `<div class="spark-empty">장중 5분마다<br>흐름이 그려져요</div>`;
+    const W = 160, H = 52, mins = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+    const vals = pts.map((p) => p[1]).concat(isNum(base) ? [base] : []);
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    const x = (t) => Math.max(0, Math.min(W, ((mins(t) - 540) / 395) * W));
+    const y = (v) => H - 4 - ((v - lo) / (hi - lo || 1)) * (H - 8);
+    const d = pts.map((p, i) => `${i ? "L" : "M"}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join("");
+    const last = pts[pts.length - 1];
+    return `<svg class="spark ${tone}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+      ${isNum(base) ? `<line class="base" x1="0" x2="${W}" y1="${y(base).toFixed(1)}" y2="${y(base).toFixed(1)}"/>` : ""}
+      <path class="area" d="${d}L${x(last[0]).toFixed(1)},${H}L${x(pts[0][0]).toFixed(1)},${H}Z"/><path class="line" d="${d}"/></svg>`;
+  }
+  function indexCards() {
+    const items = [["코스피", IDX?.kospi || MK.kospi, SERIES?.kospi], ["코스닥", IDX?.kosdaq, SERIES?.kosdaq]].filter(([, v]) => v && isNum(v.close));
+    if (!items.length) return "";
+    const b = MK.breadth;
+    const share = b && b.up + b.down ? b.up / (b.up + b.down) : null;
+    return `<div class="idx-row section">${items.map(([n, v, sr]) => {
+      const base = isNum(v.chg) ? v.close / (1 + v.chg) : null;
+      return `<div class="card idx-card"><div><div class="label">${n}</div><div class="value num">${idxFmt(v.close)}</div>
+        <div class="num ${cls(v.chg)} idx-chg">${isNum(base) ? `${v.close - base > 0 ? "+" : ""}${idxFmt(v.close - base)} ` : ""}(${pct(v.chg, 2)})</div></div>${sparkSvg(sr, base, cls(v.chg))}</div>`;
+    }).join("")}
+      ${share !== null ? `<div class="card idx-card breadth-card"><div style="flex:1"><div class="label">상승 · 하락 종목</div>
+        <div class="value num"><span class="up">${b.up.toLocaleString()}</span> <span class="muted" style="font-weight:500">/</span> <span class="down">${b.down.toLocaleString()}</span></div>
+        <div class="ratio-bar"><span style="width:${(share * 100).toFixed(1)}%"></span></div>
+        <div class="muted" style="font-size:12px;margin-top:4px">상승 비율 ${(share * 100).toFixed(0)}% · ${esc(LIVE ? `${LIVE.session === "nxt" ? "NXT " : ""}${LIVE.updated_at.slice(11, 16)} 기준` : MK.as_of || "")}</div></div></div>` : ""}
+    </div>`;
   }
   function homeMarketCard() {
     if (!Object.keys(ALL).length) return "";
@@ -1433,7 +1476,7 @@
       ${d.watch.length ? `<div class="table-wrap"><table><thead><tr><th>종목</th><th>등록일</th><th class="r">등록가</th><th class="r">현재가</th><th class="r">등록 후 수익률</th><th class="r">오늘</th><th>52주 위치</th></tr></thead><tbody>
         ${rows.map(({ w, p, ret }) => `<tr class="link" data-go="#/company/${w.code}"><td><span class="stock-name">${esc(w.name)}</span><span class="code">${w.code}</span></td>
           <td class="num muted">${esc((w.created_at || "").slice(0, 10))}</td>
-          <td class="r num">${+w.price > 0 ? won(+w.price) : "–"}</td><td class="r num">${won(p.close)}</td>
+          <td class="r num">${+w.price > 0 ? won(+w.price) : "–"}</td><td class="r num"><span class="px" data-px="${w.code}">${won(p.close)}</span></td>
           <td class="r num ${cls(ret)}"><b>${pct(ret, 2)}</b>${isNum(ret) && isNum(p.close) ? `<div style="font-size:11.5px">${ret >= 0 ? "+" : ""}${won(p.close - +w.price)}원</div>` : ""}</td>
           <td class="r num ${cls(p.chg)}">${pct(p.chg, 2)}</td><td>${pos52(p.pos52)}</td></tr>`).join("")}
       </tbody></table></div>` : `<div class="empty">아직 관심 종목이 없어요.</div>`}</div>`;
@@ -1558,10 +1601,11 @@
       setTimeout(() => (b.textContent = "메모 저장"), 1500);
     }));
   }
-  async function toggleStar(btn) {
-    if (!USER) { openAuth("login"); return; }
-    const code = btn.dataset.code, name = btn.dataset.name;
-    await loadMine();
+  // 관심 종목 넣기/빼기 → 바뀐 뒤 상태(true=관심) 돌려줌, 실패하면 null
+  async function toggleWatch(code, name) {
+    if (!USER) { openAuth("login"); return null; }
+    if (!CAN_SEE()) { alertBox("관심 종목은 승인된 회원만 쓸 수 있어요"); return null; }
+    try { await loadMine(); } catch { alertBox("관심 종목을 불러오지 못했어요"); return null; }
     const on = MYCACHE.watch.some((w) => w.code === code);
     let r;
     if (on) r = await SB.from("watchlist").delete().eq("code", code).eq("user_id", USER.id);
@@ -1570,10 +1614,15 @@
       r = await SB.from("watchlist").insert({ code, name, price: isNum(price) ? price : null });
       if (r.error && /price/.test(r.error.message || "")) r = await SB.from("watchlist").insert({ code, name }); // DB 업데이트 전
     }
-    if (!r.error) {
-      await loadMine(true); btn.textContent = on ? "☆ 관심 추가" : "★ 관심";
-      if (!on) alertBox(`관심 종목에 추가했어요 · 등록가 ${won(priceOf(code).close)}원`);
-    }
+    if (r.error) { alertBox("저장하지 못했어요: " + (r.error.message || "")); return null; }
+    await loadMine(true);
+    if (!on) alertBox(`관심 종목에 추가했어요 · 등록가 ${won(priceOf(code).close)}원`);
+    renderDock();
+    return !on;
+  }
+  async function toggleStar(btn) {
+    const on = await toggleWatch(btn.dataset.code, btn.dataset.name);
+    if (on !== null) btn.textContent = on ? "★ 관심" : "☆ 관심 추가";
   }
   // 예전에 등록해 등록가가 비어 있는 관심 종목: 등록일 종가로 한 번 채워 넣기
   async function backfillWatchPrice(list) {
@@ -1751,7 +1800,7 @@
   }
 
   // ------------------------------------------------------------ 라우터
-  let ALLMETA = {}, LIVE = null;
+  let ALLMETA = {}, LIVE = null, IDX = null, SERIES = null, FLASH = {}, SERVER_TS = null;
   // 장중 15분 시세(data/live.json)를 전 종목 표에 덮어쓰기. 1주·1개월·3개월 수익률과 52주 위치는 가격 변화만큼 보정.
   function liveFix(o, close, chg, amount) {
       if (!o || !isNum(o.close) || o.close <= 0 || !isNum(close)) return;
@@ -1778,7 +1827,14 @@
     if (L.kospi && isNum(L.kospi.close)) MK.kospi = { ...(MK.kospi || {}), close: L.kospi.close, chg: L.kospi.chg };
     LIVE = L;
   }
-  async function rerender() { window.__kmKeepScroll = true; await route(); window.__kmKeepScroll = false; }
+  async function rerender() { window.__kmKeepScroll = true; await route(); window.__kmKeepScroll = false; applyFlash(); renderDock(); }
+  // 값이 바뀐 칸: 오르면 빨강, 내리면 파랑으로 잠깐 반짝
+  function applyFlash() {
+    for (const [c, d] of Object.entries(FLASH)) {
+      document.querySelectorAll(`[data-px="${c}"]`).forEach((el) => { el.classList.remove("flash-up", "flash-down"); void el.offsetWidth; el.classList.add(d > 0 ? "flash-up" : "flash-down"); });
+    }
+    FLASH = {};
+  }
   async function route() {
     const parts = (location.hash || "#/").slice(2).split("/").map(decodeURIComponent);
     let page = parts[0] || "home";
@@ -1797,7 +1853,8 @@
     }
     if (page === "admin" && !IS_ADMIN()) { location.replace("#/"); return; }
     if ((page === "sectors" || page === "themes") && !GNEWS) GNEWS = (await getJSON("group_news.json")) || { g: {} };
-    if ((page === "themes" || page === "sectors") && USER && !MYCACHE) await loadMine().catch(() => {});
+    if ((page === "themes" || page === "sectors" || page === "market") && USER && CAN_SEE() && !MYCACHE) await loadMine().catch(() => {});
+    if (!window.__kmKeepScroll) FLASH = {};
     if (page === "themes") html = pageThemes(parts[1]);
     else if (page === "sectors") html = pageSectors(parts);
     else if (page === "market") html = pageMarket(parts);
@@ -1893,22 +1950,96 @@
     route();
     startLivePolling();
   }
-  // 화면을 켜 둔 동안: 5분마다 새 15분 시세(live.json) 확인, 실시간 설정이면 보고 있는 종목은 10초마다
+  // 새 시세 묶음(live.json 또는 서버 5분 저장분) 받아들이기 → 바뀐 게 있으면 true
+  function takeLive(L, flash = true) {
+    if (!L?.rows || !L.updated_at) return false;
+    if (LIVE?.updated_at && L.updated_at <= LIVE.updated_at) {
+      // 시세는 더 오래됐지만 브리핑이 더 새로우면 브리핑만 바꿈 (11:00·장 마감·NXT 마감 브리핑은 live.json 에만 있음)
+      if (L.brief && LIVE && (!LIVE.brief || (L.brief.at || "") > (LIVE.brief.at || ""))) { LIVE.brief = L.brief; return true; }
+      return false;
+    }
+    if (LIVE?.brief && (!L.brief || (L.brief.at || "") < (LIVE.brief.at || ""))) L = { ...L, brief: LIVE.brief };
+    const before = {};
+    if (flash) for (const c of Object.keys(L.rows)) before[c] = ALL[c]?.close;
+    applyLive(L);
+    if (LIVE !== L) return false; // 날짜가 지난 묶음
+    if (L.idx) IDX = L.idx;
+    if (L.series) SERIES = L.series;
+    if (flash) for (const [c, v] of Object.entries(L.rows)) if (isNum(before[c]) && isNum(v[0]) && v[0] !== before[c]) FLASH[c] = v[0] > before[c] ? 1 : -1;
+    return true;
+  }
+  function afterLive() { renderStatus(); if (safeToRerender()) rerender(); else renderDock(); }
+  async function pullServer(flash = true) {
+    const c = window.KM_CONFIG?.supabase;
+    if (!c?.url) return;
+    try {
+      const q = SERVER_TS ? `&updated_at=gt.${encodeURIComponent(SERVER_TS)}` : "";
+      const r = await fetch(`${c.url}/rest/v1/live_cache?id=eq.1&select=data,updated_at${q}`, { headers: { apikey: c.anonKey }, cache: "no-store" });
+      if (!r.ok) return;
+      const [row] = await r.json();
+      if (!row) return;
+      SERVER_TS = row.updated_at;
+      if (takeLive(row.data, flash)) afterLive();
+    } catch {}
+  }
+  // 화면을 켜 둔 동안: 1분마다 서버 5분 시세 확인(바뀌었을 때만 내려받음), 5분마다 live.json(브리핑) 확인,
+  // 실시간 설정이면 보고 있는 종목·시장 탭에 보이는 종목·관심 종목 패널은 10초마다
   const safeToRerender = () => !document.querySelector(".modal-bg") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
   function startLivePolling() {
     setInterval(async () => {
       if (document.visibilityState !== "visible") return;
       try {
         const r = await fetch(`data/live.json?t=${Date.now()}`, { cache: "no-store" });
-        if (!r.ok) return;
-        const L = await r.json();
-        if (L.updated_at && L.updated_at !== LIVE?.updated_at) { applyLive(L); renderStatus(); if (safeToRerender()) rerender(); }
+        if (r.ok && takeLive(await r.json())) afterLive();
       } catch {}
     }, 300000);
+    pullServer(false);
+    setInterval(() => { if (document.visibilityState === "visible") pullServer(); }, 60000);
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { pullServer(); setTimeout(realtimeTick, 500); } });
+    window.addEventListener("resize", () => { clearTimeout(window.__kmRs); window.__kmRs = setTimeout(renderDock, 200); });
+    renderDock();
     if (!window.KM_CONFIG?.realtime || !SB) return;
     setInterval(realtimeTick, 10000);
     window.addEventListener("hashchange", () => setTimeout(realtimeTick, 300));
+    window.addEventListener("scroll", () => { clearTimeout(window.__kmSc); window.__kmSc = setTimeout(() => { if (location.hash.startsWith("#/market")) realtimeTick(); }, 1200); }, { passive: true });
     setTimeout(realtimeTick, 1500);
+  }
+  // 시장 탭에서 지금 화면에 보이는 종목 (최대 30)
+  function visibleCodes() {
+    const h = window.innerHeight;
+    return [...document.querySelectorAll(".mk-table tbody tr[data-go]")]
+      .filter((tr) => { const r = tr.getBoundingClientRect(); return r.bottom > 60 && r.top < h; })
+      .map((tr) => tr.dataset.go.split("/").pop()).slice(0, 30);
+  }
+  const DOCK_ON = () => window.innerWidth >= 1400;
+  // 오른쪽 관심 종목 패널(넓은 화면) + 맨 아래 지수 바
+  function renderDock() {
+    if (!$app) return;
+    let p = document.getElementById("watch-dock");
+    if (!p) {
+      p = document.createElement("aside"); p.id = "watch-dock"; document.body.appendChild(p);
+      p.addEventListener("click", (e) => { if (e.target.closest("[data-dock-login]")) openAuth("login"); });
+    }
+    let body;
+    if (!SB) body = `<div class="dock-empty">관심 종목 기능은 준비 중이에요</div>`;
+    else if (!USER) body = `<div class="dock-empty">로그인하면 관심 종목이<br>여기에 모여요<br><button class="btn primary" data-dock-login style="margin-top:12px">로그인</button></div>`;
+    else if (!CAN_SEE()) body = `<div class="dock-empty">관리자 승인 후<br>관심 종목을 쓸 수 있어요</div>`;
+    else if (!MYCACHE) { body = `<div class="dock-empty">불러오는 중…</div>`; if (DOCK_ON()) loadMine().then(renderDock).catch(() => {}); }
+    else if (!MYCACHE.watch.length) body = `<div class="dock-empty">시장 탭에서 ♥를 누르면<br>여기에 추가돼요</div>`;
+    else body = MYCACHE.watch.map((w) => {
+      const q = priceOf(w.code), base = isNum(q.close) && isNum(q.chg) ? q.close / (1 + q.chg) : null;
+      return `<div class="dock-row" data-go="#/company/${w.code}">${logoMark(w.code, w.name)}<div class="dn">${esc(w.name)}</div>
+        <div class="r"><div class="num dp" data-px="${w.code}">${won(q.close)}원</div><div class="num ${cls(q.chg)} dc">${isNum(base) ? signWon(q.close - base).replace("원", "") : ""} (${pct(q.chg, 1)})</div></div></div>`;
+    }).join("");
+    p.innerHTML = `<div class="dock-head"><b>관심 종목</b>${MYCACHE?.watch?.length ? `<span class="muted">${MYCACHE.watch.length}</span>` : ""}<a class="more" href="#/my">전체 →</a></div><div class="dock-list">${body}</div>`;
+    // 맨 아래 지수 바
+    let t = document.getElementById("ticker");
+    if (!t) { t = document.createElement("div"); t.id = "ticker"; document.body.appendChild(t); }
+    const k = IDX?.kospi || MK.kospi, q = IDX?.kosdaq, b = MK.breadth;
+    const item = (n, v) => (v && isNum(v.close) ? `<span class="tk"><b>${n}</b> <span class="num">${idxFmt(v.close)}</span> <span class="num ${cls(v.chg)}">${pct(v.chg, 2)}</span></span>` : "");
+    t.innerHTML = `${item("코스피", k)}${item("코스닥", q)}${b ? `<span class="tk"><b>상승</b> <span class="num up">${(b.up || 0).toLocaleString()}</span> <b>하락</b> <span class="num down">${(b.down || 0).toLocaleString()}</span></span>` : ""}
+      <span class="tk muted">${LIVE ? `${LIVE.session === "nxt" ? "NXT · " : ""}시세 ${esc(LIVE.updated_at.slice(11, 16))}` : esc(MK.as_of || "")}${RT_AT ? " · ⚡실시간" : ""}</span>`;
+    document.body.classList.add("has-ticker");
   }
   // 한국투자증권 실시간 시세 (Supabase Edge Function 'kis-quote'를 거쳐서, 승인 회원만)
   function rtPill(text, bad) {
@@ -1916,23 +2047,28 @@
     if (!el) { el = document.createElement("div"); el.id = "rt-pill"; document.body.appendChild(el); }
     el.textContent = text || ""; el.style.display = text ? "block" : "none"; el.className = bad ? "bad" : "";
   }
+  let RT_LAST = 0;
   async function realtimeTick() {
-    const [pg] = (location.hash.replace(/^#\/?/, "") || "home").split("/");
-    if (pg !== "company" && pg !== "my") return rtPill("");
-    if (document.visibilityState !== "visible") return;
-    if (!USER) return rtPill("실시간: 로그인 필요", true);
-    if (!CAN_SEE()) return rtPill("실시간: 승인 회원 전용", true);
-    const kst = new Date(Date.now() + 9 * 3600000), d = kst.getUTCDay(), hm = kst.getUTCHours() * 60 + kst.getUTCMinutes();
-    if (d === 0 || d === 6 || hm < 480 || hm > 1200) return rtPill("실시간: 장 시간 아님(평일 08~20시)"); // 평일 08:00~20:00 만
-    const nxt = hm < 540 || hm > 940; // 장 전(08:00~09:00)·장 후(15:40~20:00)는 NXT 가격
     const [page, a1] = (location.hash.replace(/^#\/?/, "") || "home").split("/");
+    const loud = page === "company" || page === "my";
+    const quiet = (msg, bad) => rtPill(loud ? msg : "", bad);
+    if (document.visibilityState !== "visible") return;
+    if (!USER) return quiet("실시간: 로그인 필요", true);
+    if (!CAN_SEE()) return quiet("실시간: 승인 회원 전용", true);
+    const kst = new Date(Date.now() + 9 * 3600000), d = kst.getUTCDay(), hm = kst.getUTCHours() * 60 + kst.getUTCMinutes();
+    if (d === 0 || d === 6 || hm < 480 || hm > 1200) return quiet("실시간: 장 시간 아님(평일 08~20시)"); // 평일 08:00~20:00 만
+    if (Date.now() - RT_LAST < 3000) return; // 너무 잦은 호출 막기
+    const nxt = hm < 540 || hm > 940; // 장 전(08:00~09:00)·장 후(15:40~20:00)는 NXT 가격
     let codes = [];
     if (page === "company" && /^\d{6}$/.test(a1 || "")) codes = [a1];
-    else if (page === "my" && MYCACHE) codes = [...new Set([...MYCACHE.watch.map((w) => w.code), ...MYCACHE.trades.map((t) => t.code)])];
-    codes = codes.slice(0, 30);
-    if (!codes.length) return rtPill(page === "my" ? "" : "실시간: 종목을 골라 주세요");
-    if (!TOKEN) return rtPill("실시간: 로그인 정보 확인 중…");
-    if (!RT_AT && !RT_ERR) rtPill("⏳ 실시간 연결 중…");
+    else if (page === "my" && MYCACHE) codes = [...MYCACHE.watch.map((w) => w.code), ...MYCACHE.trades.map((t) => t.code)];
+    else if (page === "market") codes = visibleCodes();
+    if (DOCK_ON() && MYCACHE) codes = codes.concat(MYCACHE.watch.map((w) => w.code));
+    codes = [...new Set(codes)].slice(0, 30);
+    if (!codes.length) return rtPill(page === "company" ? "실시간: 종목을 골라 주세요" : "");
+    if (!TOKEN) return quiet("실시간: 로그인 정보 확인 중…");
+    if (!RT_AT && !RT_ERR) quiet("⏳ 실시간 연결 중…");
+    RT_LAST = Date.now();
     try {
       // supabase-js 의 invoke 대신 직접 호출 (라이브러리 잠금으로 멈추는 일 방지) + 8초 넘으면 포기
       const c = window.KM_CONFIG.supabase, ac = new AbortController(), to = setTimeout(() => ac.abort(), 8000);
@@ -1940,18 +2076,18 @@
       clearTimeout(to);
       const data = await res.json().catch(() => null), error = res.ok ? null : { message: `${res.status}` };
       if (error || !data?.quotes) {
-        let msg = data?.error ? `${res.status} ${data.error}` : error?.message || "응답 없음";
+        const msg = data?.error ? `${res.status} ${data.error}` : error?.message || "응답 없음";
         RT_ERR = String(msg).slice(0, 200); console.warn("[kis-quote]", RT_ERR); renderStatus(); rtPill("⚠️ 실시간 오류: " + RT_ERR.slice(0, 60), true); return;
       }
       let changed = false;
       for (const [c, q] of Object.entries(data.quotes)) {
-        const before = ALL[c]?.close;
+        const before = ALL[c]?.close ?? MK.stocks?.[c]?.close;
         liveFix(ALL[c], q.close, q.chg, q.amount); liveFix(MK.stocks?.[c], q.close, q.chg, q.amount);
-        if (before !== q.close) changed = true;
+        if (isNum(before) && before !== q.close) { changed = true; FLASH[c] = q.close > before ? 1 : -1; }
       }
       RT_AT = data.at; RT_ERR = null; renderStatus();
       rtPill(`⚡${nxt ? "NXT " : ""}실시간 ${new Date(Date.now() + 9 * 3600000).toISOString().slice(11, 19)}`);
-      if (changed && safeToRerender()) rerender();
+      if (changed && safeToRerender()) rerender(); else { FLASH = {}; renderDock(); }
     } catch (e) { RT_ERR = e?.name === "AbortError" ? "응답이 8초 넘게 없음" : String(e?.message || e).slice(0, 200); renderStatus(); rtPill("⚠️ 실시간 오류: " + RT_ERR.slice(0, 60), true); }
   }
   let RT_AT = null, RT_ERR = null, TOKEN = null;
