@@ -1076,6 +1076,16 @@
  "news": [
   {
    "date": "2026-11-28",
+   "time": "01:13",
+   "title": "\"뭘 더 해줄 수 있나\" 한마디에‥머스크도 진땀",
+   "source": "MBC",
+   "summary": "◀ 앵커 ▶ 스페이스X와 테슬라의 일론머스크 CEO가 삼성전자 이재용 회장에게 반도체 칩을 더 달라며 쩔쩔 맸다는 외신보도가 나왔습니다. 수요가 공급을 초과하는 메모리 품귀 현상을 단적으로 보여준 사례라고 할 수 있는데요. '과잉 생산'이란 미국...",
+   "url": "https://n.news.naver.com/mnews/article/214/0001538606",
+   "impact": "중립",
+   "auto": true
+  },
+  {
+   "date": "2026-11-28",
    "time": "00:35",
    "title": "삼성전자, 30조 역대급 배당… 개미들에 5조, 회장님엔 4500억",
    "source": "조선일보",
@@ -1125,17 +1135,6 @@
    "url": "https://n.news.naver.com/mnews/article/018/0006416764",
    "impact": "주의",
    "auto": true
-  },
-  {
-   "date": "2026-11-27",
-   "time": "22:42",
-   "title": "미 국채가 약세…AI주 반등 속 위험선호 회복",
-   "source": "연합뉴스",
-   "summary": "",
-   "url": "https://search.naver.com/search.naver?where=news&query=%EB%AF%B8%20%EA%B5%AD%EC%B1%84%EA%B0%80%20%EC%95%BD%EC%84%B8%E2%80%A6AI%EC%A3%BC%20%EB%B0%98%EB%93%B1%20%EC%86%8D%20%EC%9C%84%ED%97%98%EC%84%A0%ED%98%B8%20%ED%9A%8C%EB%B3%B5",
-   "impact": "주의",
-   "auto": true,
-   "kind": "뉴스"
   }
  ],
  "code": "005930",

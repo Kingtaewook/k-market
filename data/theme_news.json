@@ -86,6 +86,17 @@
   "반도체·AI인프라": [
    {
     "date": "2026-11-28",
+    "time": "01:13",
+    "title": "\"뭘 더 해줄 수 있나\" 한마디에‥머스크도 진땀",
+    "source": "MBC",
+    "summary": "◀ 앵커 ▶ 스페이스X와 테슬라의 일론머스크 CEO가 삼성전자 이재용 회장에게 반도체 칩을 더 달라며 쩔쩔 맸다는 외신보도가 나왔습니다. 수요가 공급을 초과하는 메모리 품귀 현상을 단적으로 보여준 사례라고 할 수 있는데요. '과잉 생산'이란 미국...",
+    "url": "https://n.news.naver.com/mnews/article/214/0001538606",
+    "impact": "중립",
+    "auto": true,
+    "stock": "삼성전자"
+   },
+   {
+    "date": "2026-11-28",
     "time": "00:35",
     "title": "삼성전자, 30조 역대급 배당… 개미들에 5조, 회장님엔 4500억",
     "source": "조선일보",
@@ -102,18 +113,6 @@
     "source": "DART 공시",
     "summary": "조용선",
     "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127002010",
-    "impact": "중립",
-    "auto": true,
-    "kind": "공시",
-    "stock": "삼성전자"
-   },
-   {
-    "date": "2026-11-27",
-    "time": null,
-    "title": "기타경영사항(자율공시)",
-    "source": "DART 공시",
-    "summary": "삼성전자",
-    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127800973",
     "impact": "중립",
     "auto": true,
     "kind": "공시",
