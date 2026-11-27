@@ -998,17 +998,17 @@
   ],
   [
    "2026-11-27",
-   523000.0
+   532000.0
   ]
  ],
  "price": {
-  "close": 523000.0,
-  "r1m": 0.2834355828220858,
-  "r3m": 0.14692982456140347,
-  "pos52": 0.3303964757709251,
+  "close": 532000.0,
+  "r1m": 0.30552147239263805,
+  "r3m": 0.16666666666666674,
+  "pos52": 0.3436123348017621,
   "hi52": 979000.0,
   "lo52": 298000.0,
-  "vol20": 143244.25,
+  "vol20": 147574.25,
   "last_date": "2026-11-27"
  },
  "quarters": [
@@ -1059,9 +1059,9 @@
   }
  ],
  "fundamentals": {
-  "market_cap_eok": 101461.0,
-  "per": 5943.18,
-  "pbr": 76.36,
+  "market_cap_eok": 103207.0,
+  "per": 6045.45,
+  "pbr": 77.68,
   "roe": 0.0129,
   "debt_ratio": 0.0907,
   "op_margin": -0.16469999999999999,
@@ -1073,13 +1073,68 @@
  "news": [
   {
    "date": "2026-11-27",
-   "time": "10:29",
-   "title": "로봇주 강세에 코스닥 4% 급등…레인보우로보틱스 13% 상승[핫종목]",
-   "source": "뉴스1",
-   "summary": "로봇주가 장 초반 강세를 보이며 코스닥 시장이 4% 넘는 상승세를 보이고 있다. 내년 초 열리는 세계 최대 가전·정보기술(IT) 전시회 'CES 2027'을 앞두고 피지컬 AI 산업의 성장 기대감이 이어지는 영향으로 분석된다. 27일 오전 9시 59분...",
-   "url": "https://n.news.naver.com/mnews/article/421/0009313724",
-   "impact": "긍정",
+   "time": "17:34",
+   "title": "'증안펀드 증액 기대감'… 하루 8% 튀어 오른 코스닥",
+   "source": "매일경제",
+   "summary": "다시 700 고지 … 코스피도 강세 로봇·바이오 등 전방위 랠리 레인보우로보틱스 13% 급등 시장 안정 의지에 투심 회복 외국인, 대거 사자로 돌아서 낙폭 과다株 중심 저가 매수 F4 \"공매도 특이 동향 없어\" 30일 증안펀드 윤곽 나올듯 국내 증시가...",
+   "url": "https://n.news.naver.com/mnews/article/009/0005770109",
+   "impact": "중립",
    "auto": true
+  },
+  {
+   "date": "2026-11-27",
+   "time": "17:09",
+   "title": "증시요약(3) - 특징 테마",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%A6%9D%EC%8B%9C%EC%9A%94%EC%95%BD%283%29%20-%20%ED%8A%B9%EC%A7%95%20%ED%85%8C%EB%A7%88",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "17:08",
+   "title": "증시요약(2) - 코스닥 마감시황",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%A6%9D%EC%8B%9C%EC%9A%94%EC%95%BD%282%29%20-%20%EC%BD%94%EC%8A%A4%EB%8B%A5%20%EB%A7%88%EA%B0%90%EC%8B%9C%ED%99%A9",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "16:29",
+   "title": "증안펀드 기대감에 뛴 국내 증시…\"美 반도체주 뛰는지 확인 필요\"",
+   "source": "머니투데이",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%A6%9D%EC%95%88%ED%8E%80%EB%93%9C%20%EA%B8%B0%EB%8C%80%EA%B0%90%EC%97%90%20%EB%9B%B4%20%EA%B5%AD%EB%82%B4%20%EC%A6%9D%EC%8B%9C%E2%80%A6%22%E7%BE%8E%20%EB%B0%98%EB%8F%84%EC%B2%B4%EC%A3%BC%20%EB%9B%B0%EB%8A%94%EC%A7%80%20%ED%99%95%EC%9D%B8%20%ED%95%84%EC%9A%94%22",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "16:08",
+   "title": "코스피 4.3% 상승 4,900선 회복…코스닥 8%대 급등 700선 탈환(종합)",
+   "source": "연합뉴스",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%ED%94%BC%204.3%25%20%EC%83%81%EC%8A%B9%204%2C900%EC%84%A0%20%ED%9A%8C%EB%B3%B5%E2%80%A6%EC%BD%94%EC%8A%A4%EB%8B%A5%208%25%EB%8C%80%20%EA%B8%89%EB%93%B1%20700%EC%84%A0%20%ED%83%88%ED%99%98%28%EC%A2%85%ED%95%A9%29",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "16:07",
+   "title": "코스닥 8% 급등해 700선 탈환…외국인 1조 매수에 코스피도 4900선 [fn마감시황]",
+   "source": "파이낸셜",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%EB%8B%A5%208%25%20%EA%B8%89%EB%93%B1%ED%95%B4%20700%EC%84%A0%20%ED%83%88%ED%99%98%E2%80%A6%EC%99%B8%EA%B5%AD%EC%9D%B8%201%EC%A1%B0%20%EB%A7%A4%EC%88%98%EC%97%90%20%EC%BD%94%EC%8A%A4%ED%94%BC%EB%8F%84%204900%EC%84%A0%20%5Bfn%EB%A7%88%EA%B0%90%EC%8B%9C%ED%99%A9%5D",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
   }
  ],
  "code": "277810",
@@ -1119,14 +1174,6 @@
   }
  ],
  "flows": [
-  [
-   "2026-10-30",
-   -3150.0,
-   -603.0,
-   3598.0,
-   358000.0,
-   0.0552
-  ],
   [
    "2026-11-02",
    -10024.0,
@@ -1278,6 +1325,14 @@
    -20284.0,
    481000.0,
    0.0483
+  ],
+  [
+   "2026-11-27",
+   10552.0,
+   66420.0,
+   -78701.0,
+   532000.0,
+   0.0489
   ]
  ],
  "tracked": true

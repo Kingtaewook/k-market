@@ -998,17 +998,17 @@
   ],
   [
    "2026-11-27",
-   300500.0
+   304000.0
   ]
  ],
  "price": {
-  "close": 300500.0,
-  "r1m": 0.09471766848816032,
-  "r3m": 0.24173553719008267,
-  "pos52": 0.470873786407767,
+  "close": 304000.0,
+  "r1m": 0.10746812386156646,
+  "r3m": 0.25619834710743805,
+  "pos52": 0.48220064724919093,
   "hi52": 464000.0,
   "lo52": 155000.0,
-  "vol20": 297577.85,
+  "vol20": 301641.1,
   "last_date": "2026-11-27"
  },
  "quarters": [
@@ -1059,12 +1059,12 @@
   }
  ],
  "fundamentals": {
-  "market_cap_eok": 44086.0,
-  "pbr": 12.56,
+  "market_cap_eok": 44600.0,
+  "pbr": 12.71,
   "roe": -0.028999999999999998,
   "debt_ratio": 0.0547,
   "op_margin": -0.19390000000000002,
-  "cns_per": -1202.0,
+  "cns_per": -1216.0,
   "cns_eps": -250.0,
   "target": 336556.0,
   "recomm": 4.0
@@ -1074,13 +1074,69 @@
  "news": [
   {
    "date": "2026-11-27",
-   "time": "10:03",
-   "title": "현대차證 \"로보티즈, 내년 생산능력 120만~130만 대…목표가 9.2%↑\"",
-   "source": "뉴스1",
-   "summary": "현대차증권은 27일 로보티즈(108490)가 우즈베키스탄 공장 증설로 생산능력을 확대하고 이족보행 로봇과 신규 액추에이터 공급에 나서면서 내년 매출이 올해의 두 배를 웃돌 것으로 전망했다. 목표주가는 38만 원에서 41만 5000원으로 9.2% 높이고...",
-   "url": "https://n.news.naver.com/mnews/article/421/0009313678",
+   "time": "16:08",
+   "title": "코스피 4.3% 상승 4,900선 회복…코스닥 8%대 급등 700선 탈환(종합)",
+   "source": "연합뉴스",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%ED%94%BC%204.3%25%20%EC%83%81%EC%8A%B9%204%2C900%EC%84%A0%20%ED%9A%8C%EB%B3%B5%E2%80%A6%EC%BD%94%EC%8A%A4%EB%8B%A5%208%25%EB%8C%80%20%EA%B8%89%EB%93%B1%20700%EC%84%A0%20%ED%83%88%ED%99%98%28%EC%A2%85%ED%95%A9%29",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "15:51",
+   "title": "코스닥 기관 순매수,도 상위20종목",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%EB%8B%A5%20%EA%B8%B0%EA%B4%80%20%EC%88%9C%EB%A7%A4%EC%88%98%2C%EB%8F%84%20%EC%83%81%EC%9C%8420%EC%A2%85%EB%AA%A9",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "15:44",
+   "title": "[특징주] 로봇주, 수요 확대 기대감에 급등…일부 상한가(종합)",
+   "source": "연합뉴스",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%5B%ED%8A%B9%EC%A7%95%EC%A3%BC%5D%20%EB%A1%9C%EB%B4%87%EC%A3%BC%2C%20%EC%88%98%EC%9A%94%20%ED%99%95%EB%8C%80%20%EA%B8%B0%EB%8C%80%EA%B0%90%EC%97%90%20%EA%B8%89%EB%93%B1%E2%80%A6%EC%9D%BC%EB%B6%80%20%EC%83%81%ED%95%9C%EA%B0%80%28%EC%A2%85%ED%95%A9%29",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "14:20",
+   "title": "1억원 이상 매수체결 상위 20 종목(코스닥)",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=1%EC%96%B5%EC%9B%90%20%EC%9D%B4%EC%83%81%20%EB%A7%A4%EC%88%98%EC%B2%B4%EA%B2%B0%20%EC%83%81%EC%9C%84%2020%20%EC%A2%85%EB%AA%A9%28%EC%BD%94%EC%8A%A4%EB%8B%A5%29",
    "impact": "중립",
-   "auto": true
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "13:37",
+   "title": "\"증안펀드 증액 하려나\"…코스피 3%대·코스닥 6%대 상승",
+   "source": "머니투데이",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%22%EC%A6%9D%EC%95%88%ED%8E%80%EB%93%9C%20%EC%A6%9D%EC%95%A1%20%ED%95%98%EB%A0%A4%EB%82%98%22%E2%80%A6%EC%BD%94%EC%8A%A4%ED%94%BC%203%25%EB%8C%80%C2%B7%EC%BD%94%EC%8A%A4%EB%8B%A5%206%25%EB%8C%80%20%EC%83%81%EC%8A%B9",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "13:35",
+   "title": "돌아온 외국인…코스피 3%?코스닥 6% 급등 [줍줍 리포트]",
+   "source": "서울경제",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EB%8F%8C%EC%95%84%EC%98%A8%20%EC%99%B8%EA%B5%AD%EC%9D%B8%E2%80%A6%EC%BD%94%EC%8A%A4%ED%94%BC%203%25%3F%EC%BD%94%EC%8A%A4%EB%8B%A5%206%25%20%EA%B8%89%EB%93%B1%20%5B%EC%A4%8D%EC%A4%8D%20%EB%A6%AC%ED%8F%AC%ED%8A%B8%5D",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
   }
  ],
  "code": "108490",
@@ -1120,14 +1176,6 @@
   }
  ],
  "flows": [
-  [
-   "2026-10-30",
-   -22095.0,
-   3159.0,
-   19504.0,
-   251500.0,
-   0.0645
-  ],
   [
    "2026-11-02",
    -27995.0,
@@ -1279,6 +1327,14 @@
    21519.0,
    285000.0,
    0.06570000000000001
+  ],
+  [
+   "2026-11-27",
+   29897.0,
+   96772.0,
+   -130327.0,
+   304000.0,
+   0.0678
   ]
  ],
  "tracked": true

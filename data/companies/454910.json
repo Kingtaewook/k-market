@@ -998,17 +998,17 @@
   ],
   [
    "2026-11-27",
-   54000.0
+   54600.0
   ]
  ],
  "price": {
-  "close": 54000.0,
-  "r1m": -0.11620294599018,
-  "r3m": -0.24581005586592175,
-  "pos52": 0.06976744186046512,
+  "close": 54600.0,
+  "r1m": -0.1063829787234043,
+  "r3m": -0.23743016759776536,
+  "pos52": 0.07457898957497995,
   "hi52": 170000.0,
   "lo52": 45300.0,
-  "vol20": 304565.55,
+  "vol20": 309905.6,
   "last_date": "2026-11-27"
  },
  "quarters": [
@@ -1059,8 +1059,8 @@
   }
  ],
  "fundamentals": {
-  "market_cap_eok": 35068.0,
-  "pbr": 11.51,
+  "market_cap_eok": 35392.0,
+  "pbr": 11.61,
   "roe": -0.17010000000000003,
   "debt_ratio": 0.3385,
   "op_margin": -0.8287,
@@ -1072,43 +1072,69 @@
  "news": [
   {
    "date": "2026-11-27",
-   "time": "08:49",
-   "title": "\"두산로보틱스, 美자동화 사업 앞세워 내년 매출 1000억 돌파\" iM證",
-   "source": "파이낸셜뉴스",
-   "summary": "두산로보틱스가 북미 자동화 솔루션 사업 확대에 힘입어 내년 매출 1000억원을 넘어설 것이라는 전망이 나왔다. 미국 공장을 확장 이전해 생산능력을 키운 가운데, 연말 신규 수주 규모가 내년 상반기 실적을 가늠할 지표가 될 것이라는 분석이다....",
-   "url": "https://n.news.naver.com/mnews/article/014/0005610621",
-   "impact": "긍정",
-   "auto": true
-  },
-  {
-   "date": "2026-11-27",
-   "time": "08:33",
-   "title": "두산로보 목표가 9만 2000→5만 8000원…DS證 “내년도 적자 가능성”...",
-   "source": "서울경제",
-   "summary": "DS투자증권이 두산로보틱스(454910)에 대한 목표주가를 9만 2000원에서 5만 8000원으로 하향 조정했다. 내년에도 적자 가능성이 이어지면서 로봇 모멘텀에 의존해야하는 상황이라는 이유에서다. 김수현 DS투자증권 연구원은 이날 보고서를 통해...",
-   "url": "https://n.news.naver.com/mnews/article/011/0004686767",
-   "impact": "주의",
-   "auto": true
-  },
-  {
-   "date": "2026-11-27",
-   "time": "08:23",
-   "title": "두산로보틱스, 내년 영업손실 303억 전망...적자 축소",
-   "source": "파이낸셜뉴스",
-   "summary": "iM증권은 27일 두산로보틱스에 대해 내년 매출액 1045억원, 영업손실 303억원을 전망했다. 적자 축소다. 투자의견은 '매수'를 유지했고, 목표주가는 14만5000원에서 7만원으로 낮췄다. 이상수 iM증권 연구원은 \"자동화 솔루션 매출액 584억원...",
-   "url": "https://n.news.naver.com/mnews/article/014/0005610602",
-   "impact": "주의",
-   "auto": true
-  },
-  {
-   "date": "2026-11-19",
-   "time": "20:09",
-   "title": "마음AI, 한양대 ERICA·두산로보틱스와 피지컬AI 산학협력 MOU",
-   "source": "지디넷코리아",
-   "summary": "마음AI가 한양대학교 ERICA, 두산로보틱스와 피지컬AI 분야 인재양성과 산학협력을 위한 협력체계를 구축했다. 마음AI는 18일 한양대학교 ERICA에서 열린 ‘AI 심포지아(AI Symposia)’에서 한양대학교 ERICA, 두산로보틱스와 3자 업무협약(MOU)을...",
-   "url": "https://n.news.naver.com/mnews/article/092/0002446131",
+   "time": "14:00",
+   "title": "[리포트 브리핑]두산로보틱스, '솔루션으로 외형 성장' 목표가 58,000원 - DS투자증권",
+   "source": "뉴스핌",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%5B%EB%A6%AC%ED%8F%AC%ED%8A%B8%20%EB%B8%8C%EB%A6%AC%ED%95%91%5D%EB%91%90%EC%82%B0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4%2C%20%27%EC%86%94%EB%A3%A8%EC%85%98%EC%9C%BC%EB%A1%9C%20%EC%99%B8%ED%98%95%20%EC%84%B1%EC%9E%A5%27%20%EB%AA%A9%ED%91%9C%EA%B0%80%2058%2C000%EC%9B%90%20-%20DS%ED%88%AC%EC%9E%90%EC%A6%9D%EA%B6%8C",
    "impact": "중립",
-   "auto": true
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "11:07",
+   "title": "두산, 8439억에 을지파이낸스센터 매입...\"32년 만에 다시 을지로로\"",
+   "source": "뉴스핌",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EB%91%90%EC%82%B0%2C%208439%EC%96%B5%EC%97%90%20%EC%9D%84%EC%A7%80%ED%8C%8C%EC%9D%B4%EB%82%B8%EC%8A%A4%EC%84%BC%ED%84%B0%20%EB%A7%A4%EC%9E%85...%2232%EB%85%84%20%EB%A7%8C%EC%97%90%20%EB%8B%A4%EC%8B%9C%20%EC%9D%84%EC%A7%80%EB%A1%9C%EB%A1%9C%22",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "10:42",
+   "title": "[리포트 브리핑]두산로보틱스, '수주를 통한 증명이 필요할 27년' 목표가 70,000원 - iM증권",
+   "source": "뉴스핌",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%5B%EB%A6%AC%ED%8F%AC%ED%8A%B8%20%EB%B8%8C%EB%A6%AC%ED%95%91%5D%EB%91%90%EC%82%B0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4%2C%20%27%EC%88%98%EC%A3%BC%EB%A5%BC%20%ED%86%B5%ED%95%9C%20%EC%A6%9D%EB%AA%85%EC%9D%B4%20%ED%95%84%EC%9A%94%ED%95%A0%2027%EB%85%84%27%20%EB%AA%A9%ED%91%9C%EA%B0%80%2070%2C000%EC%9B%90%20-%20iM%EC%A6%9D%EA%B6%8C",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "10:22",
+   "title": "AWS 리인벤트 앞두고 '피지컬 AI' 부상…국내 로봇업계 상용화 경쟁",
+   "source": "아시아 경제",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=AWS%20%EB%A6%AC%EC%9D%B8%EB%B2%A4%ED%8A%B8%20%EC%95%9E%EB%91%90%EA%B3%A0%20%27%ED%94%BC%EC%A7%80%EC%BB%AC%20AI%27%20%EB%B6%80%EC%83%81%E2%80%A6%EA%B5%AD%EB%82%B4%20%EB%A1%9C%EB%B4%87%EC%97%85%EA%B3%84%20%EC%83%81%EC%9A%A9%ED%99%94%20%EA%B2%BD%EC%9F%81",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "09:25",
+   "title": "내년 기대감에 로봇株 82개 중 78개 상승…코스모로보틱스 24%대↑",
+   "source": "머니투데이",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EB%82%B4%EB%85%84%20%EA%B8%B0%EB%8C%80%EA%B0%90%EC%97%90%20%EB%A1%9C%EB%B4%87%E6%A0%AA%2082%EA%B0%9C%20%EC%A4%91%2078%EA%B0%9C%20%EC%83%81%EC%8A%B9%E2%80%A6%EC%BD%94%EC%8A%A4%EB%AA%A8%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4%2024%25%EB%8C%80%E2%86%91",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "09:13",
+   "title": "두산로보틱스, 매출 늘어도 흑자 전환은 시험대",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EB%91%90%EC%82%B0%EB%A1%9C%EB%B3%B4%ED%8B%B1%EC%8A%A4%2C%20%EB%A7%A4%EC%B6%9C%20%EB%8A%98%EC%96%B4%EB%8F%84%20%ED%9D%91%EC%9E%90%20%EC%A0%84%ED%99%98%EC%9D%80%20%EC%8B%9C%ED%97%98%EB%8C%80",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
   }
  ],
  "code": "454910",
@@ -1148,14 +1174,6 @@
   }
  ],
  "flows": [
-  [
-   "2026-10-30",
-   -54759.0,
-   -20606.0,
-   74033.0,
-   53600.0,
-   0.0487
-  ],
   [
    "2026-11-02",
    8926.0,
@@ -1307,6 +1325,14 @@
    -57054.0,
    52000.0,
    0.044500000000000005
+  ],
+  [
+   "2026-11-27",
+   32937.0,
+   -31913.0,
+   -6625.0,
+   54600.0,
+   0.045
   ]
  ],
  "tracked": true
