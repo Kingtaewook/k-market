@@ -66,22 +66,30 @@ Deno.serve(async (req) => {
     const token = await kisToken(admin);
     const chunks: string[][] = [];
     for (let i = 0; i < codes.length; i += 30) chunks.push(codes.slice(i, i + 30));
-    let fails = 0, got = 0;
+    let got = 0;
+    const failed: number[] = [];
+    const fetchChunk = async (k: number) => {
+      const p: Record<string, string> = {};
+      chunks[k].forEach((c, n) => { p[`FID_COND_MRKT_DIV_CODE_${n + 1}`] = market; p[`FID_INPUT_ISCD_${n + 1}`] = c; });
+      const j = await kisGet(token, "/uapi/domestic-stock/v1/quotations/intstock-multprice", "FHKST11300006", p);
+      for (const o of j.output || []) {
+        const px = num(o.inter2_prpr);
+        if (o.inter_shrn_iscd && px) { rows[o.inter_shrn_iscd] = [px, (num(o.prdy_ctrt) ?? 0) / 100, num(o.acml_tr_pbmn)]; got++; }
+      }
+    };
     const worker = async (start: number) => {
       for (let k = start; k < chunks.length; k += 2) {
-        const p: Record<string, string> = {};
-        chunks[k].forEach((c, n) => { p[`FID_COND_MRKT_DIV_CODE_${n + 1}`] = market; p[`FID_INPUT_ISCD_${n + 1}`] = c; });
-        try {
-          const j = await kisGet(token, "/uapi/domestic-stock/v1/quotations/intstock-multprice", "FHKST11300006", p);
-          for (const o of j.output || []) {
-            const px = num(o.inter2_prpr);
-            if (o.inter_shrn_iscd && px) { rows[o.inter_shrn_iscd] = [px, (num(o.prdy_ctrt) ?? 0) / 100, num(o.acml_tr_pbmn)]; got++; }
-          }
-        } catch (e) { fails++; console.log("chunk", k, String(e)); }
+        try { await fetchChunk(k); } catch { failed.push(k); }
         await sleep(120);
       }
     };
     await Promise.all([worker(0), worker(1)]);
+    // 한도에 걸린 묶음은 끝나고 천천히 한 번 더
+    let fails = 0;
+    for (const k of failed) {
+      await sleep(400);
+      try { await fetchChunk(k); } catch (e) { fails++; console.log("chunk", k, String(e)); }
+    }
 
     // 5) 코스피·코스닥 지수
     const idx: Record<string, { close: number | null; chg: number }> = { ...(prev.idx || {}) };
