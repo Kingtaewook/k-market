@@ -23,6 +23,11 @@ import requests
 
 sys.path.insert(0, str(Path(__file__).parent))
 from scoring import compute_themes, momentum  # noqa: E402
+import sources  # noqa: E402
+
+# 다른 출처(DART 공시·한국투자증권 뉴스)에서 모은 종목별 항목 — main() 에서 채움, news() 가 합쳐서 돌려줌
+EXTRA_NEWS: dict = {}
+DART_BY_CODE: dict = {}
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
@@ -342,7 +347,7 @@ def news(code, n=6, name=None):
             seen.add(key)
             out.append(it)
     out.sort(key=lambda x: (x["date"] or "", x["time"] or ""), reverse=True)
-    return out[:n]
+    return sources.merge_items(out, EXTRA_NEWS.get(code, []), n=n)
 
 
 def flows(code, days=20):
@@ -358,6 +363,8 @@ def flows(code, days=20):
 
 
 def disclosures(code, n=6):
+    if DART_BY_CODE.get(code):  # DART 원문 링크·분류가 있는 공시 우선
+        return [{"date": d["date"], "title": d["title"], "url": d["url"], "impact": d["impact"]} for d in DART_BY_CODE[code][:n]]
     j = get(f"https://m.stock.naver.com/api/stock/{code}/disclosure?page=1&pageSize={n}").json()
     return [{"date": str(d.get("datetime", ""))[:10], "title": clean(d.get("title", "")), "id": d.get("disclosureId")}
             for d in (j if isinstance(j, list) else [])]
@@ -663,6 +670,27 @@ def main():
     except Exception as e:
         failures.append({"code": "KOSPI", "step": "시세", "error": str(e)[:200]})
 
+    # ---- 다른 출처: DART 공시 + 한국투자증권 시장 뉴스 → 종목별로 모아 두면 news() 가 네이버 기사와 합침
+    try:
+        DART_BY_CODE.update(sources.dart_recent(days=5))
+    except Exception as e:
+        failures.append({"code": "*", "step": "DART 공시", "error": str(e)[:200]})
+    try:
+        kn = sources.kis_news(classify, pages=15)
+        print(f"[KIS 뉴스] 시장 전체 → 종목 {len(kn)}개")
+    except Exception as e:
+        kn = {}
+        failures.append({"code": "*", "step": "KIS 뉴스", "error": str(e)[:200]})
+    for c in set(DART_BY_CODE) | set(kn):
+        EXTRA_NEWS[c] = sources.merge_items(kn.get(c, []), DART_BY_CODE.get(c, [])[:4], n=8)
+    # ---- 투자주의·경고·위험 등 (한국투자증권, 전 종목 한 번씩 · 약 6분)
+    try:
+        w = sources.kis_warnings([r[1] for r in listing])
+        if w is not None:
+            save(DATA / "warnings.json", {"as_of": today, "updated_at": now.isoformat(timespec="minutes"), "w": w}, compact=True)
+    except Exception as e:
+        failures.append({"code": "*", "step": "시장경고", "error": str(e)[:200]})
+
     # 상세 수집 대상: 테마 종목 + 추가 종목 + 사용자 보유·관심 종목
     watch = {}
     for t in config["themes"]:
@@ -735,6 +763,12 @@ def main():
                 merge_fund(comp, f, qs, src)
             except Exception as e:
                 failures.append({"code": code, "name": meta["name"], "step": "재무", "error": str(e)[:200]})
+        try:
+            own = sources.kis_news(classify, code=code).get(code, [])
+            if own:
+                EXTRA_NEWS[code] = sources.merge_items(own, EXTRA_NEWS.get(code, []), n=8)
+        except Exception as e:
+            print(f"  [KIS 뉴스] 실패 {code}: {e}")
         nw = news(code, name=meta["name"])
         news_cache[code] = nw
         try:
