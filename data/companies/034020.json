@@ -1075,6 +1075,16 @@
  "news": [
   {
    "date": "2026-11-27",
+   "time": "22:08",
+   "title": "두산·창원상의, ‘에너지 취약계층’ 1억 8천만 원 기탁",
+   "source": "KBS",
+   "summary": "두산에너빌리티와 창원상의가 에너지 취약계층을 위해 써달라며 1억 8천만 원을 경남사회복지공동모금회에 기탁했습니다. 지원금은 창원 지역 에너지 취약계층 천5백 세대 난방비 등에 활용됩니다. 두산에너빌리티는 또, 보행장애 아동을 위한...",
+   "url": "https://n.news.naver.com/mnews/article/056/0012302972",
+   "impact": "중립",
+   "auto": true
+  },
+  {
+   "date": "2026-11-27",
    "time": "17:58",
    "title": "두산에너빌리티, '트리븐 가흥' 27일 견본주택 개관",
    "source": "파이낸셜뉴스",
@@ -1124,17 +1134,6 @@
    "summary": "",
    "url": "https://search.naver.com/search.naver?where=news&query=%EB%91%90%EC%82%B0%2C%208439%EC%96%B5%EC%97%90%20%EC%9D%84%EC%A7%80%ED%8C%8C%EC%9D%B4%EB%82%B8%EC%8A%A4%EC%84%BC%ED%84%B0%20%EB%A7%A4%EC%9E%85...%2232%EB%85%84%20%EB%A7%8C%EC%97%90%20%EB%8B%A4%EC%8B%9C%20%EC%9D%84%EC%A7%80%EB%A1%9C%EB%A1%9C%22",
    "impact": "중립",
-   "auto": true,
-   "kind": "뉴스"
-  },
-  {
-   "date": "2026-11-27",
-   "time": "10:19",
-   "title": "[장중수급포착] 두산에너빌리티, 기관 5일 연속 순매수행진... 주가 +6.54%",
-   "source": "뉴스핌",
-   "summary": "",
-   "url": "https://search.naver.com/search.naver?where=news&query=%5B%EC%9E%A5%EC%A4%91%EC%88%98%EA%B8%89%ED%8F%AC%EC%B0%A9%5D%20%EB%91%90%EC%82%B0%EC%97%90%EB%84%88%EB%B9%8C%EB%A6%AC%ED%8B%B0%2C%20%EA%B8%B0%EA%B4%80%205%EC%9D%BC%20%EC%97%B0%EC%86%8D%20%EC%88%9C%EB%A7%A4%EC%88%98%ED%96%89%EC%A7%84...%20%EC%A3%BC%EA%B0%80%20%2B6.54%25",
-   "impact": "긍정",
    "auto": true,
    "kind": "뉴스"
   }

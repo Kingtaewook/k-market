@@ -85,6 +85,17 @@
  "auto": {
   "반도체·AI인프라": [
    {
+    "date": "2026-11-28",
+    "time": "00:35",
+    "title": "삼성전자, 30조 역대급 배당… 개미들에 5조, 회장님엔 4500억",
+    "source": "조선일보",
+    "summary": "100주 가진 투자자, 39만원 받아 SK하이닉스도 내달 14조 풀어 삼성전자가 27일 국내 기업 사상 최대 규모인 30조원의 현금 배당금을 주주들에게 지급했다. SK하이닉스도 다음 달 14조원 규모의 배당을 하면서, 얼어붙은 반도체주 투자 심리를...",
+    "url": "https://n.news.naver.com/mnews/article/023/0004012212",
+    "impact": "중립",
+    "auto": true,
+    "stock": "삼성전자"
+   },
+   {
     "date": "2026-11-27",
     "time": null,
     "title": "임원ㆍ주요주주특정증권등소유상황보고서",
@@ -106,17 +117,6 @@
     "impact": "중립",
     "auto": true,
     "kind": "공시",
-    "stock": "삼성전자"
-   },
-   {
-    "date": "2026-11-27",
-    "time": "21:00",
-    "title": "이재용 8년 전 낙점한 사업…머스크發 기회 오나",
-    "source": "한국경제TV",
-    "summary": "스페이스X가 미국 전역에 지상 5G 이동통신망 구축을 추진하면서 삼성전자 네트워크 사업부의 신규 고객이 될 지 주목된다. 이달 초 스페이스X는 퀄컴과 계약을 맺고 미국 전역에 스타링크 모바일의 5세대(5G) 이동통신 기지국을 배치할 계획이라고...",
-    "url": "https://n.news.naver.com/mnews/article/215/0001274250",
-    "impact": "중립",
-    "auto": true,
     "stock": "삼성전자"
    },
    {
@@ -145,15 +145,15 @@
    },
    {
     "date": "2026-11-27",
-    "time": null,
-    "title": "대규모기업집단현황공시[분기별공시(개별회사용)]",
-    "source": "DART 공시",
-    "summary": "SK하이닉스",
-    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127000257",
+    "time": "18:05",
+    "title": "주식대차거래 잔고증가 상위종목(코스피)",
+    "source": "인포스탁",
+    "summary": "",
+    "url": "https://search.naver.com/search.naver?where=news&query=%EC%A3%BC%EC%8B%9D%EB%8C%80%EC%B0%A8%EA%B1%B0%EB%9E%98%20%EC%9E%94%EA%B3%A0%EC%A6%9D%EA%B0%80%20%EC%83%81%EC%9C%84%EC%A2%85%EB%AA%A9%28%EC%BD%94%EC%8A%A4%ED%94%BC%29",
     "impact": "중립",
     "auto": true,
-    "kind": "공시",
-    "stock": "SK하이닉스"
+    "kind": "뉴스",
+    "stock": "한미반도체"
    }
   ],
   "조선·해양": [
@@ -278,6 +278,18 @@
    },
    {
     "date": "2026-11-27",
+    "time": "23:43",
+    "title": "LIG D&A, 네덜란드 참전용사 방문…사진 기록?기념품 전달",
+    "source": "서울경제",
+    "summary": "",
+    "url": "https://search.naver.com/search.naver?where=news&query=LIG%20D%26A%2C%20%EB%84%A4%EB%8D%9C%EB%9E%80%EB%93%9C%20%EC%B0%B8%EC%A0%84%EC%9A%A9%EC%82%AC%20%EB%B0%A9%EB%AC%B8%E2%80%A6%EC%82%AC%EC%A7%84%20%EA%B8%B0%EB%A1%9D%3F%EA%B8%B0%EB%85%90%ED%92%88%20%EC%A0%84%EB%8B%AC",
+    "impact": "중립",
+    "auto": true,
+    "kind": "뉴스",
+    "stock": "LIG넥스원"
+   },
+   {
+    "date": "2026-11-27",
     "time": "13:19",
     "title": "[카드] 네덜란드 한국전 참전용사 찾은 LIG D&A",
     "source": "인포스탁",
@@ -287,21 +299,20 @@
     "auto": true,
     "kind": "뉴스",
     "stock": "LIG넥스원"
-   },
-   {
-    "date": "2026-11-27",
-    "time": "11:06",
-    "title": "코스피 하락률 상위 20종목(직전 30분 기준)",
-    "source": "인포스탁",
-    "summary": "",
-    "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%ED%94%BC%20%ED%95%98%EB%9D%BD%EB%A5%A0%20%EC%83%81%EC%9C%84%2020%EC%A2%85%EB%AA%A9%28%EC%A7%81%EC%A0%84%2030%EB%B6%84%20%EA%B8%B0%EC%A4%80%29",
-    "impact": "주의",
-    "auto": true,
-    "kind": "뉴스",
-    "stock": "LIG넥스원"
    }
   ],
   "원전·전력망": [
+   {
+    "date": "2026-11-27",
+    "time": "22:08",
+    "title": "두산·창원상의, ‘에너지 취약계층’ 1억 8천만 원 기탁",
+    "source": "KBS",
+    "summary": "두산에너빌리티와 창원상의가 에너지 취약계층을 위해 써달라며 1억 8천만 원을 경남사회복지공동모금회에 기탁했습니다. 지원금은 창원 지역 에너지 취약계층 천5백 세대 난방비 등에 활용됩니다. 두산에너빌리티는 또, 보행장애 아동을 위한...",
+    "url": "https://n.news.naver.com/mnews/article/056/0012302972",
+    "impact": "중립",
+    "auto": true,
+    "stock": "두산에너빌리티"
+   },
    {
     "date": "2026-11-27",
     "time": "17:58",
@@ -320,18 +331,6 @@
     "source": "인포스탁",
     "summary": "",
     "url": "https://search.naver.com/search.naver?where=news&query=%5B%EC%B9%B4%EB%93%9C%5D%20%22%EC%A4%80%EB%B9%84%EB%90%9C%20%EC%9D%B8%ED%94%84%EB%9D%BC%20%EC%9C%84%20%E6%96%B0%EB%9E%9C%EB%93%9C%EB%A7%88%ED%81%AC%22%20%ED%8A%B8%EB%A6%AC%EB%B8%90%20%EA%B0%80%ED%9D%A5%2C%20%EA%B0%88%EC%95%84%ED%83%80%EA%B8%B0%20%EC%88%98%EC%9A%94%20%EC%8B%9C%EC%84%A0%20%EC%A7%91%EC%A4%91",
-    "impact": "중립",
-    "auto": true,
-    "kind": "뉴스",
-    "stock": "두산에너빌리티"
-   },
-   {
-    "date": "2026-11-27",
-    "time": "14:20",
-    "title": "1억원 이상 매수체결 상위 20 종목(코스피)",
-    "source": "인포스탁",
-    "summary": "",
-    "url": "https://search.naver.com/search.naver?where=news&query=1%EC%96%B5%EC%9B%90%20%EC%9D%B4%EC%83%81%20%EB%A7%A4%EC%88%98%EC%B2%B4%EA%B2%B0%20%EC%83%81%EC%9C%84%2020%20%EC%A2%85%EB%AA%A9%28%EC%BD%94%EC%8A%A4%ED%94%BC%29",
     "impact": "중립",
     "auto": true,
     "kind": "뉴스",
@@ -546,13 +545,14 @@
    },
    {
     "date": "2026-11-27",
-    "time": "17:25",
-    "title": "2조 규모 정부 ESS 입찰 … 삼성SDI 63% 물량 따내",
-    "source": "매일경제",
-    "summary": "SK온 37% 수주…엔솔은 불참 삼성SDI와 SK온이 역대 최대인 2조원 규모의 제3차 에너지저장장치(ESS) 중앙계약 수주전에서 각각 63%, 37% 물량을 확보했다. 27일 업계에 따르면 기후에너지환경부와 한국전력거래소의 제3차 ESS 중앙계약시장...",
-    "url": "https://n.news.naver.com/mnews/article/009/0005770098",
-    "impact": "중립",
+    "time": "17:20",
+    "title": "[1127마감체크] 코스피, 외인·기관 쌍끌이 매수에 4900선 회복... 코스닥 8% 상승",
+    "source": "인포스탁",
+    "summary": "",
+    "url": "https://search.naver.com/search.naver?where=news&query=%5B1127%EB%A7%88%EA%B0%90%EC%B2%B4%ED%81%AC%5D%20%EC%BD%94%EC%8A%A4%ED%94%BC%2C%20%EC%99%B8%EC%9D%B8%C2%B7%EA%B8%B0%EA%B4%80%20%EC%8C%8D%EB%81%8C%EC%9D%B4%20%EB%A7%A4%EC%88%98%EC%97%90%204900%EC%84%A0%20%ED%9A%8C%EB%B3%B5...%20%EC%BD%94%EC%8A%A4%EB%8B%A5%208%25%20%EC%83%81%EC%8A%B9",
+    "impact": "긍정",
     "auto": true,
+    "kind": "뉴스",
     "stock": "LG에너지솔루션"
    },
    {
@@ -663,5 +663,5 @@
    }
   ]
  },
- "auto_as_of": "2026-11-27"
+ "auto_as_of": "2026-11-28"
 }

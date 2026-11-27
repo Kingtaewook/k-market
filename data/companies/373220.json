@@ -1095,16 +1095,6 @@
   },
   {
    "date": "2026-11-27",
-   "time": "17:25",
-   "title": "2조 규모 정부 ESS 입찰 … 삼성SDI 63% 물량 따내",
-   "source": "매일경제",
-   "summary": "SK온 37% 수주…엔솔은 불참 삼성SDI와 SK온이 역대 최대인 2조원 규모의 제3차 에너지저장장치(ESS) 중앙계약 수주전에서 각각 63%, 37% 물량을 확보했다. 27일 업계에 따르면 기후에너지환경부와 한국전력거래소의 제3차 ESS 중앙계약시장...",
-   "url": "https://n.news.naver.com/mnews/article/009/0005770098",
-   "impact": "중립",
-   "auto": true
-  },
-  {
-   "date": "2026-11-27",
    "time": "17:20",
    "title": "[1127마감체크] 코스피, 외인·기관 쌍끌이 매수에 4900선 회복... 코스닥 8% 상승",
    "source": "인포스탁",
@@ -1132,6 +1122,17 @@
    "summary": "",
    "url": "https://search.naver.com/search.naver?where=news&query=%EC%A6%9D%EC%8B%9C%EC%9A%94%EC%95%BD%281%29%20-%20%EC%BD%94%EC%8A%A4%ED%94%BC%20%EB%A7%88%EA%B0%90%EC%8B%9C%ED%99%A9",
    "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "16:14",
+   "title": "외국인·기관 쌍끌이 매수에 코스피 4.3% 급등…4900선 탈환",
+   "source": "한국경제신문",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%99%B8%EA%B5%AD%EC%9D%B8%C2%B7%EA%B8%B0%EA%B4%80%20%EC%8C%8D%EB%81%8C%EC%9D%B4%20%EB%A7%A4%EC%88%98%EC%97%90%20%EC%BD%94%EC%8A%A4%ED%94%BC%204.3%25%20%EA%B8%89%EB%93%B1%E2%80%A64900%EC%84%A0%20%ED%83%88%ED%99%98",
+   "impact": "긍정",
    "auto": true,
    "kind": "뉴스"
   }
