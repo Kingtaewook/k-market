@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     const market = body.market === "NX" ? "NX" : "J";
     const codes = [...new Set((body.codes || []).map(String).filter((c: string) => /^\d{6}$/.test(c)))].slice(0, 30) as string[];
     if (!codes.length) return json({ quotes: {} });
-    const key = market + codes.sort().join(",");
+    const key = market + codes.sort().join(",") + "|" + String(body.ccnl || "");
     if (memQuotes && memQuotes.key === key && Date.now() - memQuotes.at < 5000) return json(memQuotes.body);
 
     // 3) KIS 멀티종목 시세 (FHKST11300006, 최대 30종목)
@@ -69,7 +69,28 @@ Deno.serve(async (req) => {
       const close = num(o.inter2_prpr);
       if (o.inter_shrn_iscd && close) quotes[o.inter_shrn_iscd] = { close, chg: (num(o.prdy_ctrt) ?? 0) / 100, amount: num(o.acml_tr_pbmn) };
     }
-    const out = { at: new Date().toISOString(), market, quotes };
+    // 4) (선택) 종목 화면: 최근 체결 30건 중 500만원 이상 큰 체결 (매수/매도는 직전 체결가와 비교한 틱 규칙으로 추정)
+    let big: unknown[] | undefined;
+    const cc = String(body.ccnl || "");
+    if (/^\d{6}$/.test(cc)) {
+      try {
+        const r2 = await fetch(`${KIS}/uapi/domestic-stock/v1/quotations/inquire-ccnl?${new URLSearchParams({ FID_COND_MRKT_DIV_CODE: market, FID_INPUT_ISCD: cc })}`, {
+          headers: { authorization: `Bearer ${token}`, appkey: Deno.env.get("KIS_APP_KEY")!, appsecret: Deno.env.get("KIS_APP_SECRET")!, tr_id: "FHKST01010300", custtype: "P", "content-type": "application/json; charset=utf-8" },
+        });
+        const j2 = await r2.json();
+        const rows = (j2.output || []).slice().reverse(); // 오래된 것 → 최신
+        let prevPx = 0, side = "?";
+        big = [];
+        for (const o of rows) {
+          const px = num(o.stck_prpr) || 0, vol = num(o.cntg_vol) || 0, t = String(o.stck_cntg_hour || "");
+          if (prevPx) side = px > prevPx ? "buy" : px < prevPx ? "sell" : side;
+          prevPx = px;
+          if (px * vol >= 5_000_000) big.push({ t: `${t.slice(0, 2)}:${t.slice(2, 4)}:${t.slice(4, 6)}`, px, vol, amt: px * vol, side });
+        }
+        big = big.slice(-15).reverse(); // 최신 15건
+      } catch (_) { big = undefined; }
+    }
+    const out = { at: new Date().toISOString(), market, quotes, ...(cc ? { code: cc, big } : {}) };
     memQuotes = { key, at: Date.now(), body: out };
     return json(out);
   } catch (e) {

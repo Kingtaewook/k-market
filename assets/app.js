@@ -311,9 +311,24 @@
   // ------------------------------------------------------------ 검색
   function searchBox(id, value = "") {
     return `<div class="search-box">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="${id}" type="search" autocomplete="off" placeholder="종목명 또는 코드 (예: 삼성전자, 005930)" value="${esc(value)}">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="${id}" type="search" autocomplete="off" placeholder="종목명·코드·초성으로 검색 (예: 삼성, 005930, ㅅㅅㅈㅈ)" value="${esc(value)}">
+      <kbd class="sk">/</kbd>
       <div class="suggest" hidden></div></div>`;
+  }
+  // 최근 본 종목 (이 브라우저에만 저장)
+  const RECENT_KEY = "km_recent";
+  const recentCodes = () => { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]"); } catch { return []; } };
+  function pushRecent(code) { try { localStorage.setItem(RECENT_KEY, JSON.stringify([code, ...recentCodes().filter((c) => c !== code)].slice(0, 8))); } catch {} }
+  // 초성 검색: "ㅅㅅㅈㅈ" → 삼성전자
+  const CHO = "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ";
+  const choOf = (str) => [...str].map((ch) => { const c = ch.charCodeAt(0) - 0xac00; return c >= 0 && c < 11172 ? CHO[Math.floor(c / 588)] : ch; }).join("");
+  const isCho = (q) => /^[ㄱ-ㅎ]+$/.test(q);
+  function suggestRow(r, i, hi) {
+    const q = ALL[r[1]] || {}, th = themeOfCode(r[1]);
+    return `<button data-code="${r[1]}" data-name="${esc(r[0])}" class="${i === hi ? "hi" : ""}">${logoMark(r[1], r[0])}
+      <span class="sg-main"><b>${esc(r[0])}</b><span class="sg-sub"><span class="num">${r[1]}</span>${r[2] ? ` · ${esc(r[2])}` : ""}${th.length ? ` · ${esc(th[0])}` : ""}</span></span>
+      <span class="sg-px"><span class="num">${isNum(q.close) ? won(q.close) + "원" : ""}</span><span class="num ${cls(q.chg)}">${isNum(q.chg) ? pct(q.chg, 2) : ""}</span></span></button>`;
   }
 
   function wireSearch(id) {
@@ -321,33 +336,40 @@
     if (!input) return;
     const box = input.parentElement.querySelector(".suggest");
     let hits = [], hi = -1;
+    const byCode = (c) => LIST.find((r) => r[1] === c);
     const draw = () => {
       if (!hits.length) { box.hidden = true; return; }
       box.hidden = false;
-      box.innerHTML = hits.map((r, i) => {
-        const th = themeOfCode(r[1]);
-        return `<button data-code="${r[1]}" data-name="${esc(r[0])}" class="${i === hi ? "hi" : ""}"><b>${esc(r[0])}</b><span class="muted num">${r[1]}</span>${th.length ? `<span class="badge acc">${esc(th[0])}</span>` : ""}<span class="m">${esc(r[2] || "")}</span></button>`;
-      }).join("");
+      box.innerHTML = hits.map((r, i) => (r.head ? `<div class="sg-h">${esc(r.head)}</div>` : suggestRow(r, i, hi))).join("");
     };
+    const home = () => {
+      const rec = recentCodes().map(byCode).filter(Boolean).slice(0, 5);
+      const pop = Object.entries(ALL).filter(([, v]) => isNum(v.amount)).sort((a, b) => b[1].amount - a[1].amount).slice(0, 5).map(([c]) => byCode(c)).filter(Boolean);
+      hits = [...(rec.length ? [{ head: "최근 본 종목" }, ...rec] : []), { head: "지금 거래 많은 종목" }, ...pop];
+      hi = -1; draw();
+    };
+    input.addEventListener("focus", () => { if (!input.value.trim() && !input.dataset.pick) home(); });
     input.addEventListener("input", () => {
       const q = input.value.trim().toLowerCase();
       hi = -1;
-      if (!q) { hits = []; return draw(); }
-      const starts = [], has = [];
+      if (!q) { if (input.dataset.pick) { hits = []; return draw(); } return home(); }
+      const starts = [], has = [], cho = isCho(q);
       for (const r of LIST) {
-        const n = r[0].toLowerCase();
-        if (n.startsWith(q) || r[1].startsWith(q)) starts.push(r);
-        else if (n.includes(q)) has.push(r);
+        const n = r[0].toLowerCase(), key = cho ? choOf(r[0]) : n;
+        if (key.startsWith(q) || r[1].startsWith(q)) starts.push(r);
+        else if (key.includes(q)) has.push(r);
         if (starts.length >= 12) break;
       }
-      hits = [...starts, ...has].slice(0, 12);
+      // 시가총액 큰 종목을 위로
+      const mc = (r) => ALL[r[1]]?.marcap || 0;
+      hits = [...starts.sort((a, b) => mc(b) - mc(a)), ...has.sort((a, b) => mc(b) - mc(a))].slice(0, 10);
       draw();
     });
     input.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowDown") { hi = Math.min(hits.length - 1, hi + 1); draw(); e.preventDefault(); }
-      else if (e.key === "ArrowUp") { hi = Math.max(0, hi - 1); draw(); e.preventDefault(); }
+      if (e.key === "ArrowDown") { do { hi = Math.min(hits.length - 1, hi + 1); } while (hits[hi]?.head && hi < hits.length - 1); draw(); e.preventDefault(); }
+      else if (e.key === "ArrowUp") { do { hi = Math.max(0, hi - 1); } while (hits[hi]?.head && hi > 0); draw(); e.preventDefault(); }
       else if (e.key === "Enter") {
-        const r = hits[hi >= 0 ? hi : 0];
+        const r = hits[hi >= 0 ? hi : 0]?.head ? hits.find((x) => !x.head) : hits[hi >= 0 ? hi : 0];
         if (r && input.dataset.pick) { e.preventDefault(); input.value = r[0]; input.dataset.code = r[1]; hits = []; draw(); input.dispatchEvent(new CustomEvent("picked", { detail: r[1] })); return; }
         if (r) location.hash = `#/company/${r[1]}`;
       } else if (e.key === "Escape") { hits = []; draw(); }
@@ -543,6 +565,7 @@
       <div style="display:flex;gap:8px;align-items:center">${SB ? `<button class="btn" id="star" data-code="${code}" data-name="${esc(c.name || nameOf(code))}" title="관심 종목">${starred ? "★ 관심" : "☆ 관심 추가"}</button>` : ""}
       <div class="company-search">${searchBox("cq")}</div></div>
     </div>
+    ${window.KM_CONFIG?.realtime ? `<div class="card section bigcard"><div class="card-head"><h2>💥 큰 체결 <span class="muted" style="font-size:12.5px;font-weight:500">500만원 이상 · 실시간</span></h2></div><div id="bigtrades" data-code="${code}" class="bigtrades">${bigRows(code)}</div></div>` : ""}
     ${!c.fundamentals ? `<div class="banner">이 종목의 재무·분기 실적은 아직 수집 전이에요. 전 종목 재무는 평일마다 나눠서 받아 <b>1주일에 한 번</b> 갱신됩니다.</div>` : ""}
     ${c.source === "엑셀 수기 입력" || (age !== null && age > 30) ? `<div class="banner">이 종목의 재무·뉴스는 <b>${esc(c.as_of || "")}</b> 기준${age !== null ? ` (${age}일 전)` : ""}입니다.${c.source === "엑셀 수기 입력" ? " 엑셀에서 옮긴 값이며, 자동 갱신이 시작되면 최신 자료로 바뀝니다." : ""}</div>` : ""}
     <div class="grid g4">
@@ -963,7 +986,14 @@
   }
 
   // ------------------------------------------------------------ 시장 전체
-  const mkState = { mkt: "전체", sort: "amount", dir: -1, limit: 100, group: null };
+  const mkState = { mkt: "전체", sort: "amount", dir: -1, limit: 30, group: null, quick: null };
+  // 장중 골라보기: 상한가 도달 · 투자경고 · 급상승 · 거래대금 상위
+  const QUICK = {
+    limit: { label: "🔥 상한가 도달", test: (r) => isNum(r.chg) && r.chg >= 0.295, sort: "chg" },
+    warn: { label: "⚠ 투자경고", test: (r) => (WARNS[r.code] || []).some((w) => /투자경고|투자위험/.test(w)), sort: "chg" },
+    surge: { label: "🚀 급상승 +10%↑", test: (r) => isNum(r.chg) && r.chg >= 0.1, sort: "chg" },
+    amount: { label: "💰 거래대금 상위", test: () => true, sort: "amount" },
+  };
   const SORTS = { amount: "거래대금", chg: "등락률", r1w: "1주", r1m: "1개월", r3m: "3개월", marcap: "시가총액", pos52: "52주 위치" };
   function marketRows() {
     let rows = LIST.map((r) => ({ code: r[1], name: r[0], market: r[2], sector: r[3] || "", ...(ALL[r[1]] || {}) }));
@@ -973,9 +1003,15 @@
     else if (mkState.mkt === "신고가") rows = rows.filter((r) => (r.pos52 ?? 0) >= 0.98);
     else if (mkState.mkt === "신저가") rows = rows.filter((r) => r.pos52 !== undefined && r.pos52 !== null && r.pos52 <= 0.02);
     else if (mkState.mkt === "추천 테마") { const t = new Set(trackedCodes()); rows = rows.filter((r) => t.has(r.code)); }
-    const k = mkState.sort;
+    const Q = QUICK[mkState.quick];
+    if (Q) rows = rows.filter(Q.test);
+    const k = Q && mkState.sort === "_q" ? Q.sort : mkState.sort;
     rows.sort((a, b) => ((isNum(b[k]) ? b[k] : -Infinity) - (isNum(a[k]) ? a[k] : -Infinity)) * (mkState.dir === -1 ? 1 : -1));
     return rows;
+  }
+  function quickCounts() {
+    const all = LIST.map((r) => ({ code: r[1], ...(ALL[r[1]] || {}) }));
+    return Object.fromEntries(Object.entries(QUICK).map(([k, q]) => [k, k === "amount" ? null : all.filter(q.test).length]));
   }
   function pageMarket(parts = []) {
     if (parts[1] === "groups") {
@@ -1003,6 +1039,7 @@
           <div class="chips" style="margin:0">${(G ? ["전체", "KOSPI", "KOSDAQ"] : ["전체", "KOSPI", "KOSDAQ", "신고가", "신저가", "추천 테마"]).map((m) => `<button class="chip ${m === mkState.mkt ? "on" : ""}" data-mkt="${m}">${m}</button>`).join("")}</div>
           <span class="muted" style="font-size:13px">${rows.length.toLocaleString()}종목 · 제목을 눌러 정렬</span>
         </div>
+        ${!G ? (() => { const qc = quickCounts(); return `<div class="quick">${Object.entries(QUICK).map(([k, q]) => `<button class="qchip ${mkState.quick === k ? "on" : ""}" data-quick="${k}">${q.label}${qc[k] !== null ? ` <b class="num">${qc[k]}</b>` : ""}</button>`).join("")}</div>`; })() : ""}
         ${Object.keys(ALL).length ? `<div class="table-wrap"><table class="mk-table">
           <thead><tr><th class="rank">순위</th><th class="heart-td"></th><th>종목</th>${th("close", "현재가")}${th("chg", "등락률")}${th("amount", "거래대금")}${th("marcap", "시가총액")}<th class="r opt sortable" data-sort="r1w">1주${mkState.sort === "r1w" ? (mkState.dir === -1 ? " ▼" : " ▲") : ""}</th><th class="r opt sortable" data-sort="r1m">1개월${mkState.sort === "r1m" ? (mkState.dir === -1 ? " ▼" : " ▲") : ""}</th><th class="opt sortable" data-sort="pos52">52주 위치${mkState.sort === "pos52" ? (mkState.dir === -1 ? " ▼" : " ▲") : ""}</th></tr></thead>
           <tbody>${rows.slice(0, mkState.limit).map((r, i) => `<tr class="link" data-go="#/company/${r.code}">
@@ -1016,18 +1053,25 @@
             <td class="r num opt ${cls(r.r1w)}">${pct(r.r1w)}</td>
             <td class="r num opt ${cls(r.r1m)}">${pct(r.r1m)}</td>
             <td class="opt">${pos52(r.pos52)}</td></tr>`).join("")}</tbody></table></div>
-          ${rows.length > mkState.limit ? `<div style="text-align:center;margin-top:14px"><button class="btn" id="more">100개 더 보기</button></div>` : ""}`
+          ${rows.length > mkState.limit ? `<button class="more-bar" id="more">더보기 <span class="muted num">${mkState.limit} / ${rows.length.toLocaleString()}</span> ⌄</button>` : ""}
+          ${!rows.length ? `<div class="empty">지금 조건에 맞는 종목이 없어요.</div>` : ""}`
         : `<div class="empty">전 종목 시세는 다음 자동 갱신(평일 16:20) 후 표시됩니다.</div>`}
       </div>`;
   }
   function wireMarket() {
-    document.querySelectorAll("[data-mkt]").forEach((b) => b.addEventListener("click", () => { mkState.mkt = b.dataset.mkt; mkState.limit = 100; rerender(); }));
+    document.querySelectorAll("[data-mkt]").forEach((b) => b.addEventListener("click", () => { mkState.mkt = b.dataset.mkt; mkState.limit = 30; rerender(); }));
     document.querySelectorAll("[data-sort]").forEach((b) => b.addEventListener("click", () => {
       const k = b.dataset.sort;
       if (mkState.sort === k) mkState.dir *= -1; else { mkState.sort = k; mkState.dir = -1; }
       rerender();
     }));
-    document.getElementById("more")?.addEventListener("click", () => { mkState.limit += 100; rerender(); });
+    document.getElementById("more")?.addEventListener("click", () => { mkState.limit += 30; rerender(); });
+    document.querySelectorAll("[data-quick]").forEach((b) => b.addEventListener("click", () => {
+      const k = b.dataset.quick;
+      mkState.quick = mkState.quick === k ? null : k;
+      mkState.sort = mkState.quick ? "_q" : "amount"; mkState.dir = -1; mkState.limit = 30;
+      rerender(); setTimeout(realtimeTick, 300);
+    }));
     document.querySelectorAll("[data-heart]").forEach((b) => b.addEventListener("click", async (e) => {
       e.stopPropagation();
       const on = await toggleWatch(b.dataset.heart, b.dataset.name);
@@ -1804,7 +1848,7 @@
   let WARNS = {};
   // 투자주의·경고·위험, 거래정지, 단기과열, 관리종목 표시 (한국투자증권 시장경고 정보, 매일 갱신)
   const warnBadge = (code) => (WARNS[code] || []).map((w) => `<span class="wbadge ${/위험|정지|관리/.test(w) ? "hi" : /경고/.test(w) ? "mid" : "lo"}" title="한국거래소 지정">⚠ ${esc(w)}</span>`).join("");
-  let ALLMETA = {}, LIVE = null, IDX = null, SERIES = null, FX = null, FLASH = {}, SERVER_TS = null, TICK_TS = null;
+  let ALLMETA = {}, LIVE = null, IDX_AT = null, IDX = null, SERIES = null, FX = null, FLASH = {}, SERVER_TS = null, TICK_TS = null;
   // 장중 15분 시세(data/live.json)를 전 종목 표에 덮어쓰기. 1주·1개월·3개월 수익률과 52주 위치는 가격 변화만큼 보정.
   function liveFix(o, close, chg, amount) {
       if (!o || !isNum(o.close) || o.close <= 0 || !isNum(close)) return;
@@ -1959,6 +2003,7 @@
     if (page === "my") wireMy();
     if (page === "company") {
       const code = parts[1] || trackedCodes()[0];
+      if (parts[1]) pushRecent(code);
       const c = await getJSON(`companies/${code}.json`);
       wireChart(sliceHist(c, chartRange));
       document.getElementById("star")?.addEventListener("click", (e) => toggleStar(e.currentTarget));
@@ -1973,6 +2018,12 @@
     }
     if (!window.__kmKeepScroll) window.scrollTo(0, 0);
   }
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "/" && !["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) {
+      const i = document.querySelector(".search-box input");
+      if (i) { e.preventDefault(); i.focus(); i.scrollIntoView({ block: "center", behavior: "smooth" }); }
+    }
+  });
   document.addEventListener("click", (e) => {
     const el = e.target.closest("[data-go]");
     if (el && !e.target.closest("a, button")) location.hash = el.dataset.go;
@@ -1997,6 +2048,7 @@
       for (const [c, v] of Object.entries(all.rows)) { const o = {}; all.fields.forEach((f, i) => (o[f] = v[i])); ALL[c] = o; }
     }
     applyLive(live);
+    if (live?.idx) { IDX = live.idx; IDX_AT = live.updated_at; }
     document.title = CFG.site_title || document.title;
     renderStatus();
     const invited = /type=invite/.test(location.hash);
@@ -2038,17 +2090,21 @@
   // 새 시세 묶음(live.json 또는 서버 5분 저장분) 받아들이기 → 바뀐 게 있으면 true
   function takeLive(L, flash = true) {
     if (!L?.rows || !L.updated_at) return false;
+    // 지수(코스피·코스닥)·환율은 시세 묶음이 더 오래돼도 지수만 더 새로우면 받아들임
+    let idxNew = false;
+    if (L.idx?.kosdaq && (!IDX_AT || L.updated_at > IDX_AT || !IDX?.kosdaq)) { IDX = { ...(IDX || {}), ...L.idx }; IDX_AT = L.updated_at; idxNew = true; }
+    if (L.fx && !FX) FX = L.fx;
     if (LIVE?.updated_at && L.updated_at <= LIVE.updated_at) {
       // 시세는 더 오래됐지만 브리핑이 더 새로우면 브리핑만 바꿈 (11:00·장 마감·NXT 마감 브리핑은 live.json 에만 있음)
       if (L.brief && LIVE && (!LIVE.brief || (L.brief.at || "") > (LIVE.brief.at || ""))) { LIVE.brief = L.brief; return true; }
-      return false;
+      return idxNew;
     }
     if (LIVE?.brief && (!L.brief || (L.brief.at || "") < (LIVE.brief.at || ""))) L = { ...L, brief: LIVE.brief };
     const before = {};
     if (flash) for (const c of Object.keys(L.rows)) before[c] = ALL[c]?.close;
     applyLive(L);
     if (LIVE !== L) return false; // 날짜가 지난 묶음
-    if (L.idx) IDX = L.idx;
+    if (L.idx) { IDX = { ...(IDX || {}), ...L.idx }; IDX_AT = L.updated_at; }
     if (L.series) SERIES = L.series;
     if (L.fx) FX = L.fx;
     if (flash) for (const [c, v] of Object.entries(L.rows)) if (isNum(before[c]) && isNum(v[0]) && v[0] !== before[c]) FLASH[c] = v[0] > before[c] ? 1 : -1;
@@ -2157,6 +2213,35 @@
     el.textContent = text || ""; el.style.display = text ? "block" : "none"; el.className = bad ? "bad" : "";
   }
   let RT_LAST = 0;
+  // 큰 체결(500만원 이상): 종목 화면에서 10초마다 최근 체결을 받아 새 매수 체결이 들어오면 번쩍
+  const BIG = {}, BIG_SEEN = new Set();
+  function takeBig(code, list) {
+    const first = !BIG[code];
+    BIG[code] = list;
+    const fresh = list.filter((x) => !BIG_SEEN.has(`${code}${x.t}${x.px}${x.vol}`));
+    list.forEach((x) => BIG_SEEN.add(`${code}${x.t}${x.px}${x.vol}`));
+    renderBig(code);
+    if (!first) fresh.filter((x) => x.side === "buy").slice(0, 3).forEach((x, i) => setTimeout(() => bigToast(x), i * 900));
+  }
+  const manWon = (v) => (v >= 1e8 ? `${(v / 1e8).toFixed(v >= 1e9 ? 0 : 1)}억` : `${Math.round(v / 1e4).toLocaleString()}만`) + "원";
+  function bigRows(code) {
+    const L = BIG[code];
+    if (!L) return `<div class="muted" style="font-size:13px">장중에 10초마다 최근 체결을 확인해요.</div>`;
+    if (!L.length) return `<div class="muted" style="font-size:13px">최근 체결 중 500만원 이상은 아직 없어요.</div>`;
+    return L.map((x) => `<div class="bt ${x.side}"><span class="num muted">${esc(x.t)}</span><span class="bt-s">${x.side === "buy" ? "매수" : x.side === "sell" ? "매도" : "체결"}</span><span class="num">${won(x.px)}원 × ${x.vol.toLocaleString()}주</span><b class="num">${manWon(x.amt)}</b></div>`).join("");
+  }
+  function renderBig(code) {
+    const el = document.getElementById("bigtrades");
+    if (el && el.dataset.code === code) el.innerHTML = bigRows(code);
+  }
+  function bigToast(x) {
+    const el = document.createElement("div");
+    el.className = "big-toast";
+    el.innerHTML = `💥 <b>큰 매수</b> <span class="num">${manWon(x.amt)}</span><span class="muted num">${esc(x.t)} · ${won(x.px)}원 × ${x.vol.toLocaleString()}주</span>`;
+    document.body.appendChild(el);
+    document.querySelectorAll(".px[data-px], .bigcard").forEach((p) => { p.classList.remove("flash-big"); void p.offsetWidth; p.classList.add("flash-big"); });
+    setTimeout(() => el.remove(), 3600);
+  }
   async function realtimeTick() {
     const [page, a1] = (location.hash.replace(/^#\/?/, "") || "home").split("/");
     const loud = page === "company" || page === "my";
@@ -2181,7 +2266,7 @@
     try {
       // supabase-js 의 invoke 대신 직접 호출 (라이브러리 잠금으로 멈추는 일 방지) + 8초 넘으면 포기
       const c = window.KM_CONFIG.supabase, ac = new AbortController(), to = setTimeout(() => ac.abort(), 8000);
-      const res = await fetch(`${c.url}/functions/v1/kis-quote`, { method: "POST", signal: ac.signal, headers: { "content-type": "application/json", apikey: c.anonKey, Authorization: `Bearer ${TOKEN}` }, body: JSON.stringify({ codes, market: nxt ? "NX" : "J" }) });
+      const res = await fetch(`${c.url}/functions/v1/kis-quote`, { method: "POST", signal: ac.signal, headers: { "content-type": "application/json", apikey: c.anonKey, Authorization: `Bearer ${TOKEN}` }, body: JSON.stringify({ codes, market: nxt ? "NX" : "J", ...(page === "company" && /^\d{6}$/.test(a1 || "") ? { ccnl: a1 } : {}) }) });
       clearTimeout(to);
       const data = await res.json().catch(() => null), error = res.ok ? null : { message: `${res.status}` };
       if (error || !data?.quotes) {
@@ -2194,6 +2279,7 @@
         liveFix(ALL[c], q.close, q.chg, q.amount); liveFix(MK.stocks?.[c], q.close, q.chg, q.amount);
         if (isNum(before) && before !== q.close) { changed = true; FLASH[c] = q.close > before ? 1 : -1; }
       }
+      if (data.code && Array.isArray(data.big)) takeBig(data.code, data.big);
       RT_AT = data.at; RT_ERR = null; renderStatus();
       rtPill(`⚡${nxt ? "NXT " : ""}실시간 ${new Date(Date.now() + 9 * 3600000).toISOString().slice(11, 19)}`);
       if (changed && safeToRerender()) rerender(); else { FLASH = {}; renderDock(); }
