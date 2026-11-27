@@ -1906,25 +1906,36 @@
     }, 300000);
     if (!window.KM_CONFIG?.realtime || !SB) return;
     setInterval(realtimeTick, 10000);
+    window.addEventListener("hashchange", () => setTimeout(realtimeTick, 300));
+    setTimeout(realtimeTick, 1500);
   }
   // 한국투자증권 실시간 시세 (Supabase Edge Function 'kis-quote'를 거쳐서, 승인 회원만)
+  function rtPill(text, bad) {
+    let el = document.getElementById("rt-pill");
+    if (!el) { el = document.createElement("div"); el.id = "rt-pill"; document.body.appendChild(el); }
+    el.textContent = text || ""; el.style.display = text ? "block" : "none"; el.className = bad ? "bad" : "";
+  }
   async function realtimeTick() {
-    if (document.visibilityState !== "visible" || !USER || !CAN_SEE()) return;
+    const [pg] = (location.hash.replace(/^#\/?/, "") || "home").split("/");
+    if (pg !== "company" && pg !== "my") return rtPill("");
+    if (document.visibilityState !== "visible") return;
+    if (!USER) return rtPill("실시간: 로그인 필요", true);
+    if (!CAN_SEE()) return rtPill("실시간: 승인 회원 전용", true);
     const kst = new Date(Date.now() + 9 * 3600000), d = kst.getUTCDay(), hm = kst.getUTCHours() * 60 + kst.getUTCMinutes();
-    if (d === 0 || d === 6 || hm < 480 || hm > 1200) return; // 평일 08:00~20:00 만
+    if (d === 0 || d === 6 || hm < 480 || hm > 1200) return rtPill("실시간: 장 시간 아님(평일 08~20시)"); // 평일 08:00~20:00 만
     const nxt = hm < 540 || hm > 940; // 장 전(08:00~09:00)·장 후(15:40~20:00)는 NXT 가격
     const [page, a1] = (location.hash.replace(/^#\/?/, "") || "home").split("/");
     let codes = [];
     if (page === "company" && /^\d{6}$/.test(a1 || "")) codes = [a1];
     else if (page === "my" && MYCACHE) codes = [...new Set([...MYCACHE.watch.map((w) => w.code), ...MYCACHE.trades.map((t) => t.code)])];
     codes = codes.slice(0, 30);
-    if (!codes.length) return;
+    if (!codes.length) return rtPill("");
     try {
       const { data, error } = await SB.functions.invoke("kis-quote", { body: { codes, market: nxt ? "NX" : "J" } });
       if (error || !data?.quotes) {
         let msg = data?.error || error?.message || "응답 없음";
         try { const t = await error?.context?.text?.(); if (t) msg = t; } catch {}
-        RT_ERR = String(msg).slice(0, 200); console.warn("[kis-quote]", RT_ERR); renderStatus(); return;
+        RT_ERR = String(msg).slice(0, 200); console.warn("[kis-quote]", RT_ERR); renderStatus(); rtPill("⚠️ 실시간 오류: " + RT_ERR.slice(0, 60), true); return;
       }
       let changed = false;
       for (const [c, q] of Object.entries(data.quotes)) {
@@ -1933,8 +1944,9 @@
         if (before !== q.close) changed = true;
       }
       RT_AT = data.at; RT_ERR = null; renderStatus();
+      rtPill(`⚡${nxt ? "NXT " : ""}실시간 ${new Date(Date.now() + 9 * 3600000).toISOString().slice(11, 19)}`);
       if (changed && safeToRerender()) rerender();
-    } catch (e) { RT_ERR = String(e?.message || e).slice(0, 200); renderStatus(); }
+    } catch (e) { RT_ERR = String(e?.message || e).slice(0, 200); renderStatus(); rtPill("⚠️ 실시간 오류: " + RT_ERR.slice(0, 60), true); }
   }
   let RT_AT = null, RT_ERR = null;
   init();
