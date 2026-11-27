@@ -276,7 +276,7 @@
       <tbody>${codes.map((c) => {
         const s = MK.stocks[c] || {};
         return `<tr class="link" data-go="#/company/${c}">
-          <td><span class="stock-name">${esc(s.name || nameOf(c))}</span><span class="code">${c}</span></td>
+          <td><span class="stock-name">${esc(s.name || nameOf(c))}</span><span class="code">${c}</span>${warnBadge(c)}</td>
           <td class="r num">${won(s.close)}</td>
           <td class="r num ${cls(s.r1m)}">${pct(s.r1m)}</td>
           <td class="r num ${cls(s.r3m)}">${pct(s.r3m)}</td>
@@ -537,7 +537,7 @@
     const metric = (label, value, tag, note, tip) => `<div class="metric" title="${esc(tip)}"><div class="label">${label}${tagBadge(tag)}</div><div class="value num">${value}</div>${note ? `<div class="note">${note}</div>` : ""}</div>`;
 
     return `<div class="page-head">
-      <div><div class="company-title"><h1>${esc(c.name || nameOf(code))}</h1><span class="code num">${code}</span>${c.market ? `<span class="badge">${esc(c.market)}</span>` : ""}${themeOfCode(code).map((t) => `<a class="badge acc" href="#/themes/${encodeURIComponent(t)}">${esc(t)}</a>`).join("")}</div>
+      <div><div class="company-title"><h1>${esc(c.name || nameOf(code))}</h1><span class="code num">${code}</span>${c.market ? `<span class="badge">${esc(c.market)}</span>` : ""}${warnBadge(code)}${themeOfCode(code).map((t) => `<a class="badge acc" href="#/themes/${encodeURIComponent(t)}">${esc(t)}</a>`).join("")}</div>
       ${(CODE2THEMES[code] || []).length ? `<div class="signal-line"><span class="muted" style="font-size:12.5px;align-self:center">소속 테마</span>${CODE2THEMES[code].slice(0, 5).map((g) => `<a class="badge" href="#/market/g/theme/${g.no}">${esc(g.name)} <span class="${cls(g.chg)}">${pct(g.chg, 1)}</span></a>`).join("")}</div>` : ""}
       <div class="signal-line">${signals || `<span class="muted" style="font-size:13px">재무 자료 수집 전</span>`}${LMAP[code]?.[3] ? `<span class="badge">${esc(LMAP[code][3])}</span>` : ""}</div></div>
       <div style="display:flex;gap:8px;align-items:center">${SB ? `<button class="btn" id="star" data-code="${code}" data-name="${esc(c.name || nameOf(code))}" title="관심 종목">${starred ? "★ 관심" : "☆ 관심 추가"}</button>` : ""}
@@ -919,9 +919,11 @@
   function disclosureCard(c) {
     const d = c.disclosures || [];
     if (!d.length) return "";
+    const tag = (x) => (!x.impact || x.impact === "중립" ? "" : posLocked(x.impact) ? `<span class="badge">🔒</span>` : impactBadge(x.impact));
     return `<div class="card"><div class="card-head"><h2>최근 공시</h2><a class="more" href="https://dart.fss.or.kr/dsab007/main.do?textCrpNm=${encodeURIComponent(c.name || "")}" target="_blank" rel="noopener">DART ↗</a></div>
-      <div class="news-list">${d.map((x) => `<div class="news-item"><div class="t" style="font-weight:600">${esc(x.title)}</div><div class="meta num">${esc(x.date)}</div></div>`).join("")}</div></div>`;
+      <div class="news-list">${d.map((x) => `<div class="news-item">${x.url ? `<a class="t" style="font-weight:600" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a>` : `<div class="t" style="font-weight:600">${esc(x.title)}</div>`}<div class="meta num">${tag(x)} ${esc(x.date)}${x.url ? " · DART 원문" : ""}</div></div>`).join("")}</div></div>`;
   }
+
 
   // ------------------------------------------------------------ 하단 탭바 (모바일) · 앱 설치
   function renderTabbar() {
@@ -1006,7 +1008,7 @@
           <tbody>${rows.slice(0, mkState.limit).map((r, i) => `<tr class="link" data-go="#/company/${r.code}">
             <td class="rank num">${i + 1}</td>
             <td class="heart-td"><button class="heart ${WSET.has(r.code) ? "on" : ""}" data-heart="${r.code}" data-name="${esc(r.name)}" aria-label="관심 종목">♥</button></td>
-            <td><div class="stock-cell">${logoMark(r.code, r.name)}<div><span class="stock-name">${esc(r.name)}</span><span class="code">${r.code}</span>${r.sector ? `<div class="muted" style="font-size:11.5px">${esc(r.sector)}</div>` : ""}</div></div></td>
+            <td><div class="stock-cell">${logoMark(r.code, r.name)}<div><span class="stock-name">${esc(r.name)}</span><span class="code">${r.code}</span>${warnBadge(r.code)}${r.sector ? `<div class="muted" style="font-size:11.5px">${esc(r.sector)}</div>` : ""}</div></div></td>
             <td class="r num"><span class="px" data-px="${r.code}">${won(r.close)}원</span></td>
             <td class="r num"><span class="chg-pill ${cls(r.chg)}" data-px="${r.code}">${pct(r.chg, 2)}</span></td>
             <td class="r num">${bigWon(r.amount)}</td>
@@ -1799,6 +1801,9 @@
   }
 
   // ------------------------------------------------------------ 라우터
+  let WARNS = {};
+  // 투자주의·경고·위험, 거래정지, 단기과열, 관리종목 표시 (한국투자증권 시장경고 정보, 매일 갱신)
+  const warnBadge = (code) => (WARNS[code] || []).map((w) => `<span class="wbadge ${/위험|정지|관리/.test(w) ? "hi" : /경고/.test(w) ? "mid" : "lo"}" title="한국거래소 지정">⚠ ${esc(w)}</span>`).join("");
   let ALLMETA = {}, LIVE = null, IDX = null, SERIES = null, FX = null, FLASH = {}, SERVER_TS = null, TICK_TS = null;
   // 장중 15분 시세(data/live.json)를 전 종목 표에 덮어쓰기. 1주·1개월·3개월 수익률과 52주 위치는 가격 변화만큼 보정.
   function liveFix(o, close, chg, amount) {
@@ -1897,7 +1902,9 @@
   async function init() {
     let all;
     let live;
-    [CFG, MK, LIST, NEWS, all, GROUPS, live] = await Promise.all([getJSON("config.json"), getJSON("market.json"), getJSON("stocks.json"), getJSON("theme_news.json"), getJSON("market_all.json"), getJSON("groups.json"), getJSON("live.json")]);
+    let warn;
+    [CFG, MK, LIST, NEWS, all, GROUPS, live, warn] = await Promise.all([getJSON("config.json"), getJSON("market.json"), getJSON("stocks.json"), getJSON("theme_news.json"), getJSON("market_all.json"), getJSON("groups.json"), getJSON("live.json"), getJSON("warnings.json")]);
+    WARNS = warn?.w || {};
     (GROUPS?.themes || []).forEach((g) => (g.codes || []).forEach((c) => (CODE2THEMES[c] ||= []).push(g)));
     Object.values(CODE2THEMES).forEach((l) => l.sort((a, b) => b.chg - a.chg));
     if (!CFG || !MK) {
@@ -2050,7 +2057,7 @@
     else if (!MYCACHE.watch.length) body = `<div class="dock-empty">시장 탭에서 ♥를 누르면<br>여기에 추가돼요</div>`;
     else body = MYCACHE.watch.map((w) => {
       const q = priceOf(w.code), base = isNum(q.close) && isNum(q.chg) ? q.close / (1 + q.chg) : null;
-      return `<div class="dock-row" data-go="#/company/${w.code}">${logoMark(w.code, w.name)}<div class="dn">${esc(w.name)}</div>
+      return `<div class="dock-row" data-go="#/company/${w.code}">${logoMark(w.code, w.name)}<div class="dn">${esc(w.name)}${(WARNS[w.code] || []).length ? ` <span class="wdot" title="${esc(WARNS[w.code].join(", "))}">⚠</span>` : ""}</div>
         <div class="r"><div class="num dp" data-px="${w.code}">${won(q.close)}원</div><div class="num ${cls(q.chg)} dc">${isNum(base) ? signWon(q.close - base).replace("원", "") : ""} (${pct(q.chg, 1)})</div></div></div>`;
     }).join("");
     p.innerHTML = `<div class="dock-head"><b>관심 종목</b>${MYCACHE?.watch?.length ? `<span class="muted">${MYCACHE.watch.length}</span>` : ""}<a class="more" href="#/my">전체 →</a></div><div class="dock-list">${body}</div>`;

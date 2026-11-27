@@ -28,6 +28,11 @@ FIELDS = ["close", "chg", "amount"]
 
 # ---------------------------------------------------------------- 한국투자증권
 def kis_token(key, secret):
+    try:  # 같은 실행에서 update_data.py 가 받아 둔 토큰이 있으면 그대로 (발급은 1분에 1번만 허용)
+        import sources
+        return sources.kis_token()
+    except Exception as e:
+        print(f"[KIS] 공유 토큰 없음 → 새로 발급 ({e})")
     r = SESSION.post(f"{KIS}/oauth2/tokenP", json={"grant_type": "client_credentials", "appkey": key, "appsecret": secret},
                      headers={"content-type": "application/json"}, timeout=20)
     j = r.json()
