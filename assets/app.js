@@ -89,7 +89,8 @@
     const age = daysSince(MK.as_of);
     const stale = age === null || age > 4;
     const upd = MK.updated_at ? MK.updated_at.slice(5, 16).replace("T", " ") : "자동 갱신 전";
-    el.innerHTML = `<span class="dot ${stale ? "stale" : ""}"></span><span>기준 ${esc(MK.as_of || "–")}</span><span class="long">· 갱신 ${esc(upd)}</span>`;
+    const lv = LIVE ? `${LIVE.session === "nxt" ? "NXT 마감" : "시세"} ${LIVE.updated_at.slice(11, 16)}` : null;
+    el.innerHTML = `<span class="dot ${stale ? "stale" : ""}"></span><span>기준 ${esc(MK.as_of || "–")}</span><span class="long">· ${lv ? esc(lv) : `갱신 ${esc(upd)}`}</span>`;
   }
   function staleBanner() {
     const age = daysSince(MK.as_of);
@@ -141,8 +142,7 @@
   // ------------------------------------------------------------ 10초 브리핑 (홈 상단)
   const clamp01 = (v) => Math.max(0, Math.min(1, v));
   // 시장 분위기 0~100 = 상승 종목 비율 50% + 코스피 당일 등락 30% + 52주 신고가/신저가 균형 20%
-  function moodScore() {
-    const b = MK.breadth || {}, k = MK.kospi || {};
+  function moodScore(b = MK.breadth || {}, k = MK.kospi || {}) {
     const parts = [];
     if (isNum(b.up) && isNum(b.down) && b.up + b.down > 0) parts.push([b.up / (b.up + b.down), 0.5]);
     if (isNum(k.chg)) parts.push([clamp01((k.chg + 0.03) / 0.06), 0.3]);
@@ -165,8 +165,9 @@
       <text x="22" y="111" class="gl">차가움</text><text x="178" y="111" class="gl" text-anchor="end">뜨거움</text></svg>`;
   }
 
-  function hotTopics() {
-    const gs = (GROUPS?.themes || []).filter((g) => (g.total || 0) >= 5 && isNum(g.chg));
+  // chgOf: 테마별 등락(기본은 지금 값, 브리핑은 그 시각 스냅샷)
+  function hotTopics(chgOf) {
+    const gs = (GROUPS?.themes || []).map((g) => (chgOf ? { ...g, ...chgOf(g) } : g)).filter((g) => (g.total || 0) >= 5 && isNum(g.chg));
     if (!gs.length) return [];
     const sorted = gs.slice().sort((a, b) => b.chg - a.chg);
     const picks = sorted.slice(0, 3).map((g) => ({ g, tag: g.chg >= 0.03 ? "급등" : "강세", tone: "up" }));
@@ -175,10 +176,13 @@
     return picks;
   }
 
+  // 10초 브리핑은 하루 세 번(11:00 · 장 마감 · NXT 마감) 찍어 둔 스냅샷으로 보여줌
   function briefCard() {
-    const s = moodScore();
-    const k = MK.kospi || {}, b = MK.breadth || {};
-    const topics = hotTopics();
+    const B = LIVE?.brief;
+    const k = B?.kospi || MK.kospi || {}, b = B?.breadth || MK.breadth || {};
+    const s = moodScore(b, k);
+    const topics = hotTopics(B?.themes ? (g) => { const v = B.themes[String(g.no)]; return v ? { chg: v[0], rise: v[1], fall: v[2] } : { chg: null }; } : null);
+    const bLabel = B ? `${B.label} · ${B.at.slice(5, 10).replace("-", "/")}` : MK.as_of || "";
     const lead = topics.find((t) => t.tone === "up")?.g, lag = topics.find((t) => t.tone === "down")?.g;
     const line = lead
       ? `${esc(lead.name)}${lag ? ` 강세, ${esc(lag.name)} 약세` : " 테마가 시장을 이끄는 날"}`
@@ -190,7 +194,7 @@
     for (const n of auto) { if (seen.has(n.title)) continue; seen.add(n.title); heads.push(n); if (heads.length >= 3) break; }
     return `<section class="brief">
       <div class="brief-mood ${s === null ? "" : moodTone(s)}">
-        <div class="eyebrow">10초 브리핑 · ${esc(MK.as_of || "")}</div>
+        <div class="eyebrow">10초 브리핑 · ${esc(bLabel)}</div>
         ${gaugeSvg(s)}
         <div class="mood-score num">${s ?? "–"}<span>${s === null ? "" : moodLabel(s)}</span></div>
         <p class="mood-line">${line}</p>
@@ -1746,7 +1750,33 @@
   }
 
   // ------------------------------------------------------------ 라우터
-  let ALLMETA = {};
+  let ALLMETA = {}, LIVE = null;
+  // 장중 15분 시세(data/live.json)를 전 종목 표에 덮어쓰기. 1주·1개월·3개월 수익률과 52주 위치는 가격 변화만큼 보정.
+  function liveFix(o, close, chg, amount) {
+      if (!o || !isNum(o.close) || o.close <= 0 || !isNum(close)) return;
+      const f = close / o.close;
+      ["r1w", "r1m", "r3m"].forEach((k) => { if (isNum(o[k])) o[k] = (1 + o[k]) * f - 1; });
+      if (isNum(o.marcap)) o.marcap *= f;
+      if (isNum(o.hi52) && close > o.hi52) o.hi52 = close;
+      if (isNum(o.lo52) && close < o.lo52) o.lo52 = close;
+      if (isNum(o.hi52) && isNum(o.lo52) && o.hi52 > o.lo52) o.pos52 = (close - o.lo52) / (o.hi52 - o.lo52);
+      o.close = close; o.chg = chg;
+      if (isNum(amount)) o.amount = amount;
+  }
+  function applyLive(L) {
+    if (!L?.rows || (ALLMETA.as_of && L.date < ALLMETA.as_of)) return;
+    const fix = liveFix;
+    for (const [c, v] of Object.entries(L.rows)) { fix(ALL[c], v[0], v[1], v[2]); fix(MK.stocks?.[c], v[0], v[1], v[2]); }
+    for (const g of [...(GROUPS?.themes || []), ...(GROUPS?.industries || [])]) {
+      const ch = (g.codes || []).map((c) => ALL[c]?.chg).filter(isNum);
+      if (ch.length) { g.chg = ch.reduce((a, b) => a + b, 0) / ch.length; g.rise = ch.filter((x) => x > 0).length; g.fall = ch.filter((x) => x < 0).length; }
+    }
+    const vs = Object.values(ALL);
+    MK.breadth = { ...(MK.breadth || {}), up: vs.filter((v) => v.chg > 0).length, down: vs.filter((v) => v.chg < 0).length,
+      high52: vs.filter((v) => (v.pos52 || 0) >= 0.995).length, low52: vs.filter((v) => isNum(v.pos52) && v.pos52 <= 0.005).length };
+    if (L.kospi && isNum(L.kospi.close)) MK.kospi = { ...(MK.kospi || {}), close: L.kospi.close, chg: L.kospi.chg };
+    LIVE = L;
+  }
   async function rerender() { window.__kmKeepScroll = true; await route(); window.__kmKeepScroll = false; }
   async function route() {
     const parts = (location.hash || "#/").slice(2).split("/").map(decodeURIComponent);
@@ -1809,7 +1839,8 @@
 
   async function init() {
     let all;
-    [CFG, MK, LIST, NEWS, all, GROUPS] = await Promise.all([getJSON("config.json"), getJSON("market.json"), getJSON("stocks.json"), getJSON("theme_news.json"), getJSON("market_all.json"), getJSON("groups.json")]);
+    let live;
+    [CFG, MK, LIST, NEWS, all, GROUPS, live] = await Promise.all([getJSON("config.json"), getJSON("market.json"), getJSON("stocks.json"), getJSON("theme_news.json"), getJSON("market_all.json"), getJSON("groups.json"), getJSON("live.json")]);
     (GROUPS?.themes || []).forEach((g) => (g.codes || []).forEach((c) => (CODE2THEMES[c] ||= []).push(g)));
     Object.values(CODE2THEMES).forEach((l) => l.sort((a, b) => b.chg - a.chg));
     if (!CFG || !MK) {
@@ -1822,6 +1853,7 @@
       ALLMETA = { as_of: all.as_of };
       for (const [c, v] of Object.entries(all.rows)) { const o = {}; all.fields.forEach((f, i) => (o[f] = v[i])); ALL[c] = o; }
     }
+    applyLive(live);
     document.title = CFG.site_title || document.title;
     renderStatus();
     const invited = /type=invite/.test(location.hash);
@@ -1857,6 +1889,48 @@
     if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
     window.addEventListener("hashchange", route);
     route();
+    startLivePolling();
   }
+  // 화면을 켜 둔 동안: 5분마다 새 15분 시세(live.json) 확인, 실시간 설정이면 보고 있는 종목은 10초마다
+  const safeToRerender = () => !document.querySelector(".modal-bg") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
+  function startLivePolling() {
+    setInterval(async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const r = await fetch(`data/live.json?t=${Date.now()}`, { cache: "no-store" });
+        if (!r.ok) return;
+        const L = await r.json();
+        if (L.updated_at && L.updated_at !== LIVE?.updated_at) { applyLive(L); renderStatus(); if (safeToRerender()) rerender(); }
+      } catch {}
+    }, 300000);
+    if (!window.KM_CONFIG?.realtime || !SB) return;
+    setInterval(realtimeTick, 10000);
+  }
+  // 한국투자증권 실시간 시세 (Supabase Edge Function 'kis-quote'를 거쳐서, 승인 회원만)
+  async function realtimeTick() {
+    if (document.visibilityState !== "visible" || !USER || !CAN_SEE()) return;
+    const kst = new Date(Date.now() + 9 * 3600000), d = kst.getUTCDay(), hm = kst.getUTCHours() * 60 + kst.getUTCMinutes();
+    if (d === 0 || d === 6 || hm < 480 || hm > 1200) return; // 평일 08:00~20:00 만
+    const nxt = hm < 540 || hm > 940; // 장 전(08:00~09:00)·장 후(15:40~20:00)는 NXT 가격
+    const [page, a1] = (location.hash.replace(/^#\/?/, "") || "home").split("/");
+    let codes = [];
+    if (page === "company" && /^\d{6}$/.test(a1 || "")) codes = [a1];
+    else if (page === "my" && MYCACHE) codes = [...new Set([...MYCACHE.watch.map((w) => w.code), ...MYCACHE.trades.map((t) => t.code)])];
+    codes = codes.slice(0, 30);
+    if (!codes.length) return;
+    try {
+      const { data, error } = await SB.functions.invoke("kis-quote", { body: { codes, market: nxt ? "NX" : "J" } });
+      if (error || !data?.quotes) return;
+      let changed = false;
+      for (const [c, q] of Object.entries(data.quotes)) {
+        const before = ALL[c]?.close;
+        liveFix(ALL[c], q.close, q.chg, q.amount); liveFix(MK.stocks?.[c], q.close, q.chg, q.amount);
+        if (before !== q.close) changed = true;
+      }
+      RT_AT = data.at;
+      if (changed && safeToRerender()) rerender();
+    } catch {}
+  }
+  let RT_AT = null;
   init();
 })();
