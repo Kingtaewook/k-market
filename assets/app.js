@@ -1862,11 +1862,12 @@
       const c = window.KM_CONFIG.supabase;
       SB = window.supabase.createClient(c.url, c.anonKey);
       const { data } = await SB.auth.getSession();
-      USER = data.session?.user || null;
+      USER = data.session?.user || null; TOKEN = data.session?.access_token || null;
       await loadProfile();
       if (USER && !(await checkDevice())) { USER = null; PROFILE = null; }
       // 주의: 이 콜백 안에서 Supabase 요청을 바로 await 하면 멈출 수 있어(라이브러리 잠금) setTimeout 으로 한 박자 늦춰 실행
       SB.auth.onAuthStateChange((ev, session) => {
+        TOKEN = session?.access_token || null;
         setTimeout(async () => {
           const was = USER?.id;
           USER = session?.user || null;
@@ -1929,12 +1930,17 @@
     if (page === "company" && /^\d{6}$/.test(a1 || "")) codes = [a1];
     else if (page === "my" && MYCACHE) codes = [...new Set([...MYCACHE.watch.map((w) => w.code), ...MYCACHE.trades.map((t) => t.code)])];
     codes = codes.slice(0, 30);
-    if (!codes.length) return rtPill("");
+    if (!codes.length) return rtPill(page === "my" ? "" : "실시간: 종목을 골라 주세요");
+    if (!TOKEN) return rtPill("실시간: 로그인 정보 확인 중…");
+    if (!RT_AT && !RT_ERR) rtPill("⏳ 실시간 연결 중…");
     try {
-      const { data, error } = await SB.functions.invoke("kis-quote", { body: { codes, market: nxt ? "NX" : "J" } });
+      // supabase-js 의 invoke 대신 직접 호출 (라이브러리 잠금으로 멈추는 일 방지) + 8초 넘으면 포기
+      const c = window.KM_CONFIG.supabase, ac = new AbortController(), to = setTimeout(() => ac.abort(), 8000);
+      const res = await fetch(`${c.url}/functions/v1/kis-quote`, { method: "POST", signal: ac.signal, headers: { "content-type": "application/json", apikey: c.anonKey, Authorization: `Bearer ${TOKEN}` }, body: JSON.stringify({ codes, market: nxt ? "NX" : "J" }) });
+      clearTimeout(to);
+      const data = await res.json().catch(() => null), error = res.ok ? null : { message: `${res.status}` };
       if (error || !data?.quotes) {
-        let msg = data?.error || error?.message || "응답 없음";
-        try { const t = await error?.context?.text?.(); if (t) msg = t; } catch {}
+        let msg = data?.error ? `${res.status} ${data.error}` : error?.message || "응답 없음";
         RT_ERR = String(msg).slice(0, 200); console.warn("[kis-quote]", RT_ERR); renderStatus(); rtPill("⚠️ 실시간 오류: " + RT_ERR.slice(0, 60), true); return;
       }
       let changed = false;
@@ -1946,8 +1952,8 @@
       RT_AT = data.at; RT_ERR = null; renderStatus();
       rtPill(`⚡${nxt ? "NXT " : ""}실시간 ${new Date(Date.now() + 9 * 3600000).toISOString().slice(11, 19)}`);
       if (changed && safeToRerender()) rerender();
-    } catch (e) { RT_ERR = String(e?.message || e).slice(0, 200); renderStatus(); rtPill("⚠️ 실시간 오류: " + RT_ERR.slice(0, 60), true); }
+    } catch (e) { RT_ERR = e?.name === "AbortError" ? "응답이 8초 넘게 없음" : String(e?.message || e).slice(0, 200); renderStatus(); rtPill("⚠️ 실시간 오류: " + RT_ERR.slice(0, 60), true); }
   }
-  let RT_AT = null, RT_ERR = null;
+  let RT_AT = null, RT_ERR = null, TOKEN = null;
   init();
 })();
