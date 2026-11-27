@@ -998,17 +998,17 @@
   ],
   [
    "2026-11-27",
-   68800.0
+   69200.0
   ]
  ],
  "price": {
-  "close": 68800.0,
-  "r1m": 0.03770739064856721,
-  "r3m": -0.31881188118811876,
-  "pos52": 0.11426141196484264,
+  "close": 69200.0,
+  "r1m": 0.043740573152337925,
+  "r3m": -0.3148514851485148,
+  "pos52": 0.11652962857952935,
   "hi52": 225000.0,
   "lo52": 48650.0,
-  "vol20": 276229.1,
+  "vol20": 284202.5,
   "last_date": "2026-11-27"
  },
  "quarters": [
@@ -1059,8 +1059,8 @@
   }
  ],
  "fundamentals": {
-  "market_cap_eok": 25368.0,
-  "pbr": 3.23,
+  "market_cap_eok": 25627.0,
+  "pbr": 3.26,
   "roe": -0.3144,
   "debt_ratio": 0.1963,
   "op_margin": -3.4706,
@@ -1071,24 +1071,70 @@
  "unit": "억원",
  "news": [
   {
-   "date": "2026-11-18",
-   "time": "15:22",
-   "title": "오리온, 3분기 매출·영업이익 늘었지만 리가켐은 평가손실",
-   "source": "블로터",
-   "summary": "오리온이 올해 리가켐바이오에 추가 출자한 전환우선주와 전환사채에서 첫 분기부터 평가손실을 냈다. 오리온은 2024년 리가켐바이오를 인수하며 바이오를 식품에 이은 성장축으로 내세웠지만 정작 리가켐바이오 관련 손실이 해외에서 외형을...",
-   "url": "https://n.news.naver.com/mnews/article/293/0000093452",
-   "impact": "주의",
-   "auto": true
+   "date": "2026-11-27",
+   "time": "15:03",
+   "title": "외국계 순매수,도 상위종목(코스닥) 금액기준",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%99%B8%EA%B5%AD%EA%B3%84%20%EC%88%9C%EB%A7%A4%EC%88%98%2C%EB%8F%84%20%EC%83%81%EC%9C%84%EC%A2%85%EB%AA%A9%28%EC%BD%94%EC%8A%A4%EB%8B%A5%29%20%EA%B8%88%EC%95%A1%EA%B8%B0%EC%A4%80",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
   },
   {
-   "date": "2026-11-18",
-   "time": "09:18",
-   "title": "리가켐바이오 “얀센 계약종료설 사실무근…파트너십 문제 없어”",
-   "source": "이데일리",
-   "summary": "리가켐바이오가 글로벌 제약사 얀센과 체결한 항체약물접합체(ADC) 기술이전 계약의 종료설을 공식 부인했다. 18일 리가켐바이오는 최근 컨퍼런스콜 이후 시장에서 나온 몇 가지 우려에 대해 회사 입장을 전달한다며 “얀센과 공동개발 중인...",
-   "url": "https://n.news.naver.com/mnews/article/018/0006411609",
-   "impact": "중립",
-   "auto": true
+   "date": "2026-11-27",
+   "time": "15:03",
+   "title": "외국계 순매수,도 상위종목(코스닥) 수량기준",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%99%B8%EA%B5%AD%EA%B3%84%20%EC%88%9C%EB%A7%A4%EC%88%98%2C%EB%8F%84%20%EC%83%81%EC%9C%84%EC%A2%85%EB%AA%A9%28%EC%BD%94%EC%8A%A4%EB%8B%A5%29%20%EC%88%98%EB%9F%89%EA%B8%B0%EC%A4%80",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "13:09",
+   "title": "(주)리가켐 바이오사이언스 주식선물 3단계 가격제한폭 확대요건 도달(상승)",
+   "source": "공시",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%28%EC%A3%BC%29%EB%A6%AC%EA%B0%80%EC%BC%90%20%EB%B0%94%EC%9D%B4%EC%98%A4%EC%82%AC%EC%9D%B4%EC%96%B8%EC%8A%A4%20%EC%A3%BC%EC%8B%9D%EC%84%A0%EB%AC%BC%203%EB%8B%A8%EA%B3%84%20%EA%B0%80%EA%B2%A9%EC%A0%9C%ED%95%9C%ED%8F%AD%20%ED%99%95%EB%8C%80%EC%9A%94%EA%B1%B4%20%EB%8F%84%EB%8B%AC%28%EC%83%81%EC%8A%B9%29",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "11:32",
+   "title": "[장중수급포착] 리가켐바이오, 외국인/기관 동시 순매수… 주가 +16.75%",
+   "source": "뉴스핌",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%5B%EC%9E%A5%EC%A4%91%EC%88%98%EA%B8%89%ED%8F%AC%EC%B0%A9%5D%20%EB%A6%AC%EA%B0%80%EC%BC%90%EB%B0%94%EC%9D%B4%EC%98%A4%2C%20%EC%99%B8%EA%B5%AD%EC%9D%B8/%EA%B8%B0%EA%B4%80%20%EB%8F%99%EC%8B%9C%20%EC%88%9C%EB%A7%A4%EC%88%98%E2%80%A6%20%EC%A3%BC%EA%B0%80%20%2B16.75%25",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "10:19",
+   "title": "[장중수급포착] 리가켐바이오, 기관 5일 연속 순매수행진... 주가 +15.17%",
+   "source": "뉴스핌",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%5B%EC%9E%A5%EC%A4%91%EC%88%98%EA%B8%89%ED%8F%AC%EC%B0%A9%5D%20%EB%A6%AC%EA%B0%80%EC%BC%90%EB%B0%94%EC%9D%B4%EC%98%A4%2C%20%EA%B8%B0%EA%B4%80%205%EC%9D%BC%20%EC%97%B0%EC%86%8D%20%EC%88%9C%EB%A7%A4%EC%88%98%ED%96%89%EC%A7%84...%20%EC%A3%BC%EA%B0%80%20%2B15.17%25",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "09:51",
+   "title": "코스닥 4% 넘게 급등…증안펀드 투입 기대?저가매수 유입 영향 [줍줍 리포트]",
+   "source": "서울경제",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%EB%8B%A5%204%25%20%EB%84%98%EA%B2%8C%20%EA%B8%89%EB%93%B1%E2%80%A6%EC%A6%9D%EC%95%88%ED%8E%80%EB%93%9C%20%ED%88%AC%EC%9E%85%20%EA%B8%B0%EB%8C%80%3F%EC%A0%80%EA%B0%80%EB%A7%A4%EC%88%98%20%EC%9C%A0%EC%9E%85%20%EC%98%81%ED%96%A5%20%5B%EC%A4%8D%EC%A4%8D%20%EB%A6%AC%ED%8F%AC%ED%8A%B8%5D",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
   }
  ],
  "code": "141080",
@@ -1097,45 +1143,13 @@
  "as_of": "2026-11-27",
  "disclosures": [
   {
-   "date": "2026-11-27",
-   "title": "(주)리가켐 바이오사이언스 주식선물 3단계 가격제한폭 확대요건 도달(상승)",
-   "id": 205903720
-  },
-  {
-   "date": "2026-11-27",
-   "title": "(주)리가켐 바이오사이언스 주식선물 2단계 가격제한폭 확대요건 도달(상승)",
-   "id": 205479527
-  },
-  {
-   "date": "2026-11-26",
-   "title": "(주)리가켐 바이오사이언스 주식선물 2단계 가격제한폭 확대요건 도달(상승)",
-   "id": 203432220
-  },
-  {
    "date": "2026-11-23",
-   "title": "(주)리가켐 바이오사이언스 기업설명회(IR) 개최",
-   "id": 198844143
-  },
-  {
-   "date": "2026-11-16",
-   "title": "(주)리가켐 바이오사이언스 주식선물 2단계 가격제한폭 확대요건 도달(하락)",
-   "id": 191769344
-  },
-  {
-   "date": "2026-11-11",
-   "title": "(주)리가켐 바이오사이언스 주식선물 2단계 가격제한폭 확대요건 도달(상승)",
-   "id": 186186568
+   "title": "기업설명회(IR)개최",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261123900159",
+   "impact": "중립"
   }
  ],
  "flows": [
-  [
-   "2026-10-30",
-   37637.0,
-   -25287.0,
-   -11283.0,
-   60600.0,
-   0.1427
-  ],
   [
    "2026-11-02",
    13794.0,
@@ -1287,6 +1301,14 @@
    -2316.0,
    57500.0,
    0.1412
+  ],
+  [
+   "2026-11-27",
+   -206882.0,
+   246174.0,
+   -66195.0,
+   69200.0,
+   0.13570000000000002
   ]
  ],
  "tracked": true

@@ -998,17 +998,17 @@
   ],
   [
    "2026-11-27",
-   1355500.0
+   1347000.0
   ]
  ],
  "price": {
-  "close": 1355500.0,
-  "r1m": -0.011305616338439073,
-  "r3m": -0.08074335344553396,
-  "pos52": 0.25009005676009854,
+  "close": 1347000.0,
+  "r1m": -0.017505470459518557,
+  "r3m": -0.08650778095989242,
+  "pos52": 0.23974569918121366,
   "hi52": 1971704.0,
   "lo52": 1150000.0,
-  "vol20": 59295.0,
+  "vol20": 59830.5,
   "last_date": "2026-11-27"
  },
  "quarters": [
@@ -1059,13 +1059,13 @@
   }
  ],
  "fundamentals": {
-  "market_cap_eok": 627242.0,
-  "per": 36.83,
-  "pbr": 7.27,
+  "market_cap_eok": 623539.0,
+  "per": 36.61,
+  "pbr": 7.23,
   "roe": 0.1726,
   "debt_ratio": 0.4581,
   "op_margin": 0.42950000000000005,
-  "cns_per": 34.29,
+  "cns_per": 34.09,
   "cns_eps": 39511.0,
   "target": 1946431.0,
   "recomm": 4.0
@@ -1075,13 +1075,69 @@
  "news": [
   {
    "date": "2026-11-27",
-   "time": "12:31",
-   "title": "2차 부분파업도 평행선⋯한국노총 손잡은 삼성바이오 노조, 다음 수는...",
-   "source": "아이뉴스24",
-   "summary": "2차 부분파업 종료를 앞둔 삼성바이오로직스 노동조합의 다음 행보에 관심이 쏠리고 있다. 임금 인상과 고용안정 방안을 둘러싼 노사 간 이견이 좁혀질 기미가 보이지 않는 가운데 노조가 상급단체와 연대를 공식화하면서 쟁의 수위가 높아질 수...",
-   "url": "https://n.news.naver.com/mnews/article/031/0001079045",
+   "time": null,
+   "title": "임원ㆍ주요주주특정증권등소유상황보고서",
+   "source": "DART 공시",
+   "summary": "김슬기",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127001561",
    "impact": "중립",
-   "auto": true
+   "auto": true,
+   "kind": "공시"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "16:14",
+   "title": "외국인·기관 쌍끌이 매수에 코스피 4.3% 급등…4900선 탈환",
+   "source": "한국경제신문",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%99%B8%EA%B5%AD%EC%9D%B8%C2%B7%EA%B8%B0%EA%B4%80%20%EC%8C%8D%EB%81%8C%EC%9D%B4%20%EB%A7%A4%EC%88%98%EC%97%90%20%EC%BD%94%EC%8A%A4%ED%94%BC%204.3%25%20%EA%B8%89%EB%93%B1%E2%80%A64900%EC%84%A0%20%ED%83%88%ED%99%98",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "16:10",
+   "title": "코스피, 美 지수선물 강세,증안펀드 기대에 '4900선 회복'…코스닥 8.13%↑",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%ED%94%BC%2C%20%E7%BE%8E%20%EC%A7%80%EC%88%98%EC%84%A0%EB%AC%BC%20%EA%B0%95%EC%84%B8%2C%EC%A6%9D%EC%95%88%ED%8E%80%EB%93%9C%20%EA%B8%B0%EB%8C%80%EC%97%90%20%274900%EC%84%A0%20%ED%9A%8C%EB%B3%B5%27%E2%80%A6%EC%BD%94%EC%8A%A4%EB%8B%A5%208.13%25%E2%86%91",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "16:08",
+   "title": "코스피 4.3% 상승 4,900선 회복…코스닥 8%대 급등 700선 탈환(종합)",
+   "source": "연합뉴스",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%ED%94%BC%204.3%25%20%EC%83%81%EC%8A%B9%204%2C900%EC%84%A0%20%ED%9A%8C%EB%B3%B5%E2%80%A6%EC%BD%94%EC%8A%A4%EB%8B%A5%208%25%EB%8C%80%20%EA%B8%89%EB%93%B1%20700%EC%84%A0%20%ED%83%88%ED%99%98%28%EC%A2%85%ED%95%A9%29",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "16:05",
+   "title": "‘코스피 폭풍 쇼핑’ 대체 얼마만…돌아온 외인, 전약후강 패턴 깼다 [투자360]",
+   "source": "헤럴드경제",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%E2%80%98%EC%BD%94%EC%8A%A4%ED%94%BC%20%ED%8F%AD%ED%92%8D%20%EC%87%BC%ED%95%91%E2%80%99%20%EB%8C%80%EC%B2%B4%20%EC%96%BC%EB%A7%88%EB%A7%8C%E2%80%A6%EB%8F%8C%EC%95%84%EC%98%A8%20%EC%99%B8%EC%9D%B8%2C%20%EC%A0%84%EC%95%BD%ED%9B%84%EA%B0%95%20%ED%8C%A8%ED%84%B4%20%EA%B9%BC%EB%8B%A4%20%5B%ED%88%AC%EC%9E%90360%5D",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "15:54",
+   "title": "삼성바이오로직스, 임원ㆍ주요주주 특정증권등 소유주식수 변동",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%82%BC%EC%84%B1%EB%B0%94%EC%9D%B4%EC%98%A4%EB%A1%9C%EC%A7%81%EC%8A%A4%2C%20%EC%9E%84%EC%9B%90%E3%86%8D%EC%A3%BC%EC%9A%94%EC%A3%BC%EC%A3%BC%20%ED%8A%B9%EC%A0%95%EC%A6%9D%EA%B6%8C%EB%93%B1%20%EC%86%8C%EC%9C%A0%EC%A3%BC%EC%8B%9D%EC%88%98%20%EB%B3%80%EB%8F%99",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
   }
  ],
  "code": "207940",
@@ -1090,45 +1146,43 @@
  "as_of": "2026-11-27",
  "disclosures": [
   {
-   "date": "2026-11-25",
-   "title": "삼성바이오로직스(주) 추가상장(유상증자(주주배정 후 실권주 일반공모))",
-   "id": 201687645
+   "date": "2026-11-27",
+   "title": "임원ㆍ주요주주특정증권등소유상황보고서",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127001561",
+   "impact": "중립"
   },
   {
-   "date": "2026-11-17",
-   "title": "삼성바이오로직스(주) 유상증자 또는 주식관련사채 등의 발행결과(자율공시)",
-   "id": 192903216
+   "date": "2026-11-23",
+   "title": "임원ㆍ주요주주특정증권등소유상황보고서",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261123000359",
+   "impact": "중립"
   },
   {
-   "date": "2026-11-16",
-   "title": "삼성바이오로직스(주) 유상증자 또는 주식관련사채 등의 청약결과(자율공시)",
-   "id": 191721504
+   "date": "2026-11-23",
+   "title": "임원ㆍ주요주주특정증권등소유상황보고서",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261123000352",
+   "impact": "중립"
   },
   {
-   "date": "2026-11-11",
-   "title": "삼성바이오로직스(주) 유상증자 또는 주식관련사채 등의 청약결과(자율공시)",
-   "id": 185970916
+   "date": "2026-11-23",
+   "title": "임원ㆍ주요주주특정증권등소유상황보고서",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261123000346",
+   "impact": "중립"
   },
   {
-   "date": "2026-11-06",
-   "title": "삼성바이오로직스(주) (정정)타법인 주식 및 출자증권 취득결정(종속회사의 주요경영사항)",
-   "id": 181928294
+   "date": "2026-11-23",
+   "title": "임원ㆍ주요주주특정증권등소유상황보고서",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261123000339",
+   "impact": "중립"
   },
   {
-   "date": "2026-11-06",
-   "title": "삼성바이오로직스(주) (정정)타법인 주식 및 출자증권 양수결정",
-   "id": 181923219
+   "date": "2026-11-23",
+   "title": "임원ㆍ주요주주특정증권등소유상황보고서",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261123000328",
+   "impact": "중립"
   }
  ],
  "flows": [
-  [
-   "2026-10-30",
-   -2206.0,
-   37920.0,
-   -35319.0,
-   1432000.0,
-   0.1273
-  ],
   [
    "2026-11-02",
    -2685.0,
@@ -1279,6 +1333,14 @@
    10313.0,
    -7019.0,
    1342000.0,
+   0.125
+  ],
+  [
+   "2026-11-27",
+   -456.0,
+   -1168.0,
+   1559.0,
+   1347000.0,
    0.125
   ]
  ],

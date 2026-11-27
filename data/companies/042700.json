@@ -998,17 +998,17 @@
   ],
   [
    "2026-11-27",
-   160200.0
+   160800.0
   ]
  ],
  "price": {
-  "close": 160200.0,
-  "r1m": -0.22043795620437956,
-  "r3m": -0.2701594533029613,
-  "pos52": 0.1461612592354642,
+  "close": 160800.0,
+  "r1m": -0.2175182481751825,
+  "r3m": -0.2674259681093394,
+  "pos52": 0.14808866045615163,
   "hi52": 426000.0,
   "lo52": 114700.0,
-  "vol20": 663251.55,
+  "vol20": 673475.9,
   "last_date": "2026-11-27"
  },
  "quarters": [
@@ -1059,9 +1059,9 @@
   }
  ],
  "fundamentals": {
-  "market_cap_eok": 152690.0,
-  "per": 79.82,
-  "pbr": 19.44,
+  "market_cap_eok": 153262.0,
+  "per": 80.12,
+  "pbr": 19.51,
   "dividend_yield": 0.0054,
   "roe": 0.266,
   "debt_ratio": 0.1591,
@@ -1074,6 +1074,50 @@
  "news": [
   {
    "date": "2026-11-27",
+   "time": "18:05",
+   "title": "주식대차거래 잔고증가 상위종목(코스피)",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%A3%BC%EC%8B%9D%EB%8C%80%EC%B0%A8%EA%B1%B0%EB%9E%98%20%EC%9E%94%EA%B3%A0%EC%A6%9D%EA%B0%80%20%EC%83%81%EC%9C%84%EC%A2%85%EB%AA%A9%28%EC%BD%94%EC%8A%A4%ED%94%BC%29",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "18:05",
+   "title": "주식대차거래 체결 상위종목(코스피)",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%A3%BC%EC%8B%9D%EB%8C%80%EC%B0%A8%EA%B1%B0%EB%9E%98%20%EC%B2%B4%EA%B2%B0%20%EC%83%81%EC%9C%84%EC%A2%85%EB%AA%A9%28%EC%BD%94%EC%8A%A4%ED%94%BC%29",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "15:51",
+   "title": "코스피 외국인 순매수,도 상위20종목",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%ED%94%BC%20%EC%99%B8%EA%B5%AD%EC%9D%B8%20%EC%88%9C%EB%A7%A4%EC%88%98%2C%EB%8F%84%20%EC%83%81%EC%9C%8420%EC%A2%85%EB%AA%A9",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "10:23",
+   "title": "[장중수급포착] 한미반도체, 외국인/기관 동시 순매수… 주가 +4.13%",
+   "source": "뉴스핌",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%5B%EC%9E%A5%EC%A4%91%EC%88%98%EA%B8%89%ED%8F%AC%EC%B0%A9%5D%20%ED%95%9C%EB%AF%B8%EB%B0%98%EB%8F%84%EC%B2%B4%2C%20%EC%99%B8%EA%B5%AD%EC%9D%B8/%EA%B8%B0%EA%B4%80%20%EB%8F%99%EC%8B%9C%20%EC%88%9C%EB%A7%A4%EC%88%98%E2%80%A6%20%EC%A3%BC%EA%B0%80%20%2B4.13%25",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
    "time": "00:01",
    "title": "[단독] 한화 상대 한미반도체 특허 소송 막 오른다…변수는 조정 결과",
    "source": "더팩트",
@@ -1081,6 +1125,17 @@
    "url": "https://n.news.naver.com/mnews/article/629/0000556093",
    "impact": "주의",
    "auto": true
+  },
+  {
+   "date": "2026-11-26",
+   "time": "10:19",
+   "title": "[장중수급포착] 한미반도체, 외국인 5일 연속 순매수행진... 주가 +4.68%",
+   "source": "뉴스핌",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%5B%EC%9E%A5%EC%A4%91%EC%88%98%EA%B8%89%ED%8F%AC%EC%B0%A9%5D%20%ED%95%9C%EB%AF%B8%EB%B0%98%EB%8F%84%EC%B2%B4%2C%20%EC%99%B8%EA%B5%AD%EC%9D%B8%205%EC%9D%BC%20%EC%97%B0%EC%86%8D%20%EC%88%9C%EB%A7%A4%EC%88%98%ED%96%89%EC%A7%84...%20%EC%A3%BC%EA%B0%80%20%2B4.68%25",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
   }
  ],
  "code": "042700",
@@ -1120,14 +1175,6 @@
   }
  ],
  "flows": [
-  [
-   "2026-10-30",
-   -136120.0,
-   47357.0,
-   87874.0,
-   181300.0,
-   0.07
-  ],
   [
    "2026-11-02",
    76246.0,
@@ -1279,6 +1326,14 @@
    -18898.0,
    148400.0,
    0.0733
+  ],
+  [
+   "2026-11-27",
+   162922.0,
+   10582.0,
+   -173856.0,
+   160800.0,
+   0.075
   ]
  ],
  "tracked": true

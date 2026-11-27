@@ -1008,7 +1008,7 @@
   "pos52": 0.20836560805577073,
   "hi52": 92000.0,
   "lo52": 27450.0,
-  "vol20": 1652531.1,
+  "vol20": 1679913.35,
   "last_date": "2026-11-27"
  },
  "quarters": [
@@ -1075,24 +1075,70 @@
  "unit": "억원",
  "news": [
   {
-   "date": "2026-11-25",
-   "time": "13:59",
-   "title": "자사주 한도 풀린 날, HPSP·제일기획 등 8곳 1870억 취득 결정",
-   "source": "비즈워치",
-   "summary": "금융당국이 상장사의 자사주 하루 매수주문 한도를 푼 첫날 8개 기업이 1870억원 규모의 자사주 취득을 결정했다. HPSP와 제일기획 두 곳이 금액의 86%를 차지했고, 나머지는 대부분 코스닥 중소형사의 신탁 계약이었다. 대부분 이날부터 매입에...",
-   "url": "https://n.news.naver.com/mnews/article/648/0000052968",
-   "impact": "중립",
-   "auto": true
+   "date": "2026-11-27",
+   "time": null,
+   "title": "최대주주변경을수반하는주식담보제공계약체결",
+   "source": "DART 공시",
+   "summary": "HPSP",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127901080",
+   "impact": "주의",
+   "auto": true,
+   "kind": "공시"
   },
   {
-   "date": "2026-11-17",
-   "time": "08:04",
-   "title": "HPSP, 디램 넘어 낸드까지…내년 실적 성장 본격화-NH",
-   "source": "이데일리",
-   "summary": "NH투자증권은 17일 HPSP(403870)에 대해 메모리 반도체 장비 공급 확대에 힘입어 4분기 사상 최대 분기 매출을 기록하고, 내년에도 높은 실적 성장세를 이어갈 것으로 전망했다. 투자의견 ‘매수’를 유지하면서도 반도체 업종의 고점 통과...",
-   "url": "https://n.news.naver.com/mnews/article/018/0006410828",
+   "date": "2026-11-27",
+   "time": "17:28",
+   "title": "HPSP, 최대주주 변경 수반 주식 담보제공 계약 체결",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=HPSP%2C%20%EC%B5%9C%EB%8C%80%EC%A3%BC%EC%A3%BC%20%EB%B3%80%EA%B2%BD%20%EC%88%98%EB%B0%98%20%EC%A3%BC%EC%8B%9D%20%EB%8B%B4%EB%B3%B4%EC%A0%9C%EA%B3%B5%20%EA%B3%84%EC%95%BD%20%EC%B2%B4%EA%B2%B0",
    "impact": "중립",
-   "auto": true
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "17:28",
+   "title": "주식회사 에이치피에스피 최대주주 변경을 수반하는 주식 담보제공 계약 체결",
+   "source": "코스닥 공시",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%A3%BC%EC%8B%9D%ED%9A%8C%EC%82%AC%20%EC%97%90%EC%9D%B4%EC%B9%98%ED%94%BC%EC%97%90%EC%8A%A4%ED%94%BC%20%EC%B5%9C%EB%8C%80%EC%A3%BC%EC%A3%BC%20%EB%B3%80%EA%B2%BD%EC%9D%84%20%EC%88%98%EB%B0%98%ED%95%98%EB%8A%94%20%EC%A3%BC%EC%8B%9D%20%EB%8B%B4%EB%B3%B4%EC%A0%9C%EA%B3%B5%20%EA%B3%84%EC%95%BD%20%EC%B2%B4%EA%B2%B0",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "15:51",
+   "title": "코스닥 외국인 순매수,도 상위20종목",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%EB%8B%A5%20%EC%99%B8%EA%B5%AD%EC%9D%B8%20%EC%88%9C%EB%A7%A4%EC%88%98%2C%EB%8F%84%20%EC%83%81%EC%9C%8420%EC%A2%85%EB%AA%A9",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "10:13",
+   "title": "HPSP(403870) 소폭 상승세 +3.05%, 외국계 매수 유입",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=HPSP%28403870%29%20%EC%86%8C%ED%8F%AD%20%EC%83%81%EC%8A%B9%EC%84%B8%20%2B3.05%25%2C%20%EC%99%B8%EA%B5%AD%EA%B3%84%20%EB%A7%A4%EC%88%98%20%EC%9C%A0%EC%9E%85",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-26",
+   "time": "18:05",
+   "title": "주식대차거래 잔고증가 상위종목(코스닥)",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%A3%BC%EC%8B%9D%EB%8C%80%EC%B0%A8%EA%B1%B0%EB%9E%98%20%EC%9E%94%EA%B3%A0%EC%A6%9D%EA%B0%80%20%EC%83%81%EC%9C%84%EC%A2%85%EB%AA%A9%28%EC%BD%94%EC%8A%A4%EB%8B%A5%29",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
   }
  ],
  "code": "403870",
@@ -1101,45 +1147,25 @@
  "as_of": "2026-11-27",
  "disclosures": [
   {
-   "date": "2026-11-24",
-   "title": "주식회사 에이치피에스피 자기주식 취득 결정",
-   "id": 200075896
+   "date": "2026-11-27",
+   "title": "최대주주변경을수반하는주식담보제공계약체결",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127901080",
+   "impact": "주의"
   },
   {
    "date": "2026-11-24",
-   "title": "주식회사 에이치피에스피 (정정)자기주식 처분 결정",
-   "id": 200075895
+   "title": "주요사항보고서(자기주식취득결정)",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000377",
+   "impact": "긍정"
   },
   {
    "date": "2026-11-24",
-   "title": "주식회사 에이치피에스피 주식선물 2단계 가격제한폭 확대요건 도달(상승)",
-   "id": 199750986
-  },
-  {
-   "date": "2026-11-20",
-   "title": "주식회사 에이치피에스피 주식선물 2단계 가격제한폭 확대요건 도달(하락)",
-   "id": 197569171
-  },
-  {
-   "date": "2026-11-19",
-   "title": "주식회사 에이치피에스피 주식선물 2단계 가격제한폭 확대요건 도달(상승)",
-   "id": 195768473
-  },
-  {
-   "date": "2026-11-11",
-   "title": "주식회사 에이치피에스피 주식선물 2단계 가격제한폭 확대요건 도달(상승)",
-   "id": 186053935
+   "title": "[기재정정]주요사항보고서(자기주식처분결정)",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261124000355",
+   "impact": "주의"
   }
  ],
  "flows": [
-  [
-   "2026-10-30",
-   278755.0,
-   -195302.0,
-   -95531.0,
-   41900.0,
-   0.32899999999999996
-  ],
   [
    "2026-11-02",
    54173.0,
@@ -1291,6 +1317,14 @@
    274331.0,
    37700.0,
    0.2994
+  ],
+  [
+   "2026-11-27",
+   311726.0,
+   89735.0,
+   -399719.0,
+   40900.0,
+   0.3032
   ]
  ],
  "tracked": true

@@ -1008,7 +1008,7 @@
   "pos52": 0.09421364985163205,
   "hi52": 106600.0,
   "lo52": 39200.0,
-  "vol20": 218498.85,
+  "vol20": 221066.45,
   "last_date": "2026-11-27"
  },
  "quarters": [
@@ -1076,53 +1076,68 @@
  "news": [
   {
    "date": "2026-11-27",
-   "time": "13:19",
-   "title": "“평택 고덕에 아파트 1995가구 짓는다”…DL이앤씨, 2164억원 공사 수...",
-   "source": "디지털데일리",
-   "summary": "DL이앤씨가 경기 평택 고덕국제화계획지구에서 2164억원 규모의 공공주택 건설공사를 수주했다. 총 1995가구의 아파트와 부대복리시설을 조성하는 사업이다. DL이앤씨는 한국토지주택공사(LH)와 ‘평택고덕 A-69BL 및 A-71BL 통합형 민간참여...",
-   "url": "https://n.news.naver.com/mnews/article/138/0002250158",
-   "impact": "중립",
-   "auto": true
-  },
-  {
-   "date": "2026-11-26",
-   "time": "07:05",
-   "title": "DL이앤씨, 건설 데이터에 AI 접목…설계부터 안전까지 AX 확대",
-   "source": "뉴스1",
-   "summary": "인공지능(AI)이 건설산업의 설계·시공 방식과 경영 전략을 바꾸고 있다. 공사비 부담과 숙련 인력 부족, 생산성 정체, 안전관리 강화라는 과제를 안은 건설업계에서 AI 전환(AX)은 피할 수 없는 흐름이 됐다. 뉴스1은 주요 건설사의 건설 생태계...",
-   "url": "https://n.news.naver.com/mnews/article/421/0009310715",
-   "impact": "중립",
-   "auto": true
-  },
-  {
-   "date": "2026-11-26",
-   "time": "04:00",
-   "title": "흑석·반포·삼성 이어 성수까지…한강변 '아크로 벨트' 확장",
-   "source": "뉴시스",
-   "summary": "강세훈 기자, 권소라 인턴 기자 = DL이앤씨가 서울 성동구 성수전략정비구역 제2지구(성수2지구) 재개발 사업을 수주하면서 흑석·반포·삼성에 이어 한강변에 하이엔드 주거 브랜드 '아크로' 영역을 넓히게 됐다. DL이앤씨는 지난 21일 열린...",
-   "url": "https://n.news.naver.com/mnews/article/003/0014345650",
-   "impact": "중립",
-   "auto": true
-  },
-  {
-   "date": "2026-11-25",
-   "time": "08:00",
-   "title": "DL이앤씨·DL건설, 민자도로 지분 전량 매각… 10년 전 회수 약정 실행",
-   "source": "조선비즈",
-   "summary": "이 기사는 2026년 11월 24일 16시 41분 조선비즈 머니무브(MM) 사이트에 표출됐습니다. DL이앤씨와 자회사 DL건설이 민자도로 운영법인 수도권서부고속도로㈜ 지분과 수익증권을 매각했다. 2015년 수도권서부고속도로 자금 재조달 당시 체결한 매매...",
-   "url": "https://n.news.naver.com/mnews/article/366/0001207114",
-   "impact": "중립",
-   "auto": true
-  },
-  {
-   "date": "2026-11-25",
-   "time": "00:33",
-   "title": "건설사, 해외선 뒷걸음… 안방선 ‘무경쟁 수주’",
-   "source": "조선일보",
-   "summary": "국내·외에서 엇갈린 성적표 DL이앤씨와 GS건설은 지난 21~22일 서울에서 조(兆) 단위 재개발·재건축 사업을 나란히 수주했다. DL이앤씨는 2조137억원짜리 성동구 성수전략정비구역 2지구 재개발 사업 시공권을, GS건설은 1조7887억원 규모 양천구...",
-   "url": "https://n.news.naver.com/mnews/article/023/0004011509",
+   "time": null,
+   "title": "단일판매ㆍ공급계약체결",
+   "source": "DART 공시",
+   "summary": "DL이앤씨",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127800965",
    "impact": "긍정",
+   "auto": true,
+   "kind": "공시"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "17:28",
+   "title": "센텀·동래 생활권 품었다…'e편한세상 센텀 리버루체' 분양 예정",
+   "source": "뉴시스",
+   "summary": "DL이앤씨는 부산 해운대구 반여동 668-1번지 일원에서 반여4구역 주택재건축 정비사업을 통해 'e편한세상 센텀 리버루체'를 분양할 예정이라고 27일 밝혔다. 단지는 지하 3층~지상 36층, 5개동, 전용면적 47~84㎡ 총 536가구 규모로 조성된다. 이 중...",
+   "url": "https://n.news.naver.com/mnews/article/003/0014350134",
+   "impact": "중립",
    "auto": true
+  },
+  {
+   "date": "2026-11-27",
+   "time": "17:15",
+   "title": "DL이앤씨, 2,013.67억원 규모 공급계약(유원제일1차아파트 주택재건축정비사업) 체결",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=DL%EC%9D%B4%EC%95%A4%EC%94%A8%2C%202%2C013.67%EC%96%B5%EC%9B%90%20%EA%B7%9C%EB%AA%A8%20%EA%B3%B5%EA%B8%89%EA%B3%84%EC%95%BD%28%EC%9C%A0%EC%9B%90%EC%A0%9C%EC%9D%BC1%EC%B0%A8%EC%95%84%ED%8C%8C%ED%8A%B8%20%EC%A3%BC%ED%83%9D%EC%9E%AC%EA%B1%B4%EC%B6%95%EC%A0%95%EB%B9%84%EC%82%AC%EC%97%85%29%20%EC%B2%B4%EA%B2%B0",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "17:14",
+   "title": "디엘이앤씨 주식회사 단일판매ㆍ공급계약체결",
+   "source": "거래소 공시",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EB%94%94%EC%97%98%EC%9D%B4%EC%95%A4%EC%94%A8%20%EC%A3%BC%EC%8B%9D%ED%9A%8C%EC%82%AC%20%EB%8B%A8%EC%9D%BC%ED%8C%90%EB%A7%A4%E3%86%8D%EA%B3%B5%EA%B8%89%EA%B3%84%EC%95%BD%EC%B2%B4%EA%B2%B0",
+   "impact": "긍정",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "16:18",
+   "title": "DL그룹, 에너지 밸류체인 구축 속도…\"지속가능한 성장 마련\"",
+   "source": "연합뉴스",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=DL%EA%B7%B8%EB%A3%B9%2C%20%EC%97%90%EB%84%88%EC%A7%80%20%EB%B0%B8%EB%A5%98%EC%B2%B4%EC%9D%B8%20%EA%B5%AC%EC%B6%95%20%EC%86%8D%EB%8F%84%E2%80%A6%22%EC%A7%80%EC%86%8D%EA%B0%80%EB%8A%A5%ED%95%9C%20%EC%84%B1%EC%9E%A5%20%EB%A7%88%EB%A0%A8%22",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "16:17",
+   "title": "DL이앤씨, 부산서 'e편한세상 센텀 리버루체' 분양 예고",
+   "source": "연합뉴스",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=DL%EC%9D%B4%EC%95%A4%EC%94%A8%2C%20%EB%B6%80%EC%82%B0%EC%84%9C%20%27e%ED%8E%B8%ED%95%9C%EC%84%B8%EC%83%81%20%EC%84%BC%ED%85%80%20%EB%A6%AC%EB%B2%84%EB%A3%A8%EC%B2%B4%27%20%EB%B6%84%EC%96%91%20%EC%98%88%EA%B3%A0",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
   }
  ],
  "code": "375500",
@@ -1132,44 +1147,30 @@
  "disclosures": [
   {
    "date": "2026-11-27",
-   "title": "디엘이앤씨 주식회사 단일판매ㆍ공급계약체결",
-   "id": 205561525
+   "title": "단일판매ㆍ공급계약체결",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127800965",
+   "impact": "긍정"
+  },
+  {
+   "date": "2026-11-27",
+   "title": "단일판매ㆍ공급계약체결",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127800183",
+   "impact": "긍정"
   },
   {
    "date": "2026-11-23",
-   "title": "디엘이앤씨 주식회사 투자판단 관련 주요경영사항",
-   "id": 198813282
+   "title": "투자판단관련주요경영사항",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261123800122",
+   "impact": "중립"
   },
   {
    "date": "2026-11-23",
-   "title": "디엘이앤씨 주식회사 중대재해 발생",
-   "id": 198751217
-  },
-  {
-   "date": "2026-11-13",
-   "title": "디엘이앤씨 주식회사 단일판매ㆍ공급계약체결",
-   "id": 190022417
-  },
-  {
-   "date": "2026-11-11",
-   "title": "디엘이앤씨 주식회사 공매도 과열종목 지정(공매도 거래 금지 적용)(DL이앤씨2우(전환))",
-   "id": 186619834
-  },
-  {
-   "date": "2026-11-10",
-   "title": "디엘이앤씨 주식회사 주식선물 2단계 가격제한폭 확대요건 도달(상승)",
-   "id": 184830623
+   "title": "중대재해발생",
+   "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261123800004",
+   "impact": "중립"
   }
  ],
  "flows": [
-  [
-   "2026-10-30",
-   24508.0,
-   -6888.0,
-   -17686.0,
-   53100.0,
-   0.2351
-  ],
   [
    "2026-11-02",
    -2358.0,
@@ -1321,6 +1322,14 @@
    9432.0,
    43900.0,
    0.2415
+  ],
+  [
+   "2026-11-27",
+   31986.0,
+   -53028.0,
+   22184.0,
+   45550.0,
+   0.24230000000000002
   ]
  ],
  "tracked": true
