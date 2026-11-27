@@ -1,6 +1,6 @@
 // 앱 껍데기는 캐시, 데이터는 항상 네트워크 우선 (오프라인이면 마지막 데이터)
-const CACHE = "kmarket-v21";
-const SHELL = ["./", "index.html", "assets/style.css?v=21", "assets/app.js?v=21", "assets/config.js?v=21", "manifest.webmanifest", "assets/icon-192.png"];
+const CACHE = "kmarket-v22";
+const SHELL = ["./", "index.html", "assets/style.css?v=22", "assets/app.js?v=22", "assets/config.js?v=22", "manifest.webmanifest", "assets/icon-192.png"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", (e) => {
