@@ -179,8 +179,15 @@ def main():
     if len(rows) < 500:
         sys.exit("받은 종목이 너무 적어 저장하지 않음")
     prev = load(DATA / "live.json", {})
+    kosdaq = None
+    try:  # 코스닥 지수 (네이버 증권 공개 시세)
+        j = get("https://m.stock.naver.com/api/index/KOSDAQ/basic").json()
+        kosdaq = {"close": num(j.get("closePrice")), "chg": (num(j.get("fluctuationsRatio")) or 0) / 100}
+    except Exception as e:
+        print(f"[코스닥] 실패: {e}")
     out = {"updated_at": now.isoformat(timespec="minutes"), "date": now.date().isoformat(),
            "session": "nxt" if nxt else "regular", "source": src, "kospi": kospi or prev.get("kospi"),
+           "idx": {"kospi": kospi or prev.get("kospi"), "kosdaq": kosdaq or (prev.get("idx") or {}).get("kosdaq")},
            "fields": FIELDS, "rows": {c: v for c, v in sorted(rows.items())}, "brief": prev.get("brief")}
     if brief:
         hm = now.hour * 60 + now.minute
