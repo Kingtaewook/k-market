@@ -90,7 +90,8 @@
     const stale = age === null || age > 4;
     const upd = MK.updated_at ? MK.updated_at.slice(5, 16).replace("T", " ") : "자동 갱신 전";
     const lv = LIVE ? `${LIVE.session === "nxt" ? "NXT 마감" : "시세"} ${LIVE.updated_at.slice(11, 16)}` : null;
-    el.innerHTML = `<span class="dot ${stale ? "stale" : ""}"></span><span>기준 ${esc(MK.as_of || "–")}</span><span class="long">· ${lv ? esc(lv) : `갱신 ${esc(upd)}`}</span>`;
+    const rt = RT_ERR ? `<span title="${esc(RT_ERR)}">⚠️ 실시간 오류: ${esc(RT_ERR.slice(0, 40))}</span>` : RT_AT ? `<span>⚡실시간 ${new Date(new Date(RT_AT).getTime() + 9 * 3600000).toISOString().slice(11, 19)}</span>` : "";
+    el.innerHTML = `<span class="dot ${stale ? "stale" : ""}"></span><span>기준 ${esc(MK.as_of || "–")}</span><span class="long">· ${lv ? esc(lv) : `갱신 ${esc(upd)}`}</span>${rt}`;
   }
   function staleBanner() {
     const age = daysSince(MK.as_of);
@@ -1920,17 +1921,21 @@
     if (!codes.length) return;
     try {
       const { data, error } = await SB.functions.invoke("kis-quote", { body: { codes, market: nxt ? "NX" : "J" } });
-      if (error || !data?.quotes) return;
+      if (error || !data?.quotes) {
+        let msg = data?.error || error?.message || "응답 없음";
+        try { const t = await error?.context?.text?.(); if (t) msg = t; } catch {}
+        RT_ERR = String(msg).slice(0, 200); console.warn("[kis-quote]", RT_ERR); renderStatus(); return;
+      }
       let changed = false;
       for (const [c, q] of Object.entries(data.quotes)) {
         const before = ALL[c]?.close;
         liveFix(ALL[c], q.close, q.chg, q.amount); liveFix(MK.stocks?.[c], q.close, q.chg, q.amount);
         if (before !== q.close) changed = true;
       }
-      RT_AT = data.at;
+      RT_AT = data.at; RT_ERR = null; renderStatus();
       if (changed && safeToRerender()) rerender();
-    } catch {}
+    } catch (e) { RT_ERR = String(e?.message || e).slice(0, 200); renderStatus(); }
   }
-  let RT_AT = null;
+  let RT_AT = null, RT_ERR = null;
   init();
 })();
