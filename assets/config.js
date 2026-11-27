@@ -8,4 +8,6 @@ window.KM_CONFIG = {
   approval: true,
   // true = 카카오로만 가입 (Supabase에 카카오 로그인 설정을 마친 뒤 켜기)
   kakao: true,
+  // true = 종목 화면·내 투자에서 한국투자증권 실시간 시세(10초) 사용 (Supabase Edge Function 'kis-quote' 배포 후 켜기)
+  realtime: false,
 };
