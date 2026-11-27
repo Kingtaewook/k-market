@@ -195,7 +195,7 @@
     for (const n of auto) { if (seen.has(n.title)) continue; seen.add(n.title); heads.push(n); if (heads.length >= 3) break; }
     return `<section class="brief">
       <div class="brief-mood ${s === null ? "" : moodTone(s)}">
-        <div class="eyebrow">10초 브리핑 · ${esc(bLabel)}</div>
+        <div class="eyebrow">10초 브리핑 · ${esc(bLabel)}<a class="brief-more" href="#/brief">오늘·이번 주 정리 →</a></div>
         ${gaugeSvg(s)}
         <div class="mood-score num">${s ?? "–"}<span>${s === null ? "" : moodLabel(s)}</span></div>
         <p class="mood-line">${line}</p>
@@ -1094,7 +1094,7 @@
   const IS_ADMIN = () => !!PROFILE?.is_admin;
   // 승인된 회원인가? (승인제를 끄거나, 회원 정보 표가 아직 없으면 로그인만으로 통과)
   const CAN_SEE = () => !APPROVAL() || (USER && (!PROFILE_OK || PROFILE?.status === "approved"));
-  const LOCKED_PAGES = new Set(["themes", "sectors", "news", "my", "admin"]);
+  const LOCKED_PAGES = new Set(["themes", "sectors", "news", "my", "admin", "brief"]);
   // 긍정 뉴스는 관리자가 열어준 회원만 (회원별 권한)
   // 관리자 '회원 화면 미리보기': 켜면 관리자도 일반 회원(긍정 뉴스 권한 없음)처럼 보여요
   const PREVIEW = () => { try { return IS_ADMIN() && localStorage.getItem("km_preview") === "1"; } catch { return false; } };
@@ -1839,6 +1839,84 @@
     }
     FLASH = {};
   }
+  // ---------------- 하루·주간·월간 정리 + 다음 주 흐름 + 일정 (#/brief/탭/날짜)
+  let JOURNAL = null, REVIEW = null;
+  const gname = (kind, no) => (GROUPS?.[kind] || []).find((g) => g.no === no)?.name || `#${no}`;
+  const SLOT = { am: "오전장 (11시)", close: "장 마감", nxt: "NXT 마감" };
+  function rankTable(title, kind, list, href) {
+    if (!list?.length) return "";
+    return `<div class="rk"><div class="rk-h">${title}</div>${list.map(([no, chg, rise, fall], i) => `<a class="rk-row" href="#/market/g/${href}/${no}"><span class="rk-n num">${i + 1}</span><span class="rk-name">${esc(gname(kind, no))}</span>${isNum(rise) ? `<span class="rk-sub num"><span class="up">${rise}</span>/<span class="down">${fall}</span></span>` : ""}<span class="rk-v num ${cls(chg)}">${pct(chg, 1)}</span></a>`).join("")}</div>`;
+  }
+  function moverTable(title, list, withAmt) {
+    if (!list?.length) return "";
+    return `<div class="rk"><div class="rk-h">${title}</div>${list.map(([c, chg, amt], i) => `<a class="rk-row" href="#/company/${c}"><span class="rk-n num">${i + 1}</span><span class="rk-name">${esc(nameOf(c))}${warnBadge(c)}</span>${withAmt ? `<span class="rk-sub num">${bigWon(amt)}</span>` : ""}<span class="rk-v num ${cls(chg)}">${pct(chg, 1)}</span></a>`).join("")}</div>`;
+  }
+  function lineChart(series, label) {
+    if (!series || series.length < 2) return "";
+    const W = 600, H = 150, v = series.map((x) => x[1]), lo = Math.min(...v), hi = Math.max(...v);
+    const x = (i) => (i / (series.length - 1)) * W, y = (a) => H - 8 - ((a - lo) / (hi - lo || 1)) * (H - 24);
+    const d = series.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p[1]).toFixed(1)}`).join("");
+    const ch = v[v.length - 1] / v[0] - 1, tone = cls(ch);
+    return `<div class="lc"><div class="lc-h"><b>${label}</b> <span class="num">${idxFmt(v[v.length - 1])}</span> <span class="num ${tone}">${pct(ch, 1)}</span><span class="muted"> · 최근 ${series.length}거래일</span></div>
+      <svg class="spark ${tone}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:150px"><path class="area" d="${d}L${W},${H}L0,${H}Z"/><path class="line" d="${d}"/></svg>
+      <div class="lc-x muted num"><span>${esc(series[0][0])}</span><span>${esc(series[Math.floor(series.length / 2)][0])}</span><span>${esc(series[series.length - 1][0])}</span></div></div>`;
+  }
+  function eventCard(e, open) {
+    const dd = new Date(e.date + "T00:00:00+09:00"), wd = "일월화수목금토"[dd.getDay()];
+    return `<details class="ev" ${open ? "open" : ""}><summary><span class="ev-d num">${e.date.slice(5).replace("-", "/")} (${wd})</span><span class="ev-t">${esc(e.title)}</span>${e.tags.map((t) => `<span class="badge">${esc(t)}</span>`).join("")}</summary>
+      <ol class="ev-steps"><li><b>일정</b> ${esc(e.steps[0])}</li><li><b>수급·리밸런싱</b> ${esc(e.steps[1])}</li><li><b>과거 패턴</b> ${esc(e.steps[2])}</li></ol></details>`;
+  }
+  function pageBrief(tab = "today", day) {
+    const J = JOURNAL?.days || {}, R = REVIEW || {};
+    const tabs = [["today", "오늘"], ["week", "이번 주"], ["month", "이번 달"], ["flow", "흐름"], ["next", "다음 주"], ["events", "일정"]];
+    const head = `<div class="page-head"><div><h1>시장 정리</h1><p class="lede">오전장·장 마감·NXT 마감 기록과 주간·월간 흐름, 다음 주 주목할 점을 한곳에 모았어요. 참고용 정보이며 매수·매도 권유가 아니에요.</p></div></div>
+      <div class="seg section">${tabs.map(([k, l]) => `<a class="seg-b ${k === tab ? "on" : ""}" href="#/brief/${k}">${l}</a>`).join("")}</div>`;
+    let body = "";
+    if (tab === "today") {
+      const days = Object.keys(J).sort().reverse();
+      const d = day && J[day] ? day : days[0];
+      if (!d) body = `<div class="card empty">오늘 기록은 11시 브리핑부터 쌓여요.</div>`;
+      else {
+        const slots = ["am", "close", "nxt"].filter((k) => J[d][k]);
+        body = `<div class="day-pick section">${days.slice(0, 10).map((x) => `<a class="chip ${x === d ? "on" : ""}" href="#/brief/today/${x}">${x.slice(5).replace("-", "/")}</a>`).join("")}</div>
+          ${slots.slice().reverse().map((k) => {
+            const S = J[d][k], b = S.breadth || {}, tot = (b.up || 0) + (b.down || 0);
+            return `<div class="card section"><div class="card-head"><h2>${SLOT[k]}</h2><span class="muted num">${esc(S.at.slice(11, 16))}</span></div>
+              <div class="temp num">${isNum(S.kospi?.close) ? `<span>코스피 <b>${idxFmt(S.kospi.close)}</b> <b class="${cls(S.kospi.chg)}">${pct(S.kospi.chg, 2)}</b></span>` : ""}
+                ${tot ? `<span>상승 <b class="up">${b.up.toLocaleString()}</b> · 하락 <b class="down">${b.down.toLocaleString()}</b> (${Math.round((b.up / tot) * 100)}%)</span>` : ""}
+                ${isNum(b.high52) ? `<span>52주 신고가 <b>${b.high52}</b> · 신저가 <b>${b.low52}</b></span>` : ""}</div>
+              <div class="rk-grid">${rankTable("강세 테마 TOP 5", "themes", S.themes?.top, "theme")}${rankTable("약세 테마 TOP 5", "themes", S.themes?.bottom, "theme")}
+                ${rankTable("강세 업종 TOP 5", "industries", S.industries?.top, "industry")}${rankTable("약세 업종 TOP 5", "industries", S.industries?.bottom, "industry")}
+                ${moverTable("급등 종목 TOP 10", S.gainers)}${moverTable("급락 종목 TOP 10", S.losers)}${moverTable("거래대금 TOP 10", S.active, true)}</div></div>`;
+          }).join("")}`;
+      }
+    } else if (tab === "week" || tab === "month") {
+      const P = R.periods?.[tab];
+      body = !P ? `<div class="card empty">장 마감 뒤 자동 갱신에서 만들어져요.</div>` : `<div class="card section"><div class="card-head"><h2>${tab === "week" ? "이번 주" : "이번 달"} 한 줄 총평</h2><span class="muted num">${esc(P.from)} ~ ${esc(P.to)} · ${P.days}거래일</span></div>
+          <p class="verdict">${esc(P.comment || "")}</p></div>
+        <div class="card section"><div class="rk-grid">${rankTable("강세 테마", "themes", P.themes.top, "theme")}${rankTable("약세 테마", "themes", P.themes.bottom, "theme")}
+          ${rankTable("강세 업종", "industries", P.industries.top, "industry")}${rankTable("약세 업종", "industries", P.industries.bottom, "industry")}</div></div>
+        <div class="card section">${lineChart(R.index?.kospi, "코스피")}${lineChart(R.index?.kosdaq, "코스닥")}</div>`;
+    } else if (tab === "flow") {
+      const W = R.rotation?.weeks || [], M = R.rotation?.months || [];
+      const row = (r) => `<div class="flow-row"><span class="flow-l num">${esc(r.label)}</span>${r.top.map(([no, chg], i) => `<a class="flow-c ${i ? "" : "first"}" href="#/market/g/theme/${no}">${esc(gname("themes", no))} <em class="num ${cls(chg)}">${pct(chg, 1)}</em></a>`).join("")}</div>`;
+      body = !W.length ? `<div class="card empty">장 마감 뒤 자동 갱신에서 만들어져요.</div>` : `<div class="card section"><div class="card-head"><h2>주도 테마가 바뀐 흐름 · 주별</h2><span class="muted">각 주 1~3위</span></div>${W.slice().reverse().map(row).join("")}</div>
+        <div class="card section"><div class="card-head"><h2>월별</h2></div>${M.slice().reverse().map(row).join("")}</div>
+        <div class="card section">${lineChart(R.index?.kospi, "코스피")}${lineChart(R.index?.kosdaq, "코스닥")}</div>`;
+    } else if (tab === "next") {
+      const now = new Date(Date.now() + 9 * 3600000), d0 = now.toISOString().slice(0, 10), d7 = new Date(now.getTime() + 9 * 86400000).toISOString().slice(0, 10);
+      const ev = (R.events || []).filter((e) => e.date >= d0 && e.date <= d7);
+      body = `<div class="card section"><div class="card-head"><h2>다음 주 주목할 흐름</h2><span class="muted">규칙 기반 자동 정리</span></div>
+          ${(R.outlook || []).map((o) => `<div class="ol"><span class="badge ${o.kind === "과열" || o.kind === "식는 중" ? "warn" : o.kind === "지속" || o.kind === "부상" ? "pos" : ""}">${esc(o.kind)}</span><span>${esc(o.text)}</span></div>`).join("") || `<div class="empty">장 마감 뒤 자동 갱신에서 만들어져요.</div>`}
+          <p class="muted" style="font-size:12px;margin-top:10px">과거 흐름과 일정을 정리한 참고 자료예요. 특정 종목의 매수·매도를 권하지 않아요.</p></div>
+        <div class="card section"><div class="card-head"><h2>다음 7일 일정</h2><a class="more" href="#/brief/events">35일 전체 →</a></div>${ev.map((e) => eventCard(e, true)).join("") || `<div class="empty">큰 일정이 없어요.</div>`}</div>`;
+    } else {
+      const P = R.patterns || {}, m = String(new Date(Date.now() + 9 * 3600000).getUTCMonth() + 1), mp = P.months?.[m];
+      body = `${mp ? `<div class="card section"><div class="card-head"><h2>${m}월의 계절성</h2><span class="muted">코스피 ${esc(P.years || "")}</span></div><p class="verdict">지난 ${mp.n}번의 ${m}월에 코스피는 평균 <b class="${cls(mp.avg)}">${pct(mp.avg, 1)}</b>, 오른 해는 ${Math.round(mp.up * 100)}%였어요.</p></div>` : ""}
+        <div class="card section"><div class="card-head"><h2>앞으로 35일 일정</h2><span class="muted">눌러서 ① 일정 ② 수급·리밸런싱 ③ 과거 패턴 보기</span></div>${(R.events || []).map((e) => eventCard(e, false)).join("") || `<div class="empty">일정을 불러오는 중이에요.</div>`}</div>`;
+    }
+    return head + body;
+  }
   async function route() {
     const parts = (location.hash || "#/").slice(2).split("/").map(decodeURIComponent);
     let page = parts[0] || "home";
@@ -1851,7 +1929,7 @@
       document.getElementById("gate-info")?.addEventListener("click", openProfileInfo);
     };
     if (LOCKED_PAGES.has(page) && !CAN_SEE()) {
-      $app.innerHTML = gateCard({ themes: "테마", sectors: "섹터", news: "뉴스", my: "내 투자", admin: "회원 관리" }[page]);
+      $app.innerHTML = gateCard({ themes: "테마", sectors: "섹터", news: "뉴스", my: "내 투자", admin: "회원 관리", brief: "하루·주간 정리" }[page]);
       wireGate(); if (!window.__kmKeepScroll) window.scrollTo(0, 0);
       return;
     }
@@ -1867,6 +1945,7 @@
     else if (page === "admin") html = await pageAdmin();
     else if (page === "alerts") html = USER ? pageAlerts() : gateCard("알람");
     else if (page === "my") html = await pageMy(parts[1]);
+    else if (page === "brief") { if (!JOURNAL) [JOURNAL, REVIEW] = await Promise.all([getJSON("journal.json"), getJSON("review.json")]); html = pageBrief(parts[1], parts[2]); }
     else html = pageHome();
     $app.innerHTML = html;
     wireSearch("home-q"); wireSearch("q"); wireSearch("cq"); wireInstall(); wireGate();

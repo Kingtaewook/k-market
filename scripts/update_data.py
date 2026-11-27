@@ -683,9 +683,12 @@ def main():
         failures.append({"code": "*", "step": "KIS 뉴스", "error": str(e)[:200]})
     for c in set(DART_BY_CODE) | set(kn):
         EXTRA_NEWS[c] = sources.merge_items(kn.get(c, []), DART_BY_CODE.get(c, [])[:4], n=8)
-    # ---- 투자주의·경고·위험 등 (한국투자증권, 전 종목 한 번씩 · 약 6분)
+    # ---- 투자주의·경고·위험 등 (한국투자증권, 전 종목 한 번씩 · 10분 안팎)
+    #      지정은 전날 장 마감 뒤 공시돼 그날 적용 → 아침 실행에서만 (그날 아직 없으면 다른 실행에서도)
     try:
-        w = sources.kis_warnings([r[1] for r in listing])
+        w = None
+        if morning or load(DATA / "warnings.json", {}).get("as_of") != today:
+            w = sources.kis_warnings([r[1] for r in listing])
         if w is not None:
             save(DATA / "warnings.json", {"as_of": today, "updated_at": now.isoformat(timespec="minutes"), "w": w}, compact=True)
     except Exception as e:
@@ -833,6 +836,24 @@ def main():
         build_group_news(load(DATA / "groups.json", {}), allrows, lmap, news_cache, today, now)
     except Exception as e:
         failures.append({"code": "*", "step": "섹터 뉴스", "error": str(e)[:200]})
+    # ---- 돌아보기·전망: 일정(매번) + 기간별 테마 순위·주도 테마 흐름·지수 차트·다음 주 흐름(오후, 전 종목 일봉 있을 때)
+    try:
+        import review
+        k10 = history("KOSPI", days=3700)
+        pats = review.pattern_stats(k10)
+        rv = load(DATA / "review.json", {})
+        rv["events"] = review.upcoming_events(now.date(), pats)
+        rv["patterns"] = pats
+        if hist:
+            try:
+                kq = history("KOSDAQ", days=120)
+            except Exception:
+                kq = []
+            rv.update(review.build_review(load(DATA / "groups.json", {}), hist, k10, kq, load(DATA / "journal.json", {}), now.date()))
+        rv["updated_at"] = now.isoformat(timespec="minutes")
+        save(DATA / "review.json", rv, compact=True)
+    except Exception as e:
+        failures.append({"code": "*", "step": "돌아보기", "error": str(e)[:200]})
 
     tn = load(DATA / "theme_news.json", {"curated": []})
     tn["auto"] = theme_auto or tn.get("auto", {})

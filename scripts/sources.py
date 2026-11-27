@@ -179,12 +179,17 @@ def kis_news(classify, code="", pages=1):
 WARN = {"01": "투자주의", "02": "투자경고", "03": "투자위험"}
 
 
-def kis_warnings(codes, per_sec=8):
-    """종목별 현재가 조회로 경고 정보 모으기 → {종목코드: ["투자경고", "단기과열", ...]} (해당 있는 종목만)"""
+def kis_warnings(codes, per_sec=8, budget=600):
+    """종목별 현재가 조회로 경고 정보 모으기 → {종목코드: ["투자경고", "단기과열", ...]} (해당 있는 종목만)
+    budget 초가 넘으면 멈춤 (호출 한도가 낮은 신규 계정에서 전체 갱신이 늦어지지 않게). 절반도 못 하면 None"""
     if not kis_ready():
         return None
-    out, fails, t0 = {}, 0, time.time()
+    out, fails, t0, done = {}, 0, time.time(), 0
     for i, c in enumerate(codes):
+        if time.time() - t0 > budget:
+            print(f"[경고] 시간 초과로 {i}/{len(codes)} 에서 멈춤")
+            break
+        done = i + 1
         try:
             j, _ = kis_call("/uapi/domestic-stock/v1/quotations/inquire-price", "FHKST01010100",
                             {"FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": c})
@@ -202,13 +207,15 @@ def kis_warnings(codes, per_sec=8):
                 tags.append("관리종목")
             if tags:
                 out[c] = tags
+            if i and i % 500 == 0:
+                print(f"[경고] {i}/{len(codes)} … {time.time() - t0:.0f}초")
         except Exception as e:
             fails += 1
             if fails <= 5:
                 print(f"[경고] 실패 {c}: {e}")
         time.sleep(1 / per_sec)
     print(f"[경고] {len(codes)}종목 확인, 해당 {len(out)}개, 실패 {fails}, {time.time() - t0:.0f}초")
-    return out if fails < len(codes) * 0.3 else None
+    return out if done >= len(codes) * 0.5 and fails < done * 0.3 else None
 
 
 # ---------------------------------------------------------------- 합치기
