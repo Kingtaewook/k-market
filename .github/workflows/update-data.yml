@@ -37,6 +37,7 @@ jobs:
           KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
           SCHEDULE: ${{ github.event.schedule }}
+          PYTHONUNBUFFERED: "1"
         run: |
           case "$SCHEDULE" in
             "20 23 * * 0-4") python scripts/update_data.py ;;                                         # 장 전 뉴스

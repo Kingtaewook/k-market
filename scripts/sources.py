@@ -202,6 +202,8 @@ def kis_warnings(codes, per_sec=8):
                 tags.append("관리종목")
             if tags:
                 out[c] = tags
+            if i and i % 500 == 0:
+                print(f"[경고] {i}/{len(codes)} … {time.time() - t0:.0f}초")
         except Exception as e:
             fails += 1
             if fails <= 5:

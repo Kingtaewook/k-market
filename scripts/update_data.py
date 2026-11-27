@@ -683,9 +683,12 @@ def main():
         failures.append({"code": "*", "step": "KIS 뉴스", "error": str(e)[:200]})
     for c in set(DART_BY_CODE) | set(kn):
         EXTRA_NEWS[c] = sources.merge_items(kn.get(c, []), DART_BY_CODE.get(c, [])[:4], n=8)
-    # ---- 투자주의·경고·위험 등 (한국투자증권, 전 종목 한 번씩 · 약 6분)
+    # ---- 투자주의·경고·위험 등 (한국투자증권, 전 종목 한 번씩 · 10분 안팎)
+    #      지정은 전날 장 마감 뒤 공시돼 그날 적용 → 아침 실행에서만 (그날 아직 없으면 다른 실행에서도)
     try:
-        w = sources.kis_warnings([r[1] for r in listing])
+        w = None
+        if morning or load(DATA / "warnings.json", {}).get("as_of") != today:
+            w = sources.kis_warnings([r[1] for r in listing])
         if w is not None:
             save(DATA / "warnings.json", {"as_of": today, "updated_at": now.isoformat(timespec="minutes"), "w": w}, compact=True)
     except Exception as e:
