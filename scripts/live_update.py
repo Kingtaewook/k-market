@@ -130,6 +130,40 @@ def brief_snapshot(rows, kospi, label, now):
             "breadth": {"up": up, "down": down, "high52": high52, "low52": low52, "total": len(rows)}, "themes": gchg}
 
 
+def save_journal(now, slot, label, rows, kospi, brief, keep_days=40):
+    """오늘 하루 정리용 기록: 오전(am)·장 마감(close)·NXT 마감(nxt) 시점별 강세/약세 테마·업종·종목
+    data/journal.json = {"days": {"YYYY-MM-DD": {"am": {...}, "close": {...}, "nxt": {...}}}}"""
+    groups = load(DATA / "groups.json", {})
+
+    def gstat(kind):
+        out = []
+        for g in groups.get(kind) or []:
+            ch = [rows[c][1] for c in g.get("codes", []) if c in rows]
+            if len(ch) >= 3:
+                out.append([g["no"], round(sum(ch) / len(ch), 5), sum(1 for x in ch if x > 0), sum(1 for x in ch if x < 0)])
+        out.sort(key=lambda x: x[1], reverse=True)
+        return {"top": out[:5], "bottom": out[-5:][::-1]}
+
+    allp = load(DATA / "market_all.json", {})
+    F = allp.get("fields", [])
+    mc = {c: dict(zip(F, v)).get("marcap") or 0 for c, v in (allp.get("rows") or {}).items()}
+    # 급등·급락은 너무 작은 종목(시총 300억 미만)은 빼고
+    mv = sorted(((c, v[1]) for c, v in rows.items() if v[1] is not None and mc.get(c, 0) >= 3e10), key=lambda x: x[1], reverse=True)
+    amt = sorted(((c, v[1], v[2]) for c, v in rows.items() if v[2]), key=lambda x: x[2] or 0, reverse=True)
+    snap = {"at": now.isoformat(timespec="minutes"), "label": label, "kospi": kospi, "breadth": brief.get("breadth"),
+            "themes": gstat("themes"), "industries": gstat("industries"),
+            "gainers": [[c, round(ch, 4)] for c, ch in mv[:10]], "losers": [[c, round(ch, 4)] for c, ch in mv[-10:][::-1]],
+            "active": [[c, round(ch, 4), a] for c, ch, a in amt[:10]]}
+    j = load(DATA / "journal.json", {"days": {}})
+    day = now.date().isoformat()
+    j.setdefault("days", {}).setdefault(day, {})[slot] = snap
+    for d in sorted(j["days"])[:-keep_days]:
+        del j["days"][d]
+    j["updated_at"] = now.isoformat(timespec="minutes")
+    save(DATA / "journal.json", j, compact=True)
+    print(f"하루 정리 기록: {day} {slot}")
+
+
 def main():
     brief, nxt = "--brief" in sys.argv, "--nxt" in sys.argv
     now = dt.datetime.now(KST)
@@ -152,6 +186,8 @@ def main():
         hm = now.hour * 60 + now.minute
         label = "NXT 마감" if nxt else ("장 마감" if hm >= 15 * 60 + 30 else f"{now:%H:%M} 기준")
         out["brief"] = brief_snapshot(rows, kospi, label, now)
+        slot = "nxt" if nxt else ("close" if hm >= 15 * 60 + 30 else "am")
+        save_journal(now, slot, label, rows, kospi, out["brief"])
     save(DATA / "live.json", out, compact=True)
     print("live.json 저장" + (" + 브리핑" if brief else ""))
 

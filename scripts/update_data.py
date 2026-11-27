@@ -836,6 +836,24 @@ def main():
         build_group_news(load(DATA / "groups.json", {}), allrows, lmap, news_cache, today, now)
     except Exception as e:
         failures.append({"code": "*", "step": "섹터 뉴스", "error": str(e)[:200]})
+    # ---- 돌아보기·전망: 일정(매번) + 기간별 테마 순위·주도 테마 흐름·지수 차트·다음 주 흐름(오후, 전 종목 일봉 있을 때)
+    try:
+        import review
+        k10 = history("KOSPI", days=3700)
+        pats = review.pattern_stats(k10)
+        rv = load(DATA / "review.json", {})
+        rv["events"] = review.upcoming_events(now.date(), pats)
+        rv["patterns"] = pats
+        if hist:
+            try:
+                kq = history("KOSDAQ", days=120)
+            except Exception:
+                kq = []
+            rv.update(review.build_review(load(DATA / "groups.json", {}), hist, k10, kq, load(DATA / "journal.json", {}), now.date()))
+        rv["updated_at"] = now.isoformat(timespec="minutes")
+        save(DATA / "review.json", rv, compact=True)
+    except Exception as e:
+        failures.append({"code": "*", "step": "돌아보기", "error": str(e)[:200]})
 
     tn = load(DATA / "theme_news.json", {"curated": []})
     tn["auto"] = theme_auto or tn.get("auto", {})
