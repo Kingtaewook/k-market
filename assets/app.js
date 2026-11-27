@@ -1040,7 +1040,7 @@
   // 코스피·코스닥 카드 + 오늘 흐름 미니 차트
   const idxFmt = (v) => (isNum(v) ? v.toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "–");
   function sparkSvg(pts, base, tone) {
-    if (!pts || pts.length < 2) return `<div class="spark-empty">장중 5분마다<br>흐름이 그려져요</div>`;
+    if (!pts || pts.length < 2) return `<div class="spark-empty">장중 1분마다<br>흐름이 그려져요</div>`;
     const W = 160, H = 52, mins = (t) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
     const vals = pts.map((p) => p[1]).concat(isNum(base) ? [base] : []);
     const lo = Math.min(...vals), hi = Math.max(...vals);
@@ -1799,7 +1799,7 @@
   }
 
   // ------------------------------------------------------------ 라우터
-  let ALLMETA = {}, LIVE = null, IDX = null, SERIES = null, FLASH = {}, SERVER_TS = null;
+  let ALLMETA = {}, LIVE = null, IDX = null, SERIES = null, FX = null, FLASH = {}, SERVER_TS = null, TICK_TS = null;
   // 장중 15분 시세(data/live.json)를 전 종목 표에 덮어쓰기. 1주·1개월·3개월 수익률과 52주 위치는 가격 변화만큼 보정.
   function liveFix(o, close, chg, amount) {
       if (!o || !isNum(o.close) || o.close <= 0 || !isNum(close)) return;
@@ -1964,6 +1964,7 @@
     if (LIVE !== L) return false; // 날짜가 지난 묶음
     if (L.idx) IDX = L.idx;
     if (L.series) SERIES = L.series;
+    if (L.fx) FX = L.fx;
     if (flash) for (const [c, v] of Object.entries(L.rows)) if (isNum(before[c]) && isNum(v[0]) && v[0] !== before[c]) FLASH[c] = v[0] > before[c] ? 1 : -1;
     return true;
   }
@@ -1981,6 +1982,27 @@
       if (takeLive(row.data, flash)) afterLive();
     } catch {}
   }
+  // 매분 지수·환율(작은 묶음). 홈·시장 화면이면 오늘 1분 흐름(미니 차트)까지
+  async function pullTick() {
+    const c = window.KM_CONFIG?.supabase;
+    if (!c?.url) return;
+    const page = (location.hash.replace(/^#\/?/, "") || "home").split("/")[0];
+    const wantSeries = page === "home" || page === "market";
+    try {
+      const sel = wantSeries ? "data,updated_at" : "updated_at,idx:data->idx,fx:data->fx";
+      const q = TICK_TS && !(wantSeries && !SERIES) ? `&updated_at=gt.${encodeURIComponent(TICK_TS)}` : "";
+      const r = await fetch(`${c.url}/rest/v1/live_cache?id=eq.2&select=${sel}${q}`, { headers: { apikey: c.anonKey }, cache: "no-store" });
+      if (!r.ok) return;
+      const [row] = await r.json();
+      if (!row) return;
+      TICK_TS = row.updated_at;
+      const d = row.data || row;
+      if (d.idx) { IDX = d.idx; if (isNum(d.idx.kospi?.close)) MK.kospi = { ...(MK.kospi || {}), close: d.idx.kospi.close, chg: d.idx.kospi.chg }; }
+      if (d.fx) FX = d.fx;
+      if (d.series) SERIES = d.series;
+      if (wantSeries && safeToRerender()) rerender(); else renderDock();
+    } catch {}
+  }
   // 화면을 켜 둔 동안: 1분마다 서버 5분 시세 확인(바뀌었을 때만 내려받음), 5분마다 live.json(브리핑) 확인,
   // 실시간 설정이면 보고 있는 종목·시장 탭에 보이는 종목·관심 종목 패널은 10초마다
   const safeToRerender = () => !document.querySelector(".modal-bg") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName);
@@ -1992,9 +2014,10 @@
         if (r.ok && takeLive(await r.json())) afterLive();
       } catch {}
     }, 300000);
-    pullServer(false);
-    setInterval(() => { if (document.visibilityState === "visible") pullServer(); }, 60000);
-    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { pullServer(); setTimeout(realtimeTick, 500); } });
+    pullServer(false).then(pullTick);
+    setInterval(() => { if (document.visibilityState === "visible") pullServer().then(pullTick); }, 60000);
+    window.addEventListener("hashchange", () => { const p = (location.hash.replace(/^#\/?/, "") || "home").split("/")[0]; if ((p === "home" || p === "market") && !SERIES) pullTick(); });
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { pullServer().then(pullTick); setTimeout(realtimeTick, 500); } });
     window.addEventListener("resize", () => { clearTimeout(window.__kmRs); window.__kmRs = setTimeout(renderDock, 200); });
     renderDock();
     if (!window.KM_CONFIG?.realtime || !SB) return;
@@ -2036,7 +2059,8 @@
     if (!t) { t = document.createElement("div"); t.id = "ticker"; document.body.appendChild(t); }
     const k = IDX?.kospi || MK.kospi, q = IDX?.kosdaq, b = MK.breadth;
     const item = (n, v) => (v && isNum(v.close) ? `<span class="tk"><b>${n}</b> <span class="num">${idxFmt(v.close)}</span> <span class="num ${cls(v.chg)}">${pct(v.chg, 2)}</span></span>` : "");
-    t.innerHTML = `${item("코스피", k)}${item("코스닥", q)}${b ? `<span class="tk"><b>상승</b> <span class="num up">${(b.up || 0).toLocaleString()}</span> <b>하락</b> <span class="num down">${(b.down || 0).toLocaleString()}</span></span>` : ""}
+    const fxItem = FX && isNum(FX.rate) ? `<span class="tk"><b>달러 환율</b> <span class="num">${FX.rate.toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>${isNum(FX.chg) ? ` <span class="num ${cls(FX.chg)}">${pct(FX.chg, 2)}</span>` : ""}</span>` : "";
+    t.innerHTML = `${item("코스피", k)}${item("코스닥", q)}${fxItem}${b ? `<span class="tk"><b>상승</b> <span class="num up">${(b.up || 0).toLocaleString()}</span> <b>하락</b> <span class="num down">${(b.down || 0).toLocaleString()}</span></span>` : ""}
       <span class="tk muted">${LIVE ? `${LIVE.session === "nxt" ? "NXT · " : ""}시세 ${esc(LIVE.updated_at.slice(11, 16))}` : esc(MK.as_of || "")}${RT_AT ? " · ⚡실시간" : ""}</span>`;
     document.body.classList.add("has-ticker");
   }
