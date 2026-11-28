@@ -1,0 +1,33 @@
+name: 큰 체결 집계 (장중 실시간)
+
+# Supabase 예약 작업(kis-market)이 평일 08:58·12:19 에 실행을 요청함 (GitHub 자체 예약은 몇 시간씩 늦을 때가 있어서)
+on:
+  workflow_dispatch:
+    inputs:
+      until:
+        description: "끝낼 시각 (한국시간 HH:MM)"
+        required: false
+        default: "15:35"
+
+concurrency:
+  group: big-trades
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests websockets
+      - name: 큰 체결 지켜보기
+        env:
+          KIS_APP_KEY: ${{ secrets.KIS_APP_KEY }}
+          KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          UNTIL: ${{ github.event.inputs.until }}
+          PYTHONUNBUFFERED: "1"
+        run: python scripts/big_trades.py

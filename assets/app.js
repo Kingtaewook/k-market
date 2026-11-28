@@ -312,7 +312,7 @@
   function searchBox(id, value = "") {
     return `<div class="search-box">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="${id}" type="search" autocomplete="off" placeholder="종목명·코드·초성으로 검색 (예: 삼성, 005930, ㅅㅅㅈㅈ)" value="${esc(value)}">
+      <input id="${id}" type="search" autocomplete="off" placeholder="종목명 또는 코드 검색" value="${esc(value)}">
       <kbd class="sk">/</kbd>
       <div class="suggest" hidden></div></div>`;
   }
@@ -565,7 +565,7 @@
       <div style="display:flex;gap:8px;align-items:center">${SB ? `<button class="btn" id="star" data-code="${code}" data-name="${esc(c.name || nameOf(code))}" title="관심 종목">${starred ? "★ 관심" : "☆ 관심 추가"}</button>` : ""}
       <div class="company-search">${searchBox("cq")}</div></div>
     </div>
-    ${window.KM_CONFIG?.realtime ? `<div class="card section bigcard"><div class="card-head"><h2>💥 큰 체결 <span class="muted" style="font-size:12.5px;font-weight:500">500만원 이상 · 실시간</span></h2></div><div id="bigtrades" data-code="${code}" class="bigtrades">${bigRows(code)}</div></div>` : ""}
+    ${CAN_SEE() ? `<div class="card section bigcard"><div class="card-head"><h2>💥 큰 체결 <span class="muted" style="font-size:12.5px;font-weight:500">5,000만원 이상 · 거래대금 상위 40종목 하루 집계</span></h2></div><div id="bigtrades" data-code="${code}">${bigRows(code)}</div></div>` : ""}
     ${!c.fundamentals ? `<div class="banner">이 종목의 재무·분기 실적은 아직 수집 전이에요. 전 종목 재무는 평일마다 나눠서 받아 <b>1주일에 한 번</b> 갱신됩니다.</div>` : ""}
     ${c.source === "엑셀 수기 입력" || (age !== null && age > 30) ? `<div class="banner">이 종목의 재무·뉴스는 <b>${esc(c.as_of || "")}</b> 기준${age !== null ? ` (${age}일 전)` : ""}입니다.${c.source === "엑셀 수기 입력" ? " 엑셀에서 옮긴 값이며, 자동 갱신이 시작되면 최신 자료로 바뀝니다." : ""}</div>` : ""}
     <div class="grid g4">
@@ -2004,6 +2004,7 @@
     if (page === "company") {
       const code = parts[1] || trackedCodes()[0];
       if (parts[1]) pushRecent(code);
+      if (CAN_SEE()) { loadBig(code); clearInterval(window.__kmBig); window.__kmBig = setInterval(() => { if (location.hash.startsWith(`#/company/${code}`) && document.visibilityState === "visible") loadBig(code); else clearInterval(window.__kmBig); }, 60000); }
       const c = await getJSON(`companies/${code}.json`);
       wireChart(sliceHist(c, chartRange));
       document.getElementById("star")?.addEventListener("click", (e) => toggleStar(e.currentTarget));
@@ -2213,22 +2214,54 @@
     el.textContent = text || ""; el.style.display = text ? "block" : "none"; el.className = bad ? "bad" : "";
   }
   let RT_LAST = 0;
-  // 큰 체결(500만원 이상): 종목 화면에서 10초마다 최근 체결을 받아 새 매수 체결이 들어오면 번쩍
-  const BIG = {}, BIG_SEEN = new Set();
-  function takeBig(code, list) {
-    const first = !BIG[code];
-    BIG[code] = list;
-    const fresh = list.filter((x) => !BIG_SEEN.has(`${code}${x.t}${x.px}${x.vol}`));
-    list.forEach((x) => BIG_SEEN.add(`${code}${x.t}${x.px}${x.vol}`));
-    renderBig(code);
-    if (!first) fresh.filter((x) => x.side === "buy").slice(0, 3).forEach((x, i) => setTimeout(() => bigToast(x), i * 900));
+  // 큰 체결(5,000만원 이상) 하루 집계: 거래대금 상위 40종목을 서버가 장 내내 모음 → 종목 화면에서 1분마다 읽어 그래프로
+  const BIG = {}, BIG_TOP = {};
+  const manWon = (v) => (v >= 1e8 ? `${(v / 1e8).toFixed(v >= 1e10 ? 0 : 1)}억` : `${Math.round(v / 1e4).toLocaleString()}만`) + "원";
+  async function loadBig(code) {
+    const c = window.KM_CONFIG?.supabase;
+    if (!c?.url) return;
+    if (!TOKEN) { setTimeout(() => loadBig(code), 2000); return; }
+    const day = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+    try {
+      const r = await fetch(`${c.url}/rest/v1/big_trades_day?code=eq.${code}&order=d.desc&limit=1&select=d,data,updated_at`, { headers: { apikey: c.anonKey, Authorization: `Bearer ${TOKEN}` }, cache: "no-store" });
+      if (!r.ok) return;
+      const [row] = await r.json();
+      const prevTop = BIG_TOP[code];
+      BIG[code] = row ? { ...row.data, d: row.d, today: row.d === day, at: row.updated_at } : null;
+      const top = BIG[code]?.recent?.[0];
+      BIG_TOP[code] = top ? `${top.t}${top.px}${top.vol}` : null;
+      renderBig(code);
+      if (prevTop !== undefined && top && BIG_TOP[code] !== prevTop && BIG[code].today) {
+        const fresh = [];
+        for (const x of BIG[code].recent) { if (`${x.t}${x.px}${x.vol}` === prevTop) break; fresh.push(x); }
+        fresh.filter((x) => x.side === "buy").slice(0, 3).forEach((x, i) => setTimeout(() => bigToast(x), i * 900));
+      }
+    } catch {}
   }
-  const manWon = (v) => (v >= 1e8 ? `${(v / 1e8).toFixed(v >= 1e9 ? 0 : 1)}억` : `${Math.round(v / 1e4).toLocaleString()}만`) + "원";
+  function bigChart(D) {
+    const S = D.slots || [], maxC = Math.max(1, ...S.map((x) => x[0] + x[1])), maxA = Math.max(1, ...S.map((x) => x[2]));
+    const lab = (i) => { const m = 540 + i * 30; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
+    const peak = S.reduce((b, x, i) => (x[0] + x[1] > (S[b]?.[0] || 0) + (S[b]?.[1] || 0) ? i : b), 0);
+    return `<div class="bchart">${S.map((x, i) => `<div class="bcol ${i === peak && x[0] + x[1] ? "peak" : ""}" title="${lab(i)} · 큰 체결 ${x[0] + x[1]}회 (매수 ${x[0]} · 매도 ${x[1]}) · 거래대금 ${manWon(x[2])}">
+        <div class="bstack" style="height:${((x[0] + x[1]) / maxC) * 100}%"><i class="b" style="flex:${x[0]}"></i><i class="s" style="flex:${x[1]}"></i></div>
+        <div class="bflow" style="height:${(x[2] / maxA) * 100}%"></div><span class="blab num">${i % 2 ? "" : lab(i).replace(":00", "시").replace(":30", "시반")}</span></div>`).join("")}</div>
+      <div class="bleg"><span><i class="b"></i>매수 큰 체결</span><span><i class="s"></i>매도 큰 체결</span><span><i class="f"></i>시간대 전체 거래대금</span></div>`;
+  }
   function bigRows(code) {
-    const L = BIG[code];
-    if (!L) return `<div class="muted" style="font-size:13px">장중에 10초마다 최근 체결을 확인해요.</div>`;
-    if (!L.length) return `<div class="muted" style="font-size:13px">최근 체결 중 500만원 이상은 아직 없어요.</div>`;
-    return L.map((x) => `<div class="bt ${x.side}"><span class="num muted">${esc(x.t)}</span><span class="bt-s">${x.side === "buy" ? "매수" : x.side === "sell" ? "매도" : "체결"}</span><span class="num">${won(x.px)}원 × ${x.vol.toLocaleString()}주</span><b class="num">${manWon(x.amt)}</b></div>`).join("");
+    const D = BIG[code];
+    if (D === undefined) return `<div class="muted" style="font-size:13px">불러오는 중…</div>`;
+    if (D === null) return `<div class="muted" style="font-size:13px">큰 체결은 그날 <b>거래대금 상위 40종목</b>만 장 내내 모아요. 이 종목은 아직 기록이 없어요.</div>`;
+    const S = D.slots || [], peak = S.reduce((b, x, i) => (x[0] + x[1] > S[b][0] + S[b][1] ? i : b), 0), pm = 540 + peak * 30;
+    const buyR = D.count ? D.buy / D.count : 0;
+    return `<div class="bsum">
+        <div><span class="muted">${D.today ? "오늘" : esc(D.d)} 큰 체결</span><b class="num">${D.count.toLocaleString()}회</b></div>
+        <div><span class="muted">매수</span><b class="num up">${D.buy}회 · ${manWon(D.buy_amt)}</b></div>
+        <div><span class="muted">매도</span><b class="num down">${D.sell}회 · ${manWon(D.sell_amt)}</b></div>
+        <div><span class="muted">가장 몰린 때</span><b class="num">${D.count ? `${String(Math.floor(pm / 60)).padStart(2, "0")}:${String(pm % 60).padStart(2, "0")}~` : "–"}</b></div>
+      </div>
+      ${D.count ? `<div class="bratio"><i style="width:${(buyR * 100).toFixed(1)}%"></i></div><div class="muted" style="font-size:12px;margin:4px 0 12px">매수 비율 ${(buyR * 100).toFixed(0)}% · 5,000만원 이상 체결 기준 · 체결 구분은 증권사 제공</div>` : ""}
+      ${bigChart(D)}
+      ${(D.recent || []).length ? `<div class="eyebrow" style="margin-top:14px">최근 큰 체결</div><div class="bigtrades">${D.recent.slice(0, 12).map((x) => `<div class="bt ${x.side}"><span class="num muted">${esc(x.t)}</span><span class="bt-s">${x.side === "buy" ? "매수" : x.side === "sell" ? "매도" : "체결"}</span><span class="num">${won(x.px)}원 × ${x.vol.toLocaleString()}주</span><b class="num">${manWon(x.amt)}</b></div>`).join("")}</div>` : ""}`;
   }
   function renderBig(code) {
     const el = document.getElementById("bigtrades");
@@ -2266,7 +2299,7 @@
     try {
       // supabase-js 의 invoke 대신 직접 호출 (라이브러리 잠금으로 멈추는 일 방지) + 8초 넘으면 포기
       const c = window.KM_CONFIG.supabase, ac = new AbortController(), to = setTimeout(() => ac.abort(), 8000);
-      const res = await fetch(`${c.url}/functions/v1/kis-quote`, { method: "POST", signal: ac.signal, headers: { "content-type": "application/json", apikey: c.anonKey, Authorization: `Bearer ${TOKEN}` }, body: JSON.stringify({ codes, market: nxt ? "NX" : "J", ...(page === "company" && /^\d{6}$/.test(a1 || "") ? { ccnl: a1 } : {}) }) });
+      const res = await fetch(`${c.url}/functions/v1/kis-quote`, { method: "POST", signal: ac.signal, headers: { "content-type": "application/json", apikey: c.anonKey, Authorization: `Bearer ${TOKEN}` }, body: JSON.stringify({ codes, market: nxt ? "NX" : "J" }) });
       clearTimeout(to);
       const data = await res.json().catch(() => null), error = res.ok ? null : { message: `${res.status}` };
       if (error || !data?.quotes) {
@@ -2279,7 +2312,6 @@
         liveFix(ALL[c], q.close, q.chg, q.amount); liveFix(MK.stocks?.[c], q.close, q.chg, q.amount);
         if (isNum(before) && before !== q.close) { changed = true; FLASH[c] = q.close > before ? 1 : -1; }
       }
-      if (data.code && Array.isArray(data.big)) takeBig(data.code, data.big);
       RT_AT = data.at; RT_ERR = null; renderStatus();
       rtPill(`⚡${nxt ? "NXT " : ""}실시간 ${new Date(Date.now() + 9 * 3600000).toISOString().slice(11, 19)}`);
       if (changed && safeToRerender()) rerender(); else { FLASH = {}; renderDock(); }
