@@ -686,16 +686,8 @@ def main():
         failures.append({"code": "*", "step": "KIS 뉴스", "error": str(e)[:200]})
     for c in set(DART_BY_CODE) | set(kn):
         EXTRA_NEWS[c] = sources.merge_items(kn.get(c, []), DART_BY_CODE.get(c, [])[:4], n=8)
-    # ---- 투자주의·경고·위험 등 (한국투자증권, 전 종목 한 번씩 · 10분 안팎)
-    #      지정은 전날 장 마감 뒤 공시돼 그날 적용 → 아침 실행에서만 (그날 아직 없으면 다른 실행에서도)
-    try:
-        w = None
-        if morning or load(DATA / "warnings.json", {}).get("as_of") != today:
-            w = sources.kis_warnings([r[1] for r in listing])
-        if w is not None:
-            save(DATA / "warnings.json", {"as_of": today, "updated_at": now.isoformat(timespec="minutes"), "w": w}, compact=True)
-    except Exception as e:
-        failures.append({"code": "*", "step": "시장경고", "error": str(e)[:200]})
+    # ---- 투자주의·경고·위험 등: 따로 도는 작업(warnings.yml, 평일 06:40)이 data/warnings.json 을 만듦
+    #      (전 종목을 하나씩 확인해야 해서 40분 넘게 걸림 → 여기서 같이 하면 전체 갱신이 늦어짐)
 
     # 상세 수집 대상: 테마 종목 + 추가 종목 + 사용자 보유·관심 종목
     watch = {}

@@ -1,0 +1,57 @@
+name: 시장 경고 종목 수집
+
+# 평일 06:40 Supabase(kis-market)가 불러줌. Actions 탭 'Run workflow'로 수동 실행도 가능
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "yes = 주말·휴장일에도 실행 (수동 실행 기본값)"
+        required: false
+        default: "yes"
+        type: choice
+        options: ["yes", "no"]
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: warnings
+  cancel-in-progress: false
+
+jobs:
+  warnings:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: 경고 종목 확인
+        env:
+          KIS_APP_KEY: ${{ secrets.KIS_APP_KEY }}
+          KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
+          RUN_MODE: ${{ inputs.force == 'yes' && 'full' || '' }}
+          PYTHONUNBUFFERED: "1"
+        run: python scripts/warnings_job.py
+      - name: 저장
+        id: commit
+        run: |
+          git config user.name "k-market-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/warnings.json
+          if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
+          git commit -q -m "시장 경고 갱신 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M')"
+          for i in 1 2 3 4 5; do
+            git pull -q --rebase -X theirs origin main && git push && echo "pushed=1" >> "$GITHUB_OUTPUT" && exit 0
+            echo "push 재시도 $i"; sleep $((i * 5))
+          done
+          exit 1
+      - name: 사이트 다시 배포
+        if: steps.commit.outputs.pushed == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" || true
