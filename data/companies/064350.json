@@ -1118,22 +1118,23 @@
   },
   {
    "date": "2026-11-27",
-   "time": "11:50",
-   "title": "현대위아, 방산 사업 매각안 임시 주총 통과…\"로보틱스 집중\"",
-   "source": "뉴시스",
-   "summary": "현대위아가 방산 사업을 담당하는 특수사업부를 현대로템에 매각하는 안건이 임시 주주총회를 통과했다. 현대위아는 매각 자금을 토대로 모빌리티·로보틱스 사업을 강화할 계획이다. 27일 업계에 따르면 현대위아는 이날 경남 창원 본사에서 임시...",
-   "url": "https://n.news.naver.com/mnews/article/003/0014349180",
-   "impact": "중립",
-   "auto": true
-  },
-  {
-   "date": "2026-11-27",
    "time": "11:06",
    "title": "코스피 하락률 상위 20종목(직전 30분 기준)",
    "source": "인포스탁",
    "summary": "",
    "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%ED%94%BC%20%ED%95%98%EB%9D%BD%EB%A5%A0%20%EC%83%81%EC%9C%84%2020%EC%A2%85%EB%AA%A9%28%EC%A7%81%EC%A0%84%2030%EB%B6%84%20%EA%B8%B0%EC%A4%80%29",
    "impact": "주의",
+   "auto": true,
+   "kind": "뉴스"
+  },
+  {
+   "date": "2026-11-27",
+   "time": "10:38",
+   "title": "오전장 기술적 분석 특징주 A(코스피)",
+   "source": "인포스탁",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%EC%98%A4%EC%A0%84%EC%9E%A5%20%EA%B8%B0%EC%88%A0%EC%A0%81%20%EB%B6%84%EC%84%9D%20%ED%8A%B9%EC%A7%95%EC%A3%BC%20A%28%EC%BD%94%EC%8A%A4%ED%94%BC%29",
+   "impact": "중립",
    "auto": true,
    "kind": "뉴스"
   }

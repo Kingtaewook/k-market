@@ -1073,6 +1073,16 @@
  "unit": "억원",
  "news": [
   {
+   "date": "2026-11-28",
+   "time": "08:31",
+   "title": "‘600억대 주식 보너스’…한미반도체 직원들, 연말 기다리는 이유[중...",
+   "source": "헤럴드경제",
+   "summary": "3년 전 부여한 주식상여 45만주…12월 말 지급 조건 충족 주가 하락에도 부여 당시 대비 2.7배…전체 평가액 600억대 곽동신 회장 30억원대 주식상여·임직원 평균 1억1000만원 [헤럴드경제=홍석희 기자] 연말이 다가오면서 한미반도체 임직원들의...",
+   "url": "https://n.news.naver.com/mnews/article/016/0002729718",
+   "impact": "중립",
+   "auto": true
+  },
+  {
    "date": "2026-11-27",
    "time": "18:05",
    "title": "주식대차거래 잔고증가 상위종목(코스피)",
@@ -1125,17 +1135,6 @@
    "url": "https://n.news.naver.com/mnews/article/629/0000556093",
    "impact": "주의",
    "auto": true
-  },
-  {
-   "date": "2026-11-26",
-   "time": "10:19",
-   "title": "[장중수급포착] 한미반도체, 외국인 5일 연속 순매수행진... 주가 +4.68%",
-   "source": "뉴스핌",
-   "summary": "",
-   "url": "https://search.naver.com/search.naver?where=news&query=%5B%EC%9E%A5%EC%A4%91%EC%88%98%EA%B8%89%ED%8F%AC%EC%B0%A9%5D%20%ED%95%9C%EB%AF%B8%EB%B0%98%EB%8F%84%EC%B2%B4%2C%20%EC%99%B8%EA%B5%AD%EC%9D%B8%205%EC%9D%BC%20%EC%97%B0%EC%86%8D%20%EC%88%9C%EB%A7%A4%EC%88%98%ED%96%89%EC%A7%84...%20%EC%A3%BC%EA%B0%80%20%2B4.68%25",
-   "impact": "긍정",
-   "auto": true,
-   "kind": "뉴스"
   }
  ],
  "code": "042700",

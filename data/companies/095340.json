@@ -1013,6 +1013,15 @@
  },
  "quarters": [
   {
+   "period": "2026.09",
+   "revenue": 718.0,
+   "op_income": 218.0,
+   "net_income": 149.0,
+   "op_margin": 0.3043,
+   "roe": 0.1381,
+   "debt_ratio": 0.1207
+  },
+  {
    "period": "2026.06",
    "revenue": 729.0,
    "op_income": 213.0,
@@ -1047,15 +1056,6 @@
    "op_margin": 0.27,
    "roe": 0.0901,
    "debt_ratio": 0.15259999999999999
-  },
-  {
-   "period": "2025.06",
-   "revenue": 517.0,
-   "op_income": 137.0,
-   "net_income": 115.0,
-   "op_margin": 0.2655,
-   "roe": 0.0827,
-   "debt_ratio": 0.1567
   }
  ],
  "fundamentals": {
@@ -1063,9 +1063,9 @@
   "per": 35.12,
   "pbr": 4.59,
   "dividend_yield": 0.0073,
-  "roe": 0.1438,
-  "debt_ratio": 0.1198,
-  "op_margin": 0.2923,
+  "roe": 0.1381,
+  "debt_ratio": 0.1207,
+  "op_margin": 0.3043,
   "cns_per": 31.69,
   "cns_eps": 3989.0,
   "target": 214286.0,

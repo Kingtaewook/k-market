@@ -1013,6 +1013,15 @@
  },
  "quarters": [
   {
+   "period": "2026.09",
+   "revenue": 287.0,
+   "op_income": 2.0,
+   "net_income": -14.0,
+   "op_margin": 0.0077,
+   "roe": -0.0052,
+   "debt_ratio": 0.2863
+  },
+  {
    "period": "2026.06",
    "revenue": 264.0,
    "op_income": 5.0,
@@ -1047,24 +1056,15 @@
    "op_margin": -0.0637,
    "roe": -0.018799999999999997,
    "debt_ratio": 0.2045
-  },
-  {
-   "period": "2025.06",
-   "revenue": 197.0,
-   "op_income": -8.0,
-   "net_income": -14.0,
-   "op_margin": -0.0415,
-   "roe": -0.0377,
-   "debt_ratio": 0.21350000000000002
   }
  ],
  "fundamentals": {
   "market_cap_eok": 6347.0,
   "per": 1530.0,
   "pbr": 7.14,
-  "roe": 0.0044,
-  "debt_ratio": 0.29350000000000004,
-  "op_margin": 0.019
+  "roe": -0.0052,
+  "debt_ratio": 0.2863,
+  "op_margin": 0.0077
  },
  "source": "네이버 증권",
  "unit": "억원",

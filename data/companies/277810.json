@@ -1072,6 +1072,26 @@
  "unit": "억원",
  "news": [
   {
+   "date": "2026-11-28",
+   "time": "06:20",
+   "title": "“오래 기다렸죠?” 돌아온 외국인…삼전닉스 내다팔더니 ‘이것’ 샀...",
+   "source": "매일경제",
+   "summary": "로봇·바이오 등 전방위 랠리 레인보우로보틱스 13% 급등 외국인, 대거 사자로 돌아서 낙폭 과다株 중심 저가 매수 30일 증안펀드 윤곽 나올듯 국내 증시가 정부의 증권시장안정펀드(증안펀드) 가동 기대감과 ‘조 단위’ 규모 외국인 매수세 유입에...",
+   "url": "https://n.news.naver.com/mnews/article/009/0005770173",
+   "impact": "중립",
+   "auto": true
+  },
+  {
+   "date": "2026-11-28",
+   "time": "06:00",
+   "title": "일주일 새 30% 뛴 레인보우로보틱스…'삼전 효과' 끝이 아니다[종목현...",
+   "source": "뉴스1",
+   "summary": "레인보우로보틱스(277810)가 일주일 새 30% 넘게 상승하며 코스닥 시가총액 2위에 올라섰다. 내년 초 삼성전자의 자체 개발 휴머노이드(인간형 로봇) 공개 가능성이 부각된 데다 양사의 협력 관계가 구체화하면서 투자심리가 개선됐다. 28일...",
+   "url": "https://n.news.naver.com/mnews/article/421/0009315042",
+   "impact": "중립",
+   "auto": true
+  },
+  {
    "date": "2026-11-27",
    "time": "17:34",
    "title": "'증안펀드 증액 기대감'… 하루 8% 튀어 오른 코스닥",
@@ -1111,28 +1131,6 @@
    "summary": "",
    "url": "https://search.naver.com/search.naver?where=news&query=%EC%A6%9D%EC%95%88%ED%8E%80%EB%93%9C%20%EA%B8%B0%EB%8C%80%EA%B0%90%EC%97%90%20%EB%9B%B4%20%EA%B5%AD%EB%82%B4%20%EC%A6%9D%EC%8B%9C%E2%80%A6%22%E7%BE%8E%20%EB%B0%98%EB%8F%84%EC%B2%B4%EC%A3%BC%20%EB%9B%B0%EB%8A%94%EC%A7%80%20%ED%99%95%EC%9D%B8%20%ED%95%84%EC%9A%94%22",
    "impact": "중립",
-   "auto": true,
-   "kind": "뉴스"
-  },
-  {
-   "date": "2026-11-27",
-   "time": "16:08",
-   "title": "코스피 4.3% 상승 4,900선 회복…코스닥 8%대 급등 700선 탈환(종합)",
-   "source": "연합뉴스",
-   "summary": "",
-   "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%ED%94%BC%204.3%25%20%EC%83%81%EC%8A%B9%204%2C900%EC%84%A0%20%ED%9A%8C%EB%B3%B5%E2%80%A6%EC%BD%94%EC%8A%A4%EB%8B%A5%208%25%EB%8C%80%20%EA%B8%89%EB%93%B1%20700%EC%84%A0%20%ED%83%88%ED%99%98%28%EC%A2%85%ED%95%A9%29",
-   "impact": "긍정",
-   "auto": true,
-   "kind": "뉴스"
-  },
-  {
-   "date": "2026-11-27",
-   "time": "16:07",
-   "title": "코스닥 8% 급등해 700선 탈환…외국인 1조 매수에 코스피도 4900선 [fn마감시황]",
-   "source": "파이낸셜",
-   "summary": "",
-   "url": "https://search.naver.com/search.naver?where=news&query=%EC%BD%94%EC%8A%A4%EB%8B%A5%208%25%20%EA%B8%89%EB%93%B1%ED%95%B4%20700%EC%84%A0%20%ED%83%88%ED%99%98%E2%80%A6%EC%99%B8%EA%B5%AD%EC%9D%B8%201%EC%A1%B0%20%EB%A7%A4%EC%88%98%EC%97%90%20%EC%BD%94%EC%8A%A4%ED%94%BC%EB%8F%84%204900%EC%84%A0%20%5Bfn%EB%A7%88%EA%B0%90%EC%8B%9C%ED%99%A9%5D",
-   "impact": "긍정",
    "auto": true,
    "kind": "뉴스"
   }

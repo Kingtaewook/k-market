@@ -86,72 +86,68 @@
   "반도체·AI인프라": [
    {
     "date": "2026-11-28",
-    "time": "01:13",
-    "title": "\"뭘 더 해줄 수 있나\" 한마디에‥머스크도 진땀",
-    "source": "MBC",
-    "summary": "◀ 앵커 ▶ 스페이스X와 테슬라의 일론머스크 CEO가 삼성전자 이재용 회장에게 반도체 칩을 더 달라며 쩔쩔 맸다는 외신보도가 나왔습니다. 수요가 공급을 초과하는 메모리 품귀 현상을 단적으로 보여준 사례라고 할 수 있는데요. '과잉 생산'이란 미국...",
-    "url": "https://n.news.naver.com/mnews/article/214/0001538606",
+    "time": "11:30",
+    "title": "[오늘의 삼전닉스] '외국인 귀환·자사주 매입 2배' SK하닉 반등 속도...",
+    "source": "이코노미스트",
+    "summary": "외국인 투자자의 사자 전환에 자사주 매입 속도 2배 상향까지. SK하이닉스의 주가 반등 호재들이 감지되고 있다. 28일 업계에 따르면 SK하이닉스는 전날 주가 대응을 위해 기존 하루 약 35만주 수준이었던 자기주식 매수 주문 수량을 약 70만주로...",
+    "url": "https://n.news.naver.com/mnews/article/243/0000106418",
+    "impact": "긍정",
+    "auto": true,
+    "stock": "삼성전자"
+   },
+   {
+    "date": "2026-11-28",
+    "time": "11:00",
+    "title": "17만원대 삼성전자 아직 바닥 아니다?…'4만전자' 가능성 있다",
+    "source": "주간조선",
+    "summary": "삼성전자 주가가 올해 고점 대비 반 토막 난 가운데 인공지능(AI) 시장의 거품이 꺼지면서 주가가 4만원대까지 떨어질 수 있다는 전문가의 경고가 나왔다. 메모리 반도체 가격 하락과 미국 내 가격 담합 관련 소송이 주가에 악재로 작용할 수 있다는...",
+    "url": "https://n.news.naver.com/mnews/article/053/0000063415",
     "impact": "중립",
     "auto": true,
     "stock": "삼성전자"
    },
    {
     "date": "2026-11-28",
-    "time": "00:35",
-    "title": "삼성전자, 30조 역대급 배당… 개미들에 5조, 회장님엔 4500억",
-    "source": "조선일보",
-    "summary": "100주 가진 투자자, 39만원 받아 SK하이닉스도 내달 14조 풀어 삼성전자가 27일 국내 기업 사상 최대 규모인 30조원의 현금 배당금을 주주들에게 지급했다. SK하이닉스도 다음 달 14조원 규모의 배당을 하면서, 얼어붙은 반도체주 투자 심리를...",
-    "url": "https://n.news.naver.com/mnews/article/023/0004012212",
+    "time": "10:49",
+    "title": "한국디자인진흥원, 삼성전자 등과 차세대 CMF 디자인 논의",
+    "source": "아시아경제",
+    "summary": "한국디자인진흥원은 27일 서울 강남구 코엑스에서 '2026 CMF HOW'S 컨퍼런스'를 개최했다고 28일 밝혔다. 올해로 3회째를 맞은 이번 행사는 'CMF, 기술의 변화에서 새로운 디자인을 발견하다'를 주제로 열렸다. CMF는 색상(Color)·소재(Material)·마감...",
+    "url": "https://n.news.naver.com/mnews/article/277/0005849051",
     "impact": "중립",
     "auto": true,
     "stock": "삼성전자"
    },
    {
-    "date": "2026-11-27",
-    "time": null,
-    "title": "임원ㆍ주요주주특정증권등소유상황보고서",
-    "source": "DART 공시",
-    "summary": "조용선",
-    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127002010",
+    "date": "2026-11-28",
+    "time": "10:27",
+    "title": "'7만전자' 외쳐 난리 났는데…이번엔 \"4만전자\" 더 센 폭탄 던졌다",
+    "source": "한경비즈니스",
+    "summary": "삼성전자와 SK하이닉스의 적정 주가로 '7만전자·20만닉스'를 제시해 시장에 큰 파장을 일으켰던 반도체 전문가가 이번에는 삼성전자의 '4만원대 추락' 가능성까지 경고하고 나섰다. 인공지능(AI) 투자 열풍을 타고 급등한 메모리 반도체 가격이...",
+    "url": "https://n.news.naver.com/mnews/article/050/0000113887",
     "impact": "중립",
     "auto": true,
-    "kind": "공시",
-    "stock": "삼성전자"
-   },
-   {
-    "date": "2026-11-27",
-    "time": null,
-    "title": "풍문또는보도에대한해명(미확정)",
-    "source": "DART 공시",
-    "summary": "SK하이닉스",
-    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127801094",
-    "impact": "중립",
-    "auto": true,
-    "kind": "공시",
     "stock": "SK하이닉스"
    },
    {
-    "date": "2026-11-27",
-    "time": null,
-    "title": "특수관계인에대한증여",
-    "source": "DART 공시",
-    "summary": "SK하이닉스",
-    "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261127000377",
+    "date": "2026-11-28",
+    "time": "10:15",
+    "title": "막판에 살아난 삼전닉스…12월 첫째주 '반전 드라마' 쓸까 [주간 증시...",
+    "source": "더스쿠프",
+    "summary": "# 공포와 안도가 교차했다. 인공지능(AI) 투자 우려에 급락했던 국내 증시가 반등하는가 싶더니 다시 고꾸라졌다. 코스피지수는 하루 만에 6% 넘게 오르고, 다음날 다시 6% 넘게 떨어지는 극심한 변동성을 보였다. 지수 하락을 견디지 못한...",
+    "url": "https://n.news.naver.com/mnews/article/665/0000008663",
     "impact": "중립",
     "auto": true,
-    "kind": "공시",
     "stock": "SK하이닉스"
    },
    {
-    "date": "2026-11-27",
-    "time": "18:05",
-    "title": "주식대차거래 잔고증가 상위종목(코스피)",
-    "source": "인포스탁",
-    "summary": "",
-    "url": "https://search.naver.com/search.naver?where=news&query=%EC%A3%BC%EC%8B%9D%EB%8C%80%EC%B0%A8%EA%B1%B0%EB%9E%98%20%EC%9E%94%EA%B3%A0%EC%A6%9D%EA%B0%80%20%EC%83%81%EC%9C%84%EC%A2%85%EB%AA%A9%28%EC%BD%94%EC%8A%A4%ED%94%BC%29",
+    "date": "2026-11-28",
+    "time": "08:31",
+    "title": "‘600억대 주식 보너스’…한미반도체 직원들, 연말 기다리는 이유[중...",
+    "source": "헤럴드경제",
+    "summary": "3년 전 부여한 주식상여 45만주…12월 말 지급 조건 충족 주가 하락에도 부여 당시 대비 2.7배…전체 평가액 600억대 곽동신 회장 30억원대 주식상여·임직원 평균 1억1000만원 [헤럴드경제=홍석희 기자] 연말이 다가오면서 한미반도체 임직원들의...",
+    "url": "https://n.news.naver.com/mnews/article/016/0002729718",
     "impact": "중립",
     "auto": true,
-    "kind": "뉴스",
     "stock": "한미반도체"
    }
   ],
@@ -246,7 +242,7 @@
     "time": "17:55",
     "title": "재무·기획통 지고 현장·기술통 뜬다…신임 CEO 63%가 이공계",
     "source": "한국경제",
-    "summary": "방위산업 기업 한화에어로스페이스는 지난 6월 대전 사업장에서 일어난 폭발 사고로 큰 위기를 겪었다. 이후 이어진 최고경영자(CEO) 인사에서도 큰 변화가 나타났다. 4년간 회사를 이끈 ‘기획통’ 손재일 대표가 물러나고, 방산 연구소와 유럽...",
+    "summary": "방위산업 기업 한화에어로스페이스는 지난 6월 대전 사업장에서 일어난 폭발 사고로 큰 위기를 겪었다. 이후 이어진 최고경영자(CEO) 인사에서 큰 변화가 나타났다. 4년간 회사를 이끈 ‘기획통’ 손재일 대표가 물러나고, 방산 연구소와 유럽...",
     "url": "https://n.news.naver.com/mnews/article/015/0005359186",
     "impact": "중립",
     "auto": true,
@@ -374,6 +370,28 @@
   ],
   "로봇·자동화": [
    {
+    "date": "2026-11-28",
+    "time": "06:20",
+    "title": "“오래 기다렸죠?” 돌아온 외국인…삼전닉스 내다팔더니 ‘이것’ 샀...",
+    "source": "매일경제",
+    "summary": "로봇·바이오 등 전방위 랠리 레인보우로보틱스 13% 급등 외국인, 대거 사자로 돌아서 낙폭 과다株 중심 저가 매수 30일 증안펀드 윤곽 나올듯 국내 증시가 정부의 증권시장안정펀드(증안펀드) 가동 기대감과 ‘조 단위’ 규모 외국인 매수세 유입에...",
+    "url": "https://n.news.naver.com/mnews/article/009/0005770173",
+    "impact": "중립",
+    "auto": true,
+    "stock": "레인보우로보틱스"
+   },
+   {
+    "date": "2026-11-28",
+    "time": "06:00",
+    "title": "일주일 새 30% 뛴 레인보우로보틱스…'삼전 효과' 끝이 아니다[종목현...",
+    "source": "뉴스1",
+    "summary": "레인보우로보틱스(277810)가 일주일 새 30% 넘게 상승하며 코스닥 시가총액 2위에 올라섰다. 내년 초 삼성전자의 자체 개발 휴머노이드(인간형 로봇) 공개 가능성이 부각된 데다 양사의 협력 관계가 구체화하면서 투자심리가 개선됐다. 28일...",
+    "url": "https://n.news.naver.com/mnews/article/421/0009315042",
+    "impact": "중립",
+    "auto": true,
+    "stock": "레인보우로보틱스"
+   },
+   {
     "date": "2026-11-27",
     "time": "17:34",
     "title": "'증안펀드 증액 기대감'… 하루 8% 튀어 오른 코스닥",
@@ -382,30 +400,6 @@
     "url": "https://n.news.naver.com/mnews/article/009/0005770109",
     "impact": "중립",
     "auto": true,
-    "stock": "레인보우로보틱스"
-   },
-   {
-    "date": "2026-11-27",
-    "time": "17:09",
-    "title": "증시요약(3) - 특징 테마",
-    "source": "인포스탁",
-    "summary": "",
-    "url": "https://search.naver.com/search.naver?where=news&query=%EC%A6%9D%EC%8B%9C%EC%9A%94%EC%95%BD%283%29%20-%20%ED%8A%B9%EC%A7%95%20%ED%85%8C%EB%A7%88",
-    "impact": "중립",
-    "auto": true,
-    "kind": "뉴스",
-    "stock": "레인보우로보틱스"
-   },
-   {
-    "date": "2026-11-27",
-    "time": "17:08",
-    "title": "증시요약(2) - 코스닥 마감시황",
-    "source": "인포스탁",
-    "summary": "",
-    "url": "https://search.naver.com/search.naver?where=news&query=%EC%A6%9D%EC%8B%9C%EC%9A%94%EC%95%BD%282%29%20-%20%EC%BD%94%EC%8A%A4%EB%8B%A5%20%EB%A7%88%EA%B0%90%EC%8B%9C%ED%99%A9",
-    "impact": "중립",
-    "auto": true,
-    "kind": "뉴스",
     "stock": "레인보우로보틱스"
    },
    {
@@ -446,6 +440,17 @@
    }
   ],
   "바이오·헬스케어": [
+   {
+    "date": "2026-11-28",
+    "time": "08:02",
+    "title": "영업通 대표 시대 저무는 유한양행…공동부대표 발탁 배경은",
+    "source": "이데일리",
+    "summary": "이 기사는 2026년11월27일 08시00분에 팜이데일리 프리미엄 콘텐츠로 선공개 되었습니다. 유한양행(000100) 차기 경영진 인선에서 이변이 일어났다. 조욱제 대표와 이정희 이사회 의장 중 누가 차기 대표이사 인선을 주도할지를 놓고 업계의 관심이 쏠린...",
+    "url": "https://n.news.naver.com/mnews/article/018/0006416797",
+    "impact": "중립",
+    "auto": true,
+    "stock": "유한양행"
+   },
    {
     "date": "2026-11-27",
     "time": null,
@@ -504,21 +509,20 @@
     "impact": "중립",
     "auto": true,
     "stock": "셀트리온"
-   },
-   {
-    "date": "2026-11-27",
-    "time": "17:58",
-    "title": "하향 리포트 1000개 쏟아질 때 목표가 오른 '알짜 종목'은",
-    "source": "한국경제신문",
-    "summary": "",
-    "url": "https://search.naver.com/search.naver?where=news&query=%ED%95%98%ED%96%A5%20%EB%A6%AC%ED%8F%AC%ED%8A%B8%201000%EA%B0%9C%20%EC%8F%9F%EC%95%84%EC%A7%88%20%EB%95%8C%20%EB%AA%A9%ED%91%9C%EA%B0%80%20%EC%98%A4%EB%A5%B8%20%27%EC%95%8C%EC%A7%9C%20%EC%A2%85%EB%AA%A9%27%EC%9D%80",
-    "impact": "중립",
-    "auto": true,
-    "kind": "뉴스",
-    "stock": "셀트리온"
    }
   ],
   "2차전지·ESS": [
+   {
+    "date": "2026-11-28",
+    "time": "05:47",
+    "title": "역대 최대 ESS 입찰 승자는 삼성SDI…SK온도 37% 확보",
+    "source": "한경비즈니스",
+    "summary": "삼성SDI와 SK온이 역대 최대 규모로 진행된 에너지저장장치(ESS) 중앙계약시장 입찰 물량을 양분했다. 삼성SDI가 전체 물량의 63%를 확보하며 선두를 지킨 가운데 SK온도 37%를 수주하며 존재감을 키웠다. 반면 국내 배터리 3사 중 생산능력이 가장...",
+    "url": "https://n.news.naver.com/mnews/article/050/0000113875",
+    "impact": "긍정",
+    "auto": true,
+    "stock": "삼성SDI"
+   },
    {
     "date": "2026-11-27",
     "time": "18:56",
@@ -576,21 +580,31 @@
     "impact": "중립",
     "auto": true,
     "stock": "삼성SDI"
-   },
-   {
-    "date": "2026-11-27",
-    "time": "14:08",
-    "title": "오후장 기술적 분석 특징주 A(코스피)",
-    "source": "인포스탁",
-    "summary": "",
-    "url": "https://search.naver.com/search.naver?where=news&query=%EC%98%A4%ED%9B%84%EC%9E%A5%20%EA%B8%B0%EC%88%A0%EC%A0%81%20%EB%B6%84%EC%84%9D%20%ED%8A%B9%EC%A7%95%EC%A3%BC%20A%28%EC%BD%94%EC%8A%A4%ED%94%BC%29",
-    "impact": "중립",
-    "auto": true,
-    "kind": "뉴스",
-    "stock": "포스코퓨처엠"
    }
   ],
   "건설·데이터센터": [
+   {
+    "date": "2026-11-28",
+    "time": "08:00",
+    "title": "[주末머니]원전이 끌어올린 건설株, 내년 승부처는 00000",
+    "source": "아시아경제",
+    "summary": "올해 건설주의 주가 상승 동력이 원전 수주 기대감이었다면 내년엔 데이터센터 착공이 될 것으로 보인다. DS투자증권은 데이터센터 수주 가시성이 가장 높은 시공사로 GS건설을 꼽았다. 강태호 DS투자증권 연구원은 최근 보고서에서 \"지난해...",
+    "url": "https://n.news.naver.com/mnews/article/277/0005849032",
+    "impact": "중립",
+    "auto": true,
+    "stock": "GS건설"
+   },
+   {
+    "date": "2026-11-28",
+    "time": "06:00",
+    "title": "일감은 넘치고 경쟁은 줄었다…달라진 건설사 셈법[목동의 미래①]",
+    "source": "뉴시스",
+    "summary": "서울 양천구 목동신시가지 재건축 사업은 공사비만 30조원에 달하는 대형 사업이지만, 건설사들의 수주 경쟁은 오히려 잠잠하다. 대형 건설사들이 현장설명회에는 참석하고도 정작 입찰에는 나서지 않는 사례가 잇따르고 있다. 서울 주요 재건축...",
+    "url": "https://n.news.naver.com/mnews/article/003/0014350374",
+    "impact": "중립",
+    "auto": true,
+    "stock": "GS건설"
+   },
    {
     "date": "2026-11-27",
     "time": "17:39",
@@ -600,29 +614,6 @@
     "url": "https://n.news.naver.com/mnews/article/448/0000653863",
     "impact": "중립",
     "auto": true,
-    "stock": "GS건설"
-   },
-   {
-    "date": "2026-11-27",
-    "time": "17:12",
-    "title": "집 파는 모델하우스에서 '미래 주거' 체험 공간으로",
-    "source": "한국경제",
-    "summary": "GS건설이 견본주택을 미래 주거생활을 미리 경험하는 새로운 공간으로 바꾸고 있다. 예술작품 전시부터 커뮤니티 시설과 주거 서비스 체험까지 선보이며 차별화에 나섰다. GS건설은 자이의 주거 철학과 라이프스타일을 경험할 수 있는 ‘체험형 하우징...",
-    "url": "https://n.news.naver.com/mnews/article/015/0005359118",
-    "impact": "중립",
-    "auto": true,
-    "stock": "GS건설"
-   },
-   {
-    "date": "2026-11-27",
-    "time": "17:02",
-    "title": "GS건설, 자이 견본주택 분양상담서 브랜드 체험 공간으로 변화",
-    "source": "컨슈머타임스",
-    "summary": "",
-    "url": "https://search.naver.com/search.naver?where=news&query=GS%EA%B1%B4%EC%84%A4%2C%20%EC%9E%90%EC%9D%B4%20%EA%B2%AC%EB%B3%B8%EC%A3%BC%ED%83%9D%20%EB%B6%84%EC%96%91%EC%83%81%EB%8B%B4%EC%84%9C%20%EB%B8%8C%EB%9E%9C%EB%93%9C%20%EC%B2%B4%ED%97%98%20%EA%B3%B5%EA%B0%84%EC%9C%BC%EB%A1%9C%20%EB%B3%80%ED%99%94",
-    "impact": "중립",
-    "auto": true,
-    "kind": "뉴스",
     "stock": "GS건설"
    },
    {

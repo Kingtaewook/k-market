@@ -1119,16 +1119,6 @@
   },
   {
    "date": "2026-11-27",
-   "time": "17:33",
-   "title": "현대건설 ‘힐스테이트 회룡역파크뷰’ 공공지원 민간임대 공급",
-   "source": "조선비즈",
-   "summary": "현대건설은 ‘힐스테이트 회룡역파크뷰’를 공급한다고 27일 밝혔다. ‘힐스테이트 회룡역파크뷰’는 경기도 의정부시 호원동에 있는 공공지원 민간임대 아파트다. 일반분양 아파트에 비해 상대적으로 자금 마련 부담이 적고 최대 10년간...",
-   "url": "https://n.news.naver.com/mnews/article/366/0001207867",
-   "impact": "중립",
-   "auto": true
-  },
-  {
-   "date": "2026-11-27",
    "time": "17:32",
    "title": "현대건설, 스마트건설 챌린지 3개 분야 혁신상…AI 기술력 입증",
    "source": "아이뉴스24",
@@ -1136,6 +1126,17 @@
    "url": "https://n.news.naver.com/mnews/article/031/0001079199",
    "impact": "중립",
    "auto": true
+  },
+  {
+   "date": "2026-11-27",
+   "time": "16:53",
+   "title": "현대건설, '힐스테이트 회룡역파크뷰' 민간임대…임대료 5% 상한 적용",
+   "source": "컨슈머타임스",
+   "summary": "",
+   "url": "https://search.naver.com/search.naver?where=news&query=%ED%98%84%EB%8C%80%EA%B1%B4%EC%84%A4%2C%20%27%ED%9E%90%EC%8A%A4%ED%85%8C%EC%9D%B4%ED%8A%B8%20%ED%9A%8C%EB%A3%A1%EC%97%AD%ED%8C%8C%ED%81%AC%EB%B7%B0%27%20%EB%AF%BC%EA%B0%84%EC%9E%84%EB%8C%80%E2%80%A6%EC%9E%84%EB%8C%80%EB%A3%8C%205%25%20%EC%83%81%ED%95%9C%20%EC%A0%81%EC%9A%A9",
+   "impact": "중립",
+   "auto": true,
+   "kind": "뉴스"
   }
  ],
  "code": "000720",
