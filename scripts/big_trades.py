@@ -117,27 +117,90 @@ def sub_msg(key, code, on=True):
                        "body": {"input": {"tr_id": "H0STCNT0", "tr_key": code}}})
 
 
+_TOKEN = None
+
+
+def rest_token():
+    """REST 조회용 접근 토큰 (발급은 1분에 1번만 허용 → 실패하면 잠시 뒤 다시)"""
+    global _TOKEN
+    if _TOKEN:
+        return _TOKEN
+    for _ in range(3):
+        j = requests.post(f"{KIS}/oauth2/tokenP", json={"grant_type": "client_credentials", "appkey": os.environ["KIS_APP_KEY"],
+                                                       "appsecret": os.environ["KIS_APP_SECRET"]}, timeout=20).json()
+        if j.get("access_token"):
+            _TOKEN = j["access_token"]
+            return _TOKEN
+        print(f"[토큰] {j.get('error_description') or j}", flush=True)
+        time.sleep(65)
+    return None
+
+
+def ccnl(code):
+    """최근 체결 30건 (오래된 것 → 최신). 웹소켓 자리가 모자란 종목은 이걸로 1분 안팎마다 훑음"""
+    tok = rest_token()
+    if not tok:
+        return []
+    h = {"authorization": f"Bearer {tok}", "appkey": os.environ["KIS_APP_KEY"], "appsecret": os.environ["KIS_APP_SECRET"],
+         "tr_id": "FHKST01010300", "custtype": "P", "content-type": "application/json; charset=utf-8"}
+    j = requests.get(f"{KIS}/uapi/domestic-stock/v1/quotations/inquire-ccnl", headers=h,
+                     params={"FID_COND_MRKT_DIV_CODE": "J", "FID_INPUT_ISCD": code}, timeout=15).json()
+    return list(reversed(j.get("output") or [])) if j.get("rt_cd") == "0" else []
+
+
 async def run():
     end = until_time()
     day = now().date().isoformat()
     book = Book(day)
     key = approval_key()
-    subs: list[str] = []
+    state = {"ws_ok": set(), "rest": [], "want": []}
+    seen: dict[str, set] = {}
+    last_px: dict[str, float] = {}
+    n = {"ws": 0, "rest": 0}
+
+    async def rest_poller():
+        """웹소켓 자리가 모자라 받지 못한 종목: 최근 체결 30건을 돌아가며 훑기 (매수/매도는 직전가 비교로 추정)"""
+        i = 0
+        while now() < end:
+            codes = state["rest"]
+            if not codes:
+                await asyncio.sleep(2); continue
+            c = codes[i % len(codes)]; i += 1
+            try:
+                rows = await asyncio.to_thread(ccnl, c)
+            except Exception as e:
+                rows = []; print(f"[훑기 실패] {c} {e}", flush=True)
+            sset = seen.setdefault(c, set())
+            for o in rows:
+                t, px, vol = str(o.get("stck_cntg_hour") or ""), float(o.get("stck_prpr") or 0), float(o.get("cntg_vol") or 0)
+                k = f"{t}|{px}|{vol}"
+                prev = last_px.get(c)
+                side = "buy" if prev and px > prev else "sell" if prev and px < prev else "?"
+                last_px[c] = px
+                if k in sset or not t:
+                    continue
+                sset.add(k)
+                book.add(c, t, px, vol, side); n["rest"] += 1
+            if len(sset) > 3000:
+                seen[c] = set(list(sset)[-500:])
+            await asyncio.sleep(0.7)  # 초당 약 1.4건 (신규 계정 한도 안쪽)
+
+    poller = asyncio.create_task(rest_poller())
     last_flush = last_pick = 0.0
-    n_trades = 0
     while now() < end:
         try:
             async with websockets.connect(WS_URL, ping_interval=None, max_size=2 ** 22) as ws:
                 want = top_codes()
                 book.load(want)
+                state["want"], state["ws_ok"] = want, set()
                 for c in want:
                     await ws.send(sub_msg(key, c)); await asyncio.sleep(0.05)
-                subs = want
                 last_pick = time.time()
-                print(f"[구독] {len(subs)}종목: {', '.join(subs[:10])} …", flush=True)
+                settle = time.time() + 4
+                print(f"[구독 요청] {len(want)}종목: {', '.join(want[:10])} …", flush=True)
                 while now() < end:
                     try:
-                        raw = await asyncio.wait_for(ws.recv(), timeout=5)
+                        raw = await asyncio.wait_for(ws.recv(), timeout=2)
                     except asyncio.TimeoutError:
                         raw = None
                     if raw:
@@ -153,39 +216,36 @@ async def run():
                                         px, vol = float(r[2]), float(r[12])
                                     except ValueError:
                                         continue
-                                    side = {"1": "buy", "5": "sell"}.get(r[21], "?")
-                                    book.add(r[0], r[1], px, vol, side)
-                                    n_trades += 1
+                                    book.add(r[0], r[1], px, vol, {"1": "buy", "5": "sell"}.get(r[21], "?"))
+                                    n["ws"] += 1
                         else:
                             try:
                                 j = json.loads(raw)
                             except ValueError:
                                 j = {}
-                            if j.get("header", {}).get("tr_id") == "PINGPONG":
-                                await ws.send(raw)  # 살아 있다고 답하기
-                            elif j.get("body", {}).get("rt_cd") not in (None, "0"):
-                                print(f"[응답] {j.get('body', {}).get('msg1')}", flush=True)
+                            hd, bd = j.get("header", {}), j.get("body", {})
+                            if hd.get("tr_id") == "PINGPONG":
+                                await ws.send(raw)
+                            elif bd.get("rt_cd") == "0" and "SUBSCRIBE SUCCESS" in str(bd.get("msg1", "")).upper():
+                                state["ws_ok"].add(hd.get("tr_key"))
+                    if settle and time.time() > settle:  # 구독 결과가 다 오면: 받지 못한 종목은 훑기로
+                        settle = 0
+                        state["rest"] = [c for c in state["want"] if c not in state["ws_ok"]]
+                        print(f"[구독 결과] 실시간 {len(state['ws_ok'])}종목 · 1분 훑기 {len(state['rest'])}종목", flush=True)
                     t = time.time()
                     if t - last_flush > 30:
                         book.flush(); last_flush = t
-                        print(f"[{now():%H:%M:%S}] 체결 {n_trades}건 처리, 저장 완료", flush=True)
-                    if t - last_pick > 1800:  # 30분마다 거래대금 상위 다시 고르기
-                        want = top_codes()
-                        out, new = [c for c in subs if c not in want], [c for c in want if c not in subs]
-                        for c in out:
-                            await ws.send(sub_msg(key, c, False)); await asyncio.sleep(0.05)
-                        book.load(new)
-                        for c in new:
-                            await ws.send(sub_msg(key, c)); await asyncio.sleep(0.05)
-                        subs, last_pick = want, t
-                        if out or new:
-                            print(f"[구독 변경] -{len(out)} +{len(new)}", flush=True)
+                        print(f"[{now():%H:%M:%S}] 실시간 {n['ws']}건 · 훑기 {n['rest']}건 처리, 저장", flush=True)
+                    if t - last_pick > 1800:  # 30분마다 거래대금 상위 다시 고르기 → 다시 연결해서 처음부터 구독
+                        print("[구독 다시 고르기]", flush=True)
+                        break
         except Exception as e:
             print(f"[연결 끊김] {e} → 5초 뒤 다시", flush=True)
             book.flush()
             await asyncio.sleep(5)
+    poller.cancel()
     book.flush()
-    print("끝", flush=True)
+    print(f"끝 · 실시간 {n['ws']}건 · 훑기 {n['rest']}건", flush=True)
 
 
 if __name__ == "__main__":
