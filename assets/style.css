@@ -882,3 +882,8 @@ td { border-bottom: 0 !important; }
 .bleg i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
 .bleg i.f { background: var(--line); }
 @media (max-width: 700px) { .bsum { grid-template-columns: repeat(2, 1fr); } .bchart { height: 120px; gap: 2px; } }
+footer p { margin: 0 0 8px; line-height: 1.6; }
+footer b { color: var(--ink-2); }
+footer a { color: var(--accent); }
+.terms h2 { font-size: 16px; margin: 18px 0 8px; } .terms h2:first-child { margin-top: 0; }
+.terms ul { margin: 0; padding-left: 20px; line-height: 1.75; font-size: 14.5px; color: var(--ink-2); }

@@ -10,4 +10,8 @@ window.KM_CONFIG = {
   kakao: true,
   // true = 종목 화면·내 투자에서 한국투자증권 실시간 시세(10초) 사용 (Supabase Edge Function 'kis-quote' 배포 후 켜기)
   realtime: true,
+  // 유료 전환 시: 유사투자자문업 신고번호를 넣으면 화면 맨 아래와 이용 안내에 표시돼요 (예: "제2027-123호")
+  advisorNo: "",
+  // false = 「정리 → 다음 주」의 '주목할 흐름' 코멘트를 숨김 (일정·과거 패턴만 남김)
+  outlook: true,
 };
