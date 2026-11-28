@@ -1,15 +1,17 @@
 name: 주가 데이터 자동 갱신
 
 on:
-  schedule:
-    # GitHub cron 은 UTC 기준(KST-9). 정각·15분 정각은 몰려서 늦어지기 쉬워 몇 분씩 비켜 둠.
-    - cron: "20 23 * * 0-4"          # 08:20 KST  장 전 뉴스
-    - cron: "5,20,35,50 0-5 * * 1-5" # 09:05~14:50 KST  장중 15분마다 시세
-    - cron: "5,20,35 6 * * 1-5"      # 15:05~15:35 KST  장중 15분마다 시세
-    - cron: "2 2 * * 1-5"            # 11:02 KST  10초 브리핑
-    - cron: "47 6 * * 1-5"           # 15:47 KST  장 마감 후 전체 갱신 + 브리핑
-    - cron: "12 11 * * 1-5"          # 20:12 KST  넥스트레이드(NXT) 마감 가격 + 브리핑
-  workflow_dispatch: {}   # Actions 탭에서 'Run workflow' 버튼으로 수동 실행
+  # 정해진 시간 실행은 GitHub 예약(cron)이 몇 시간씩 늦게 돌아서, Supabase(kis-market, 매분)가 제때 이 작업을 불러요.
+  #   08:20 news · 09:05~15:35 15분마다 live · 11:02 brief · 15:47 close · 20:12 nxt  (평일)
+  # Actions 탭 'Run workflow' 버튼으로 수동 실행하면 기본값 full = 전체 갱신 + 브리핑
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "full=전체 / news=장 전 뉴스 / live=시세만 / brief=11시 브리핑 / close=장 마감 / nxt=NXT 마감"
+        required: false
+        default: full
+        type: choice
+        options: [full, news, live, brief, close, nxt]
 
 permissions:
   contents: write
@@ -36,16 +38,17 @@ jobs:
           KIS_APP_KEY: ${{ secrets.KIS_APP_KEY }}
           KIS_APP_SECRET: ${{ secrets.KIS_APP_SECRET }}
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
-          SCHEDULE: ${{ github.event.schedule }}
+          MODE: ${{ inputs.mode || 'full' }}
           PYTHONUNBUFFERED: "1"
         run: |
-          case "$SCHEDULE" in
-            "20 23 * * 0-4") python scripts/update_data.py ;;                                         # 장 전 뉴스
-            "2 2 * * 1-5")   python scripts/live_update.py --brief ;;                                 # 11시 브리핑
-            "47 6 * * 1-5")  python scripts/update_data.py; python scripts/live_update.py --brief ;;  # 장 마감 전체
-            "12 11 * * 1-5") python scripts/live_update.py --nxt --brief ;;                           # NXT 마감
-            "")              python scripts/update_data.py; python scripts/live_update.py --brief ;;  # 수동 실행 = 전체
-            *)               python scripts/live_update.py ;;                                         # 장중 15분 시세
+          echo "실행 종류: $MODE"
+          case "$MODE" in
+            news)  RUN_MODE=news python scripts/update_data.py ;;                                                   # 장 전 뉴스
+            live)  python scripts/live_update.py ;;                                                                 # 장중 15분 시세
+            brief) python scripts/live_update.py --brief ;;                                                         # 11시 브리핑
+            close) RUN_MODE=close python scripts/update_data.py; python scripts/live_update.py --brief ;;            # 장 마감 전체
+            nxt)   python scripts/live_update.py --nxt --brief ;;                                                   # NXT 마감
+            *)     export RUN_MODE=full; python scripts/update_data.py; python scripts/live_update.py --brief ;;    # 수동 실행 = 전체
           esac
       - name: 변경 사항 커밋
         run: |

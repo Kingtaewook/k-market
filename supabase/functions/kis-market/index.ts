@@ -64,22 +64,36 @@ Deno.serve(async (req) => {
     const { data: sec } = await admin.from("app_secret").select("val").eq("id", "cron").maybeSingle();
     if (!sec?.val || req.headers.get("x-cron-key") !== sec.val) return json({ error: "forbidden" }, 403);
 
-    // 2) 일할 시간인지 (한국시간 평일 08:00~20:05)
+    // 2) 한국시간
     const kst = new Date(Date.now() + 9 * 3600_000);
     const day = kst.getUTCDay(), hm = kst.getUTCHours() * 60 + kst.getUTCMinutes();
     const force = new URL(req.url).searchParams.get("force") === "1";
-    if (!force && (day === 0 || day === 6 || hm < 480 || hm > 1205)) return json({ skipped: "장 시간 아님" });
-    // 0) 큰 체결 집계 작업 시작 요청 (GitHub, 오전 08:58 → 12:19 까지 / 12:19 → 15:35 까지). 비밀 값 GH_DISPATCH_TOKEN 필요
-    if (day >= 1 && day <= 5 && (hm === 538 || hm === 739) && Deno.env.get("GH_DISPATCH_TOKEN")) {
-      try {
-        const g = await fetch("https://api.github.com/repos/Kingtaewook/k-market/actions/workflows/big-trades.yml/dispatches", {
-          method: "POST",
-          headers: { authorization: `Bearer ${Deno.env.get("GH_DISPATCH_TOKEN")}`, accept: "application/vnd.github+json", "user-agent": "k-market", "content-type": "application/json" },
-          body: JSON.stringify({ ref: "main", inputs: { until: hm === 538 ? "12:19" : "15:35" } }),
-        });
-        console.log("big-trades dispatch", g.status);
-      } catch (e) { console.log("big-trades dispatch 실패", String(e)); }
+
+    // 0) GitHub 작업을 제시간에 불러주기 (GitHub 자체 예약은 몇 시간씩 늦어서). 비밀 값 GH_DISPATCH_TOKEN 필요. 휴장일은 GitHub 쪽에서 알아서 건너뜀
+    const gh = Deno.env.get("GH_DISPATCH_TOKEN");
+    if (gh && day >= 1 && day <= 5) {
+      const jobs: [string, Record<string, string>][] = [];
+      if (hm === 538) jobs.push(["big-trades.yml", { until: "12:19" }]);   // 08:58 큰 체결 (오전)
+      if (hm === 739) jobs.push(["big-trades.yml", { until: "15:35" }]);   // 12:19 큰 체결 (오후)
+      if (hm === 500) jobs.push(["update-data.yml", { mode: "news" }]);    // 08:20 장 전 뉴스
+      if (hm === 662) jobs.push(["update-data.yml", { mode: "brief" }]);   // 11:02 브리핑
+      else if (hm >= 545 && hm <= 935 && (hm - 545) % 15 === 0) jobs.push(["update-data.yml", { mode: "live" }]);  // 09:05~15:35 15분마다
+      if (hm === 947) jobs.push(["update-data.yml", { mode: "close" }]);   // 15:47 장 마감 전체
+      if (hm === 1212) jobs.push(["update-data.yml", { mode: "nxt" }]);    // 20:12 NXT 마감
+      for (const [wf, inputs] of jobs) {
+        try {
+          const g = await fetch(`https://api.github.com/repos/Kingtaewook/k-market/actions/workflows/${wf}/dispatches`, {
+            method: "POST",
+            headers: { authorization: `Bearer ${gh}`, accept: "application/vnd.github+json", "user-agent": "k-market", "content-type": "application/json" },
+            body: JSON.stringify({ ref: "main", inputs }),
+          });
+          console.log("dispatch", wf, JSON.stringify(inputs), g.status);
+        } catch (e) { console.log("dispatch 실패", wf, String(e)); }
+      }
     }
+
+    // 일할 시간인지 (평일 08:00~20:05)
+    if (!force && (day === 0 || day === 6 || hm < 480 || hm > 1205)) return json({ skipped: "장 시간 아님" });
     const nxt = hm < 540 || hm > 940;
     const market = nxt ? "NX" : "J";
     const date = kst.toISOString().slice(0, 10);
