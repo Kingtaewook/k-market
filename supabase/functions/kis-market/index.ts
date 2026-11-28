@@ -75,6 +75,7 @@ Deno.serve(async (req) => {
       const jobs: [string, Record<string, string>][] = [];
       if (hm === 538) jobs.push(["big-trades.yml", { until: "12:19" }]);   // 08:58 큰 체결 (오전)
       if (hm === 739) jobs.push(["big-trades.yml", { until: "15:35" }]);   // 12:19 큰 체결 (오후)
+      if (hm === 400) jobs.push(["warnings.yml", { force: "no" }]);       // 06:40 시장 경고 종목 (40분 넘게 걸려 따로)
       if (hm === 500) jobs.push(["update-data.yml", { mode: "news" }]);    // 08:20 장 전 뉴스
       if (hm === 662) jobs.push(["update-data.yml", { mode: "brief" }]);   // 11:02 브리핑
       else if (hm >= 545 && hm <= 935 && (hm - 545) % 15 === 0) jobs.push(["update-data.yml", { mode: "live" }]);  // 09:05~15:35 15분마다
