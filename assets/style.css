@@ -861,3 +861,24 @@ td { border-bottom: 0 !important; }
 .big-toast .muted { color: #ffffffcc; font-size: 12.5px; font-weight: 600; }
 @keyframes kmToast { 0% { opacity: 0; transform: translate(-50%, -12px) scale(.96); } 8% { opacity: 1; transform: translate(-50%, 0) scale(1.04); } 14% { transform: translate(-50%, 0) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -8px); } }
 @media (prefers-reduced-motion: reduce) { .flash-up, .flash-down, .flash-big, .big-toast { animation: none; } }
+
+/* 큰 체결 하루 집계 */
+.bsum { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+.bsum > div { background: var(--surface-2); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.bsum span { font-size: 12px; }
+.bsum b { font-size: 17px; font-weight: 800; letter-spacing: -.02em; }
+.bratio { height: 8px; border-radius: 99px; background: var(--down); overflow: hidden; }
+.bratio i { display: block; height: 100%; background: var(--up); }
+.bchart { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; height: 150px; align-items: end; padding-bottom: 18px; position: relative; }
+.bcol { position: relative; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.bstack { position: relative; z-index: 2; width: 70%; min-height: 0; display: flex; flex-direction: column-reverse; border-radius: 6px 6px 2px 2px; overflow: hidden; }
+.bstack i { display: block; min-height: 0; }
+.bstack i.b, .bleg i.b { background: var(--up); }
+.bstack i.s, .bleg i.s { background: var(--down); }
+.bflow { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1; background: var(--surface-2); border-radius: 6px 6px 2px 2px; }
+.bcol.peak .bstack { box-shadow: 0 0 0 2px var(--ink); }
+.blab { position: absolute; bottom: -18px; font-size: 10.5px; color: var(--ink-3); white-space: nowrap; }
+.bleg { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+.bleg i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; }
+.bleg i.f { background: var(--line); }
+@media (max-width: 700px) { .bsum { grid-template-columns: repeat(2, 1fr); } .bchart { height: 120px; gap: 2px; } }

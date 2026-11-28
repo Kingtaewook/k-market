@@ -69,6 +69,17 @@ Deno.serve(async (req) => {
     const day = kst.getUTCDay(), hm = kst.getUTCHours() * 60 + kst.getUTCMinutes();
     const force = new URL(req.url).searchParams.get("force") === "1";
     if (!force && (day === 0 || day === 6 || hm < 480 || hm > 1205)) return json({ skipped: "장 시간 아님" });
+    // 0) 큰 체결 집계 작업 시작 요청 (GitHub, 오전 08:58 → 12:19 까지 / 12:19 → 15:35 까지). 비밀 값 GH_DISPATCH_TOKEN 필요
+    if (day >= 1 && day <= 5 && (hm === 538 || hm === 739) && Deno.env.get("GH_DISPATCH_TOKEN")) {
+      try {
+        const g = await fetch("https://api.github.com/repos/Kingtaewook/k-market/actions/workflows/big-trades.yml/dispatches", {
+          method: "POST",
+          headers: { authorization: `Bearer ${Deno.env.get("GH_DISPATCH_TOKEN")}`, accept: "application/vnd.github+json", "user-agent": "k-market", "content-type": "application/json" },
+          body: JSON.stringify({ ref: "main", inputs: { until: hm === 538 ? "12:19" : "15:35" } }),
+        });
+        console.log("big-trades dispatch", g.status);
+      } catch (e) { console.log("big-trades dispatch 실패", String(e)); }
+    }
     const nxt = hm < 540 || hm > 940;
     const market = nxt ? "NX" : "J";
     const date = kst.toISOString().slice(0, 10);
