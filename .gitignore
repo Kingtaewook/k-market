@@ -1,1 +1,5 @@
 __pycache__/
+
+# 회원 전용 데이터는 Supabase member_data 표에 저장 (공개 저장소에 올리지 않음)
+data/journal.json
+data/review.json

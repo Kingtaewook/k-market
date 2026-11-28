@@ -14,6 +14,7 @@ import datetime as dt
 import html
 import io
 import json
+import os
 import re
 import sys
 import time
@@ -637,7 +638,9 @@ def main():
     prev = load(DATA / "market.json", {"stocks": {}})
     failures = []
     now = dt.datetime.now(KST)
-    morning = now.hour < 12  # 아침 실행: 뉴스만 갱신
+    # 실행 종류: RUN_MODE=news → 장 전 뉴스만 / full → 전체 (수동 실행·장 마감) / 없으면 시간으로 판단
+    mode = os.environ.get("RUN_MODE", "")
+    morning = mode == "news" or (mode == "" and now.hour < 12)
     today = now.date().isoformat()
 
     listing, snap = load_listing()
@@ -841,7 +844,8 @@ def main():
         import review
         k10 = history("KOSPI", days=3700)
         pats = review.pattern_stats(k10)
-        rv = load(DATA / "review.json", {})
+        import member_store
+        rv = member_store.get("review", {})  # 회원 전용 저장소 (읽기 실패하면 아래 except 로 → 덮어쓰지 않음)
         rv["events"] = review.upcoming_events(now.date(), pats)
         rv["patterns"] = pats
         if hist:
@@ -849,9 +853,9 @@ def main():
                 kq = history("KOSDAQ", days=120)
             except Exception:
                 kq = []
-            rv.update(review.build_review(load(DATA / "groups.json", {}), hist, k10, kq, load(DATA / "journal.json", {}), now.date()))
+            rv.update(review.build_review(load(DATA / "groups.json", {}), hist, k10, kq, member_store.get("journal", {}), now.date()))
         rv["updated_at"] = now.isoformat(timespec="minutes")
-        save(DATA / "review.json", rv, compact=True)
+        member_store.put("review", rv)
     except Exception as e:
         failures.append({"code": "*", "step": "돌아보기", "error": str(e)[:200]})
 
@@ -879,7 +883,9 @@ def main():
         m = load(DATA / "market.json", {})
         m["news_updated_at"] = now.isoformat(timespec="minutes")
         save(DATA / "market.json", m)
-    send_alerts(allrows, today, morning)
+    import review as _rv
+    if _rv.is_trading(now.date()):  # 주말·휴장일 수동 실행 때는 알람 보내지 않음
+        send_alerts(allrows, today, morning)
     print(f"완료: 실패 {len(failures)}건")
     for f in failures:
         print("  실패:", f)

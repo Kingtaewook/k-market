@@ -1885,6 +1885,18 @@
   }
   // ---------------- 하루·주간·월간 정리 + 다음 주 흐름 + 일정 (#/brief/탭/날짜)
   let JOURNAL = null, REVIEW = null;
+  // 회원 전용 데이터 (Supabase member_data — 승인된 회원만 읽힘). 로그인 정보가 준비될 때까지 잠깐 기다림
+  async function memberData() {
+    const c = window.KM_CONFIG?.supabase;
+    if (!c?.url) return {};
+    for (let i = 0; i < 25 && !TOKEN; i++) await new Promise((r) => setTimeout(r, 200));
+    if (!TOKEN) return {};
+    try {
+      const r = await fetch(`${c.url}/rest/v1/member_data?id=in.(journal,review)&select=id,data`, { headers: { apikey: c.anonKey, Authorization: `Bearer ${TOKEN}` }, cache: "no-store" });
+      if (!r.ok) return {};
+      return Object.fromEntries((await r.json()).map((x) => [x.id, x.data]));
+    } catch { return {}; }
+  }
   const gname = (kind, no) => (GROUPS?.[kind] || []).find((g) => g.no === no)?.name || `#${no}`;
   const SLOT = { am: "오전장 (11시)", close: "장 마감", nxt: "NXT 마감" };
   function rankTable(title, kind, list, href) {
@@ -2012,7 +2024,7 @@
     else if (page === "alerts") html = USER ? pageAlerts() : gateCard("알람");
     else if (page === "my") html = await pageMy(parts[1]);
     else if (page === "terms") html = pageTerms();
-    else if (page === "brief") { if (!JOURNAL) [JOURNAL, REVIEW] = await Promise.all([getJSON("journal.json"), getJSON("review.json")]); html = pageBrief(parts[1], parts[2]); }
+    else if (page === "brief") { if (!JOURNAL) { const m = await memberData(); if (m.journal || m.review) [JOURNAL, REVIEW] = [m.journal || { days: {} }, m.review || {}]; } html = pageBrief(parts[1], parts[2]); }
     else html = pageHome();
     $app.innerHTML = html;
     wireSearch("home-q"); wireSearch("q"); wireSearch("cq"); wireInstall(); wireGate();

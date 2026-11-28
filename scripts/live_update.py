@@ -21,6 +21,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from update_data import DATA, KST, get, load, num, save, SESSION  # noqa: E402
+import member_store  # noqa: E402
+from review import is_trading  # noqa: E402
 
 KIS = "https://openapi.koreainvestment.com:9443"
 FIELDS = ["close", "chg", "amount"]
@@ -154,19 +156,33 @@ def save_journal(now, slot, label, rows, kospi, brief, keep_days=40):
             "themes": gstat("themes"), "industries": gstat("industries"),
             "gainers": [[c, round(ch, 4)] for c, ch in mv[:10]], "losers": [[c, round(ch, 4)] for c, ch in mv[-10:][::-1]],
             "active": [[c, round(ch, 4), a] for c, ch, a in amt[:10]]}
-    j = load(DATA / "journal.json", {"days": {}})
+    if not is_trading(now.date()):
+        print("장이 열리지 않은 날이라 하루 정리 기록은 건너뜀")
+        return
+    try:  # 회원 전용 저장소 (공개 저장소에는 두지 않음)
+        j = member_store.get("journal", {"days": {}})
+    except member_store.StoreError as e:
+        print(f"하루 정리 기록 건너뜀: {e}")
+        return
     day = now.date().isoformat()
     j.setdefault("days", {}).setdefault(day, {})[slot] = snap
     for d in sorted(j["days"])[:-keep_days]:
         del j["days"][d]
     j["updated_at"] = now.isoformat(timespec="minutes")
-    save(DATA / "journal.json", j, compact=True)
-    print(f"하루 정리 기록: {day} {slot}")
+    try:
+        member_store.put("journal", j)
+        print(f"하루 정리 기록: {day} {slot}")
+    except member_store.StoreError as e:
+        print(f"하루 정리 기록 저장 실패: {e}")
 
 
 def main():
     brief, nxt = "--brief" in sys.argv, "--nxt" in sys.argv
     now = dt.datetime.now(KST)
+    manual = os.environ.get("RUN_MODE") == "full"
+    if not manual and not is_trading(now.date()):
+        print("주말·휴장일 → 시세 갱신 건너뜀 (수동 실행은 그대로 진행)")
+        return
     codes = [r[1] for r in load(DATA / "stocks.json", [])]
     use_kis = bool(os.environ.get("KIS_APP_KEY") and os.environ.get("KIS_APP_SECRET"))
     if nxt and not use_kis:
