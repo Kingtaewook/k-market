@@ -1951,7 +1951,7 @@
       const now = new Date(Date.now() + 9 * 3600000), d0 = now.toISOString().slice(0, 10), d7 = new Date(now.getTime() + 9 * 86400000).toISOString().slice(0, 10);
       const ev = (R.events || []).filter((e) => e.date >= d0 && e.date <= d7);
       body = `<div class="card section"><div class="card-head"><h2>다음 주 주목할 흐름</h2><span class="muted">규칙 기반 자동 정리</span></div>
-          ${(R.outlook || []).map((o) => `<div class="ol"><span class="badge ${o.kind === "과열" || o.kind === "식는 중" ? "warn" : o.kind === "지속" || o.kind === "부상" ? "pos" : ""}">${esc(o.kind)}</span><span>${esc(o.text)}</span></div>`).join("") || `<div class="empty">장 마감 뒤 자동 갱신에서 만들어져요.</div>`}
+          ${(window.KM_CONFIG?.outlook === false ? [] : R.outlook || []).map((o) => `<div class="ol"><span class="badge ${o.kind === "과열" || o.kind === "식는 중" ? "warn" : o.kind === "지속" || o.kind === "부상" ? "pos" : ""}">${esc(o.kind)}</span><span>${esc(o.text)}</span></div>`).join("") || `<div class="empty">장 마감 뒤 자동 갱신에서 만들어져요.</div>`}
           <p class="muted" style="font-size:12px;margin-top:10px">과거 흐름과 일정을 정리한 참고 자료예요. 특정 종목의 매수·매도를 권하지 않아요.</p></div>
         <div class="card section"><div class="card-head"><h2>다음 7일 일정</h2><a class="more" href="#/brief/events">35일 전체 →</a></div>${ev.map((e) => eventCard(e, true)).join("") || `<div class="empty">큰 일정이 없어요.</div>`}</div>`;
     } else {
@@ -1960,6 +1960,28 @@
         <div class="card section"><div class="card-head"><h2>앞으로 35일 일정</h2><span class="muted">눌러서 ① 일정 ② 수급·리밸런싱 ③ 과거 패턴 보기</span></div>${(R.events || []).map((e) => eventCard(e, false)).join("") || `<div class="empty">일정을 불러오는 중이에요.</div>`}</div>`;
     }
     return head + body;
+  }
+  // 이용 안내 (면책·데이터 출처·개인정보) — 유사투자자문업 표시·광고 필수 기재사항 포함
+  function pageTerms() {
+    const no = window.KM_CONFIG?.advisorNo;
+    return `<div class="page-head"><div><h1>이용 안내</h1><p class="lede">K-Market을 쓰기 전에 꼭 읽어 주세요.</p></div></div>
+      <div class="card section terms">
+        <h2>1. 서비스 성격</h2>
+        <ul><li>K-Market은 시세·공시·뉴스를 자동으로 모아 정리해 보여 주는 정보 서비스입니다.</li>
+          <li><b>금융투자업자(증권사·투자자문업자·투자일임업자)가 아니며</b>, 금융감독원의 감독을 받는 금융회사도 아닙니다.${no ? ` 유사투자자문업 신고 ${esc(no)}.` : ""}</li>
+          <li><b>개별적인 투자상담, 1:1 종목 추천, 자금 운용(매매 대행)은 하지 않습니다.</b></li></ul>
+        <h2>2. 투자 위험</h2>
+        <ul><li>제공하는 모든 정보·점수·코멘트는 참고 자료이며 <b>특정 종목의 매수·매도 권유가 아닙니다.</b></li>
+          <li>주식 투자에는 <b>원금 손실 가능성</b>이 있으며, 투자 판단과 그 결과의 책임은 투자자 본인에게 있습니다.</li>
+          <li>K-Market은 <b>수익을 보장하거나 손실을 보전하지 않습니다.</b> 과거 흐름·패턴은 미래 수익을 보장하지 않습니다.</li></ul>
+        <h2>3. 데이터</h2>
+        <ul><li>시세: 한국투자증권 Open API · 공시: DART(금융감독원) · 뉴스: 한국투자증권, 네이버 금융(각 언론사) · 시장경고: 한국투자증권(한국거래소 지정 정보)</li>
+          <li>자동 수집이라 지연·누락·오류가 있을 수 있습니다. 중요한 결정 전에는 증권사·DART 원문을 꼭 확인하세요.</li>
+          <li>기사는 제목과 원문 링크만 보여 줍니다. 저작권은 각 언론사에 있습니다.</li></ul>
+        <h2>4. 회원 정보</h2>
+        <ul><li>가입 시 카카오 계정 정보(이름·이메일 등)와 입력한 정보는 회원 승인·관리와 관심 종목·알림 기능에만 씁니다.</li>
+          <li>승인 대기 상태로 7일이 지나면 자동으로 삭제되며, 탈퇴를 원하면 관리자에게 알려 주세요.</li></ul>
+      </div>`;
   }
   async function route() {
     const parts = (location.hash || "#/").slice(2).split("/").map(decodeURIComponent);
@@ -1989,6 +2011,7 @@
     else if (page === "admin") html = await pageAdmin();
     else if (page === "alerts") html = USER ? pageAlerts() : gateCard("알람");
     else if (page === "my") html = await pageMy(parts[1]);
+    else if (page === "terms") html = pageTerms();
     else if (page === "brief") { if (!JOURNAL) [JOURNAL, REVIEW] = await Promise.all([getJSON("journal.json"), getJSON("review.json")]); html = pageBrief(parts[1], parts[2]); }
     else html = pageHome();
     $app.innerHTML = html;
@@ -2051,6 +2074,7 @@
     applyLive(live);
     if (live?.idx) { IDX = live.idx; IDX_AT = live.updated_at; }
     document.title = CFG.site_title || document.title;
+    if (window.KM_CONFIG?.advisorNo) { const el = document.getElementById("advisor-no"); if (el) el.textContent = ` 유사투자자문업 신고 ${window.KM_CONFIG.advisorNo}.`; }
     renderStatus();
     const invited = /type=invite/.test(location.hash);
     if (sbReady()) {
@@ -2112,9 +2136,12 @@
     return true;
   }
   function afterLive() { renderStatus(); if (safeToRerender()) rerender(); else renderDock(); }
+  // 전 종목 시세(가장 큰 묶음)는 그 숫자를 쓰는 화면에서만 받음 → Supabase 전송량 절약
+  const ROWS_PAGES = new Set(["home", "market", "themes", "sectors", "brief", "my"]);
   async function pullServer(flash = true) {
     const c = window.KM_CONFIG?.supabase;
     if (!c?.url) return;
+    if (flash && !ROWS_PAGES.has((location.hash.replace(/^#\/?/, "") || "home").split("/")[0])) return;
     try {
       const q = SERVER_TS ? `&updated_at=gt.${encodeURIComponent(SERVER_TS)}` : "";
       const r = await fetch(`${c.url}/rest/v1/live_cache?id=eq.1&select=data,updated_at${q}`, { headers: { apikey: c.anonKey }, cache: "no-store" });
@@ -2159,7 +2186,7 @@
     }, 300000);
     pullServer(false).then(pullTick);
     setInterval(() => { if (document.visibilityState === "visible") pullServer().then(pullTick); }, 60000);
-    window.addEventListener("hashchange", () => { const p = (location.hash.replace(/^#\/?/, "") || "home").split("/")[0]; if ((p === "home" || p === "market") && !SERIES) pullTick(); });
+    window.addEventListener("hashchange", () => { const p = (location.hash.replace(/^#\/?/, "") || "home").split("/")[0]; if (ROWS_PAGES.has(p)) pullServer(); if ((p === "home" || p === "market") && !SERIES) pullTick(); });
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { pullServer().then(pullTick); setTimeout(realtimeTick, 500); } });
     window.addEventListener("resize", () => { clearTimeout(window.__kmRs); window.__kmRs = setTimeout(renderDock, 200); });
     renderDock();
